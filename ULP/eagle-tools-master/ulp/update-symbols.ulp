@@ -1,0 +1,51 @@
+string symbolNames[];
+string symbolXML[];
+int nSymbols = 0;
+
+string oldCodec = cfgget("EAGLE:Option.Codec");
+cfgset("EAGLE:Option.Codec", "UTF-8");
+
+library(L) {
+	string content = "";
+	int l = fileread(content, L.name);
+	string searchPattern2 = "</symbol>";
+	L.symbols(S) {
+		string searchPattern = "";
+		sprintf(searchPattern, "<symbol name=\"%s\">", S.name);
+		int pos1 = strxstr(content, searchPattern, 0);
+		if (pos1>=0) {
+			int length = 0;
+			int pos2 = strxstr(content, searchPattern2, pos1, length);
+			symbolNames[nSymbols] = S.name;
+			symbolXML[nSymbols] = strsub(content, pos1, pos2-pos1+length);
+			nSymbols++;
+		}
+	}
+}
+
+
+for (int i = 0; used_libraries[i] != ""; i++) {
+	string content = "";
+	fileread(content, used_libraries[i]);
+	for (int k = 0; k<nSymbols; k++) {
+		string searchPattern;
+		string searchPattern2 = "</symbol>";
+		sprintf(searchPattern, "<symbol name=\"%s\">", symbolNames[k]);
+		int pos1 = strxstr(content, searchPattern);
+		if (pos1 >= 0) {
+			int length = 0;
+			int pos2 = strxstr(content, searchPattern2, pos1, length);
+			string teststr = strsub(content, pos1, pos2-pos1+length);
+			if (teststr!=symbolXML[k]) {
+				output(used_libraries[i],"wtF") {
+					string pre = strsub(content, 0, pos1);
+					string post = strsub(content, pos2+length);
+					content = pre+symbolXML[k]+post;
+					printf("%s",content);
+				}
+			}
+		}
+	}
+}
+cfgset("EAGLE:Option.Codec", oldCodec);
+

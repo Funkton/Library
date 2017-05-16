@@ -1,0 +1,71 @@
+#usage "<b>Edit previous device, symbol, or package in library</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+string cmd = "";
+string dev[];
+string sym[];
+string pac[];
+string edit = "";
+int    scount = 0;
+int    dcount = 0;
+int    pcount = 0;
+int    n = 0;
+
+if (library) library(L) {
+  L.devicesets(D) {
+    dcount++;
+    dev[dcount] = D.name;
+    }
+  L.symbols(S) {
+    scount++;
+    sym[scount] = S.name;
+    }
+  L.packages(P) {
+    pcount++;
+    pac[pcount] = P.name;
+    }
+
+   if (deviceset) deviceset(D) {
+      edit = D.name;
+      for (n = 1; n < dcount; n++) {
+         if (edit == dev[n]) {
+            break;
+            }
+         }
+      if (n > 0) {
+         cmd += "EDIT " + dev[n - 1] + ".dev;\n" ;
+         }
+      else exit (0);
+      }
+
+   if (symbol) symbol(S) {
+      edit = S.name;
+      for (n = 1; n < scount; n++) {
+         if (edit == sym[n]) {
+            break;
+            }
+         }
+      if (n > 0) {
+         cmd += "EDIT " + sym[n - 1] + ".sym;\n" ;
+         }
+      else exit (0);
+      }
+
+   if (package) package(P) {
+      for (n = 1; n < pcount; n++) {
+      edit = P.name;
+         if (edit == pac[n]) {
+            break;
+            }
+         }
+
+      if (n > 0) {
+         cmd += "EDIT " + pac[n - 1] + ".pac;\n" ;
+         }
+      else exit (0);
+      }
+  exit(cmd);
+  }

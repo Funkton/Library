@@ -1,0 +1,146 @@
+/*
+//////////////////////////////////////////////////////////////////////////////
+  This Eagle ulp uses the nets and elements selected with 'Group' command from the 
+  schematic editor to isolate airwires and visually highlight the entire group in the board editor.
+  This is achieved using RATSNEST and SHOW commands.
+  All airwires are hidden, then all nets (except ignored) are added to ratsnest command.
+  Then SHOW command has all nets and parts (except parts with ignored value, supply etc.) added before full command execution.
+
+ REVISION HISTORY:
+ Rev 1.0 	Original ULP (show-airwires.ulp) from peter@seng.de
+
+ Rev 1.1- May 2017 by Cameron Nicks, Phase IV Engineering, cnicks@phaseivengr.com
+		- Changed added SHOW to highlight all nets and elements in group after ratsnesting.
+		- Net ignore. (Needs the ability to add more than one)
+		- Value ignore. Ignores parts with value: SUP (Supply.lbr parts all have this)
+	
+ Rev 1.2-
+		TO-DO: Add ability to launch from Board. (No need for ratsnest, only show parts and nets)
+
+//////////////////////////////////////////////////////////////////////////////
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+
+//////////////////////////////////////////////////////////////////////////////*/
+
+
+#usage "<b>Show nets and parts in schematic group, visually highlights and isolates airwires in board editor.</b><p>"
+	"1) ASSIGN this ulp to a shortcut. Modify ignore settings (ignores GND net and parts with SUP value)<br>"
+	"2) Define group in schematic<br>"
+	"3) Run SHOW-SCH-GROUP from console, shortcut, or run dialog.<br>"
+	"4) Set all supply symbols to have value of SUP to stop warnings for supply parts. <p>"
+	"<i>How it works.</i><br>"
+	"First it switches to the board editor, then hides all airwires with 'RATS ! *'.<br>"
+	"It then adds all the net names in the group to Ratsnest command.<br>"
+	"After Ratsnest, all of the parts and nets in the group (except for ingnored) are added to  'SHOW' command.<p>"
+	"Use 'RATS *' at the command line in board to show all airwires.<br>"
+	"Use 'RATS ! *' at the command line in board to show no airwires.<p>"
+	"<i>TO-DO:<br> -Add Board group to Schematic. (only SHOW parts and nets in brd group)</i><br>"
+	"- Automatic ignore for any schematic device without package.<p>"
+	"<author>Rev 1.1: Cameron Nicks, Phase IV Engingeering cnicks@phaseivengr.com</author><br>"
+	"<author>Based on show-airwires by peter@seng.de</author>"
+	
+
+string cmd;
+string netList;
+string partList;
+string Revision = "1.1";
+string ignoreNet = "GND";
+string ignoreVal = "SUP";
+string toSch = "edit .sch; group;"; // Remove group if you do not want the tool to change automatically
+
+if (schematic){
+
+	int cntN = 0;
+	int cntP = 0; 
+//	output("SHOW-SCH-GROUP.txt", "wt"){ //Debug: Uncomment this line, closing bracket, and at least one printf. Text file located in project directory.
+
+	schematic(S) 
+	{	
+		cmd = "edit .brd; RATS ! *; RATS "; // create command string 
+		S.sheets(SH) // work-around for bug in EAGLE 5/6 --> must use sheet context, see http://www.element14.com/community/thread/16119
+		  SH.nets(N){
+			if (ingroup(N)){
+				if (N.name != ignoreNet){
+					netList += N.name + " "; // add netname to netList string
+					++cntN;
+//						printf("%s\n", cmd) // Debug (uncomment output {} section)
+				}
+			}
+		}
+		//-------------------------- END NETS -----------------------//
+			
+		S.parts(P){
+			P.instances(I){
+				if (ingroup(I) && (I.value != ignoreVal)) {
+				partList += P.name + " "; // add partname to partList string
+				++cntP;
+		}
+	 }
+  }
+	}
+		
+//		printf("%s\n", cmd); // Debug (uncomment output {} section)
+	
+/*
+// --------------------------- START PARTS ---------------------//
+	schematic(M){ // Notes: This section adds the parts in the group to the list. Changed to the section above. Is there any benefit of using schematic(M)? Modules maybe?	
+		M.sheets(SH)
+		if (ingroup(SH))
+		{
+			SH.instances(I)
+				if (ingroup(I) && (I.value != "GND") && (I.value != "SUP")) 
+				{
+					partList += I.name + " "; // add partname to partList string
+					++cntP;
+//						printf("%s\n", cmd); // Debug (uncomment output {} section)
+				}
+		}
+	}
+//-------------------------- END PARTS -----------------------// 
+*/
+		
+		
+//-------------------- Build Command String ------------------
+		cmd += netList;		// add only nets to ratsnest command
+		cmd += "; SHOW ";	// add show command to command string
+		cmd += netList;		// add nets to show command
+		cmd += partList;	// add parts to show command
+		
+//		printf("%s\n", cmd);
+
+//	} // Debug closing bracket for output.
+
+	if ((!cntN) && (!cntP))
+	{
+		dlgMessageBox("Define group in schematic first, no nets or parts selected", "OK");
+		exit(0);
+	}
+	exit(cmd);
+
+}
+else
+{
+	
+	dlgMessageBox("ULP must be run from schematic", "OK"); //Comment this line if you want to automatically switch to schematic editor 
+	exit(toSch);
+}
+

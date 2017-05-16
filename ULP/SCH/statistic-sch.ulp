@@ -1,0 +1,770 @@
+#usage "<qt><b>Statistic Table of Parts in the Schematic</b><p>\n"
+       "To change the units in the table, please use the variable uval,\n"
+       "which can be found in the ulp file.<p>\n"
+       "THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, "
+       "EXPRESSED OR IMPLIED.<p>\n"
+       "<author>Author: alf@cadsoft.de</author></qt>"
+
+#require 4.1106
+
+
+string Version = "1.0.2";
+
+int    uval = 1;
+string unit[] = { "Micron", "mm", "Mil", "Inch" };
+int    unitPrec[] = { 0, 1, 1, 3 }, RoundFactor = pow(10, unitPrec[uval]);
+
+int    maxX = INT_MIN;
+int    minX = INT_MAX;
+int    maxY = INT_MIN;
+int    minY = INT_MAX;
+
+string wireWidthInternal = " * Wire width are saved in 0.2 micron!\n";
+// ******************************************************************
+// *** WIRE WIDTH wird nur geradzahlig gespeichert, wegen Teilung *** az
+// ******************************************************************
+
+
+int    cntLayer = 0;
+string usedLayer;
+int    cntalllay;
+string allLayers[];
+string layerError;
+string displayLayerError;
+
+string NetClassName[];
+int    NetClassWidth[];
+int    NetClassClear[];
+int    NetClassDrill[];
+int    NetClassNr[];
+int    cNetClass[];
+int    minClearance = 0;
+
+int    sumNets = 0;
+string NetName[];
+int    NetClass[];
+string NetClassList[];
+int    NetClassSelect = 0;
+int    NetCnt = 0;
+
+string falseNetList[];
+string falseNetSheet[];
+int    falseNetCnt;
+
+numeric string statisticWirew[];
+numeric string statisticCLASS[];
+numeric string statisticFalseNets[];
+numeric string statisticLBR[];
+numeric string statisticPAC[];
+numeric string statisticDevice[];
+numeric string statisticVariant[];
+
+
+
+
+string onlyNetList[];  // only signal if connected to pad or smd is a true signal 2005.12.08 alf@cadsoft.de
+int    onlyNetCnt = 0;
+
+int    cnt_Pin_on_net = 0;
+
+
+
+string Lbr[];
+int    cLbr[];
+int    cntLbr = 0;
+
+string PacName[];
+int    cPacName[];
+int    cntPacName = 0;
+
+string Device[];
+int    cDevice[];
+int    cntDevice = 0;
+
+string VDevice[];
+string Value[];
+string Variant[];
+string VPart[];     // Partname of same Value
+int    cVariant[];
+int    cntVariant = 0;
+int    cntNewLine[];
+
+
+numeric string nPart[] = { "PART" };
+int     cntnPart;
+
+numeric string InstanceGate[];
+int     cntGate;
+numeric string nGate[];
+int     cntnGate;
+
+string Symbol[];
+int    cSymbol[];
+int    cntSymbol = 0;
+
+
+// --- same Value and Package and Layer --- 2005.12.01 alf@cadsoft.de
+int    cntEVPL = 0;
+string EVALpac[];
+string EvalPAC[];
+int    cEVPL[];
+
+
+int    emptyValue = 0;
+string empty = "~/-empty-/~";
+
+int    cntPart = 0;
+string Ename[];
+
+int    art_selected = 0;
+int    LBRselected;
+int    PACselected;
+int    DEVselected;
+int    VARselected;
+int    VALselected;
+int    NPselect;
+
+string Part_info = " \n \n \n";
+string linfo = "<nobr><font color=darkgreen>&nbsp;Double click in listings for detailed info.</font></nobr>";
+string Val_info = "<nobr><font color=darkgreen>&nbsp;Double click in listings for detailed info.</font></nobr>";
+
+string sum;
+int    sumSignals = 0;
+
+string used_pac[], used_pac_lbr[];
+int    cntusedpac = 0;
+string unused_pac[], unused_pac_lbr[];
+int    cntunusedpac = 0;
+
+string Text;
+
+string ulp_path = filedir(argv[0]);
+
+
+string schfile;
+
+
+// Functions
+
+real u2u(int v) {
+  switch (uval) {
+    case GRID_UNIT_MIC  : return u2mic(v);
+      break;
+
+    case GRID_UNIT_MM	: return u2mm(v);
+      break;
+
+    case GRID_UNIT_MIL  : return u2mil(v);
+      break;
+
+    case GRID_UNIT_INCH : return u2inch(v);
+      break;
+  }
+}
+
+
+string value(int v, string is) {
+  if (v == INT_MAX) return "<i>not used</i> " + is;
+  string sv;
+  switch (uval) {
+    case GRID_UNIT_INCH : sprintf(sv, "%.6f %s", u2inch(v), is);
+                          break;
+
+    case GRID_UNIT_MIL  : sprintf(sv, "%.3f %s", u2mil(v), is);
+                          break;
+
+    case GRID_UNIT_MM   : sprintf(sv, "%.4f %s", u2mm(v), is);
+                          break;
+
+    case GRID_UNIT_MIC  : sprintf(sv, "%.1f %s", u2mic(v), is);
+                          break;
+  }
+  return sv;
+}
+
+
+
+
+string saveReport(void) {
+  int t = time();
+  int n;
+  string report = "Data Expoted from: ";
+  report +=  schfile + "\n";
+  report += "with: " + argv[0] + "\n";
+  report += "at: " + t2string(t) + "\n";
+  report += EAGLE_SIGNATURE + "\n\n";
+  report += usedLayer + "_________________________\n\n";
+  report += layerError;
+  report += "\n";
+  report += sum + "\n";
+  report += "\n============================\n";   n=0;
+
+  report += "\n----------------------------\nLAYER\n";   n=0;
+  sort(cntalllay, allLayers);
+  report += "Nb.\tName\tUsed\n";
+  for (n = 0; n < cntalllay; n++) {
+    report+= allLayers[n] + "\n";
+  }
+  report += "\n----------------------------\nCLASS\n";   n=0;
+  while (statisticCLASS[n]) {
+     report += statisticCLASS[n] + "\n";
+     n++;
+  }
+  report += "\n";   n=0;
+  report += "\n----------------------------\n";   n=0;
+  while (statisticLBR[n]) {
+    report += statisticLBR[n] + "\n";
+    n++;
+  }
+  report += "\n";   n=0;
+  while (statisticPAC[n]) {
+    report += statisticPAC[n] + "\n";
+    n++;
+  }
+  report += "\n"; n=0;
+  while (statisticDevice[n]) {
+    report += statisticDevice[n] + "\n";
+    n++;
+  }
+
+  report += "\n";   n=0;
+  report += "\n----------------------------\n";   n=0;
+  report += "\n";
+  report += "End report";
+  return report;
+}
+
+
+string NetClassLabel(string ClassName , int cnt) {
+  string s;
+  sprintf(s, "CLASS %s : %d Netze", ClassName , cnt);
+  return s;
+}
+
+
+string isempty(string s) {
+  if (!s) s = empty;
+  return s;
+}
+
+
+void infoLBR( string lbr) {
+  linfo = "<nobr>&nbsp;Part : Device : Value : Package </nobr>";
+  string s, M;
+  schematic(S) {
+    S.parts(P) {
+      if (P.device.library == lbr) {
+        if (P.device.package) {
+          sprintf(s, "%s \t: %s\t: %s\t: %s\n", P.name, P.device.name, isempty(P.value), P.device.package.name);
+          Part_info += s;
+        }
+        else {
+          Part_info += P.name + "\t - \tDevice has no Package\n";
+        }
+      }
+    }
+  }
+  return;
+}
+
+
+void infoPAC( string pac) {
+  linfo = "<nobr>&nbsp;Part : Device : Value : Library </nobr>";
+  string s, M;
+  int getdrill = 0;
+  schematic(S) S.parts(P) {
+    if (P.device.package) {
+      if (P.device.package.name == pac) {
+        sprintf(s, "%s \t: %s\t: %s\t:%s\n", P.name, P.device.name, isempty(P.value), P.device.package.library);
+        Part_info += s;
+      }
+    }
+  }
+  return;
+}
+
+
+void infoDEV( string dev) {
+  string s;
+  linfo = "<nobr>&nbsp;Part : Value : Package : Library </nobr>";
+  schematic(S) S.parts(P) if (P.device.name == dev) {
+    if (P.device.package) {
+      sprintf(s, "%s\t: %s\t: %s\t: %s\n", P.name, isempty(P.value), P.device.package.name, P.device.package.library);
+      Part_info += s;
+    }
+  }
+  return;
+}
+
+
+void get_Info(int art, string val) {
+  Part_info = "";
+  int pos = strchr(val, '\t', 0);
+  val = strsub(val, 0, pos);
+  switch(art) {
+    case 1  : infoLBR(val);
+              break;
+
+    case 2  : infoPAC(val);
+              break;
+
+    case 3  : infoDEV(val);
+              break;
+
+    default : break;
+  }
+  return;
+}
+
+
+string checkNet(string Net) {
+  string Sheetn = "";
+  string separator = "";
+  schematic(SCH) {
+    SCH.sheets(SH) {
+      SH.nets(N) {
+        if (Net == N.name) {
+          string s;
+          sprintf(s, "%d,", SH.number);
+          Sheetn += s;
+          separator = ",";
+          break;
+        }
+      }
+    }
+  }
+  if (!Sheetn) Sheetn = "Layer 0 ?";
+  return Sheetn;
+}
+
+
+// main
+if (schematic) {
+  int n;
+  schematic(SCH) {
+    schfile = SCH.name;
+    string usedLayers;
+    status(" Layers");
+    SCH.layers(L) {
+      string sl;
+      sprintf(sl, "%3d\t%s\t%d", L.number, L.name, L.used);
+      allLayers[cntalllay] = sl;
+      cntalllay++;
+      if (L.used && L.number >=90 && L.number <= 99) {
+        cntLayer++;
+        sprintf(sl, "%2d %s\n", L.number, L.name);
+        usedLayers += sl;
+      }
+    }
+    sprintf(usedLayer, "used layers %d\n\n%s", cntLayer, usedLayers);
+
+    SCH.classes(CL) {
+      // Net classes ********************
+      NetClassNr[CL.number] = CL.number;
+      NetClassName[CL.number] = CL.name;
+      NetClassWidth[CL.number] = CL.width;
+      NetClassClear[CL.number] = CL.clearance;
+      NetClassDrill[CL.number] = CL.drill;
+      cNetClass[CL.number] = 0;
+    }
+    SCH.nets(N) {
+      status(" Nets "+N.name);
+      int true = 0;      // only signal if connected to pad or smd is a true signal 2005.12.08 alf@cadsoft.de
+      N.pinrefs(PR) {
+        true = 1;
+        break;
+      }
+      if (true) {
+        cNetClass[N.class.number]++;
+        sumNets++;
+        NetName[NetCnt]  = N.name;
+        NetClass[NetCnt] = N.class.number;
+        NetCnt++;
+        NetClassList[N.class.number] += N.name + "\n";
+      }
+      else {
+       falseNetList[falseNetCnt] = N.name;  // only signal if connected to pad or smd is a true signal
+       falseNetSheet[falseNetCnt] = checkNet(N.name);
+       falseNetCnt++;
+      }
+    }
+
+    SCH.parts(P) {
+      P.instances(I) {
+        status(" Instance "+I.name);
+        if (!I.sheet) {
+          sprintf(nGate[cntnGate], "%s\t%s\t%s\t%s", P.name, I.gate.name, P.value, P.device.library);
+          cntnGate++;
+        }
+        else {
+          sprintf(InstanceGate[cntGate], "%s\t%s\t%d\t%s", P.name, I.gate.name, I.sheet, P.device.library);
+          cntGate++;
+        }
+      }
+
+      // Part Libraries *********
+      for (n = 0; n <= cntLbr; n++) {
+        if (Lbr[n] == P.device.library) {
+          cLbr[n]++;
+          break;
+        }
+      }
+      if (n > cntLbr) {
+        cntLbr++;
+        Lbr[cntLbr] = P.device.library;
+        cLbr[cntLbr]++;
+      }
+
+      // Part Package *********
+      if (P.device.package) { // nur Parts mit Package sonst Symbol wie Frame/Supply etc.
+        status(" Package "+P.name);
+
+        for (n = 0; n <= cntPacName; n++) {
+          if (PacName[n] == P.device.package.name) {
+            cPacName[n]++;
+            break;
+          }
+        }
+        if (n > cntPacName) {
+          cntPacName++;
+          PacName[cntPacName] = P.device.package.name;
+          cPacName[cntPacName]++;
+        }
+
+        for (n = 0; n <= cntDevice; n++ ) {
+          if (Device[n] == P.device.name) {
+            cDevice[n]++;
+            break;
+          };
+        }
+        if (n > cntDevice) {
+          cntDevice++;
+          Device[n] = P.device.name;
+          cDevice[cntDevice]++;
+        }
+
+        // Value & Variant  2006.03.16 alf
+        string Pval = P.value;
+        if (!Pval) Pval = empty;
+        cntnPart++;
+        nPart[cntnPart] = P.name;
+        for (n = 0; n <= cntVariant; n++) {
+          if (VDevice[n] == P.device.package.name && Value[n] == Pval && Variant[n] == P.device.name) {
+            VPart[n] += ";";
+            cVariant[n]++;
+            cntNewLine[n]++;
+            if (cntNewLine[n] == 29) {
+              cntNewLine[n] = 0;
+              VPart[n] += "\n";
+            }
+            VPart[n] += P.name;
+            break;
+          }
+        }
+        if (n > cntVariant) {
+          cntVariant++;
+          VDevice[cntVariant] = P.device.package.name;
+          Value[cntVariant]   = Pval;
+          Variant[cntVariant] = P.device.name;
+          VPart[n] += P.name;
+          cVariant[cntVariant]++;
+        }
+      }
+      else {
+        for (n = 0; n <= cntSymbol; n++ ) {
+          if (Symbol[n] == P.device.name) {
+            cSymbol[n]++;
+            break;
+          };
+        }
+        if (n > cntSymbol) {
+          cntSymbol++;
+          Symbol[n] = P.device.name;
+          cSymbol[cntSymbol]++;
+        }
+      }
+
+
+      // Part Value ********* 2005.12.01 alf@cadsoft.de
+      //  ----- List by Value/Package/Layer -----------
+      string Pv = P.value;
+      if (Pv == "") {
+        Pv = empty + P.name;
+        emptyValue++;
+      }
+      for (n = 0; n <= cntEVPL; n++) {
+        if (P.device.package) {
+          if (EVALpac[n] == Pv && EvalPAC[n] == P.device.package.name ) {
+            cEVPL[n]++;
+            break;
+          }
+        }
+      }
+      if (n > cntEVPL) {
+        cntEVPL++;
+        EVALpac[cntEVPL] = Pv;
+        if (P.device.package) {
+          EvalPAC[cntEVPL] = P.device.package.name;
+        }
+        else {
+          EvalPAC[cntEVPL] = "-- only Symbol --";
+        }
+        cEVPL[cntEVPL]++;
+      }
+    }
+    SCH.libraries(L) {  // 2006.05.09 check unused packages
+      L.devicesets(DS) {
+        status(" Devicesets "+DS.name);
+        DS.devices(D) {
+          if (D.package) {
+            int n;
+            for (n = 0; n <= cntPacName; n++) {
+              if (D.package.name == PacName[n]) {
+                used_pac[cntusedpac] = D.package.name + "\t" + DS.name + L.name;
+                cntusedpac++;
+                break;
+              }
+            }
+            if (n > cntPacName) {
+              unused_pac[cntunusedpac] = D.package.name + "\t" + DS.name + L.name;
+              cntunusedpac++;
+            }
+          }
+          else {
+            ; // only Symbol (Supply)
+          }
+        }
+      }
+    }
+  }
+
+  status(" Generate listings");
+  int x = 0;
+  // Statistic tabels
+  // Net Class ********************  // 2014-11-27  supports 16 netclasses now -ric
+  statisticCLASS[x] = "# - Name\tmin. Width\tClearance\tmin. Drill\tUsed";
+  for (n = 0; n <= 15; n++) {
+    if (NetClassName[n]) {
+      if(minClearance > NetClassClear[n]) minClearance = NetClassClear[n];
+      x++;
+      sprintf(statisticCLASS[x], "%1d - %s\t%s\t%s\t%s\t%-4d",
+                    NetClassNr[n],
+                    NetClassName[n],
+                    value(NetClassWidth[n], ""),
+                    value(NetClassClear[n], ""),
+                    value(NetClassDrill[n], ""),
+                    cNetClass[n]
+             );
+    }
+  }
+
+
+  x = 0;
+  // flase Signals ******************** 2005.12.08 alf@cadsoft.de
+  statisticFalseNets[x] = "Net-Name\tSheet";
+  for (n = 0; n < falseNetCnt; n++) {
+    x++;
+    sprintf( statisticFalseNets[x], "%s\t%s",
+                      falseNetList[n],  // only net if connected to pin is a true Net
+                      falseNetSheet[n]
+           );
+  }
+
+
+  x = 0;
+  statisticLBR[x] = "LIBRARY\tQuant.";
+  for ( n = 0; n <= cntLbr; n++) {
+    if (cLbr[n]) {
+      x++;
+      sprintf(statisticLBR[x], "%s\t%-4d",  Lbr[n], cLbr[n] );
+    }
+  }
+
+  x = 0;
+  statisticPAC[x] = "PACKAGE\tQuant.";
+  for ( n = 0; n <= cntPacName; n++) {
+    if (cPacName[n]) {
+      x++;
+      sprintf(statisticPAC[x], "%s\t%-4d",  PacName[n], cPacName[n] );
+    }
+  }
+
+  x = 0;
+  statisticDevice[x] = "DEVICE\tQuant.";
+  for ( n = 0; n <= cntDevice; n++) {
+    if (cDevice[n]) {
+      x++;
+      sprintf(statisticDevice[x], "%s\t%-4d",  Device[n], cDevice[n] );
+    }
+  }
+  x = 0;
+  statisticVariant[0] = "VALUE\tDEVICE\tVARIANT\tQuant.";
+  for ( n = 0; n <= cntVariant; n++) {
+    if (cDevice[n]) {
+      x++;
+      sprintf(statisticVariant[x], "%s\t%s\t%s\t%-4d",  Value[n], VDevice[n], Variant[n], cVariant[n] );
+    }
+  }
+
+
+  int Selected = 0;
+  // *********************************************************************
+  dlgDialog("Statistic of " + schfile) {
+    dlgHBoxLayout {
+      dlgTabWidget {  // *** schematic ***
+        dlgTabPage("&SCHEMATIC") {
+          dlgHBoxLayout {
+            dlgSpacing(10);
+            dlgVBoxLayout {
+              dlgSpacing(10);
+              dlgLabel("<hr>");
+              dlgLabel(usedLayer);
+              dlgLabel(displayLayerError);
+              dlgStretch(1);
+            }
+          }
+          dlgStretch(1);
+        }
+
+        dlgTabPage("&LAYER") {   // *** all Layer are defined ***
+          int layselect = 0;
+          dlgHBoxLayout {
+            dlgListView("Nb.:\tName\tUsed", allLayers, layselect ); // 2005.11.17 alf@cadsoft.de
+            dlgStretch(1);
+          }
+        }
+
+        dlgTabPage("&CLASS (Signal)") {   // *** Class clearance/isolate ***
+          string classlabel = "Class : " + NetClassName[0];
+          string ClassNameL = NetClassLabel(NetClassName[NetClassSelect] , cNetClass[NetClassSelect]);
+          string NetList = NetClassList[NetClassSelect];
+          dlgHBoxLayout {
+            dlgVBoxLayout {
+              dlgListView("", statisticCLASS, NetClassSelect) { NetList = NetClassList[NetClassSelect-1]; classlabel = "Class : " + NetClassName[NetClassSelect-1]; }
+              dlgSpacing(12);
+              dlgLabel("False Nets (not connected on a PIN)");
+              dlgListView("", statisticFalseNets, NetClassSelect);
+            }
+            dlgSpacing(12);
+            dlgGroup("Netlist") {
+              dlgLabel(classlabel, 1);
+              dlgHBoxLayout {
+                dlgSpacing(4);
+                dlgTextView(NetList);
+              }
+            }
+            dlgStretch(1);
+          }
+        }
+
+        dlgTabPage("&Device") {   // *** Device ***
+          dlgHBoxLayout {
+            dlgVBoxLayout {
+              dlgHBoxLayout {
+                dlgListView("", statisticLBR, LBRselected) {
+                  art_selected = 1;
+                  get_Info(art_selected, statisticLBR[LBRselected]);
+                  dlgRedisplay();
+                }
+                dlgListView("", statisticPAC, PACselected) {
+                  art_selected = 2;
+                  get_Info(art_selected, statisticPAC[PACselected]);
+                  dlgRedisplay();
+                }
+                dlgListView("", statisticDevice, DEVselected) {
+                  art_selected = 3;
+                  get_Info(art_selected, statisticDevice[DEVselected]);
+                  dlgRedisplay();
+                }
+              }
+            }
+            dlgVBoxLayout {
+              dlgHBoxLayout { dlgLabel(linfo ,1); dlgSpacing(200); }
+              dlgSpacing(10);
+              dlgTextView(Part_info);
+            }
+          }
+        }
+
+        dlgTabPage("&Part") {   // *** Part ***
+          int Gselect;
+          dlgHBoxLayout {
+            dlgVBoxLayout {
+              dlgLabel(" ");
+              dlgListView(" Part\tGate\tSheet\tLibrary", InstanceGate, Gselect);
+            }
+            dlgSpacing(19);
+            dlgVBoxLayout {
+              dlgLabel("<nobr><font color=\"red\">&nbsp;No placed Gates </font></nobr>");
+              dlgListView(" Part\tGate\tValue\tLibrary", nGate, Gselect);
+            }
+            dlgStretch(1);
+          }
+        }
+
+        dlgTabPage("&Value") {   // *** Value ***
+          dlgHBoxLayout {
+            dlgVBoxLayout {
+              dlgHBoxLayout {
+                dlgListView("", statisticVariant, VALselected) {
+                  art_selected = 3;
+                  Val_info = VPart[VALselected];
+                  dlgRedisplay();
+                }
+                dlgStretch(1);
+              }
+            }
+          }
+          dlgSpacing(8);
+          dlgHBoxLayout {
+            dlgSpacing(8);
+            dlgLabel(Val_info, 1);
+          }
+          dlgSpacing(8);
+        }
+
+        dlgTabPage("P&ackage") {   // *** Unused Packages ***
+          int unusedselected, usedselected;
+          int lsort = 0;
+          dlgHBoxLayout {
+            dlgVBoxLayout {
+              dlgHBoxLayout {
+                dlgListView("Used Package-Variant\tLibrary", used_pac, usedselected, lsort);
+                dlgListView("Unused Package-Variant\tLibrary", unused_pac, unusedselected, lsort);
+                dlgStretch(1);
+              }
+            }
+          }
+        }
+
+      }
+    }
+
+    dlgHBoxLayout {
+      dlgPushButton("-&Quit") dlgAccept();
+      dlgPushButton("&Save report") {
+        string fileName = dlgFileSave("Select a file", filesetext(schfile,".rep"), "*.rep");
+        if (fileName) {
+          output(fileName, "wt") {
+            printf("%s", saveReport());
+          }
+        }
+      }
+      dlgSpacing(50);
+      dlgLabel("All Units = " + unit[uval]);
+      dlgSpacing(50);
+      dlgStretch(1);
+    }
+    dlgHBoxLayout {
+      dlgLabel("Database:");
+      dlgLabel(schfile, 1);
+      dlgStretch(1);
+    }
+  };
+  exit (0);
+}
+
+
+
+else dlgMessageBox("Start this  ULP from a Schematic", "OK");
+

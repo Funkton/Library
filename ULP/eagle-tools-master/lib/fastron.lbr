@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE eagle SYSTEM "eagle.dtd">
+<eagle version="8.0.1">
+<drawing>
+<settings>
+<setting alwaysvectorfont="no"/>
+<setting verticaltext="up"/>
+</settings>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<layers>
+<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="2" name="Route2" color="1" fill="3" visible="no" active="yes"/>
+<layer number="3" name="Route3" color="4" fill="3" visible="no" active="yes"/>
+<layer number="14" name="Route14" color="1" fill="6" visible="no" active="yes"/>
+<layer number="15" name="Route15" color="4" fill="6" visible="no" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
+<layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
+<layer number="32" name="bCream" color="7" fill="5" visible="no" active="yes"/>
+<layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
+<layer number="34" name="bFinish" color="6" fill="6" visible="no" active="yes"/>
+<layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
+<layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="90" name="Modules" color="5" fill="1" visible="yes" active="yes"/>
+<layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="93" name="Pins" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="94" name="Symbols" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="95" name="Names" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+</layers>
+<library>
+<description>&lt;a href = "http://www.fastrongroup.com"&gt;FASTRON GmbH&lt;/a&gt;</description>
+<packages>
+<package name="INDC200X127X145L47N_15X15X15L20">
+<description>&lt;b&gt;Inductor, Chip &lt;/b&gt;&lt;i&gt;Nominal Material Condition&lt;/i&gt;&lt;br&gt;Body (LxWxH): 2.00mm x 1.27mm x 1.45mm&lt;br&gt;Lead (L): 0.47mm&lt;br&gt;&lt;h3&gt;IPC Component Parameters&lt;/h3&gt;&lt;pre&gt;
+materialCondition | 1 | Nominal (Nominal Density)
+family | 3 | Inductor
+L | 1.850000 | 2.150000
+W | 1.120000 | 1.420000
+H | 1.300000 | 1.600000
+T | 0.270000 | 0.670000
+
+&lt;/pre&gt;
+&lt;h3&gt;IPC Library Parameters&lt;/h3&gt;&lt;pre&gt;
+fabTol | 0.050000
+placeTol | 0.025000
+padPlaceRoundOff | 0.010000
+padSizeRoundOff | 0.010000
+cornerRadius | 25.000000
+cornerRadiusLimit | 0.250000
+cornerRadiusRoundOff | 0.010000
+thtPadSizeRoundOff | 0.010000
+thtCourtyardExcess | 0.250000
+thtCourtyardRound | 0.010000
+thtHoleOverRoundLead | 0.200000
+thtHoleOverRectangularLead | 0.150000
+thtMinimumAnnularRing | 0.200000
+thtPadToHoleRatio | 1.500000
+courtyardLineWidth | 0.050000
+legendLineWidth | 0.100000 | 0.120000 | 0.150000
+legendClearance | 0.100000 | 0.120000 | 0.150000
+legendFontHeight | 1.000000 | 1.200000 | 1.500000
+legendFontRatio | 10.000000
+legendRoundOff | 0.010000
+componentFontHeight | 2.000000
+componentLineWidth | 0.100000
+componentRoundOff | 0.010000
+
+&lt;/pre&gt;
+
+Package generated by: chip.ulp</description>
+<smd name="1" x="-0.88" y="0" dx="1.02" dy="1.45" layer="1" roundness="49"/>
+<smd name="2" x="0.88" y="0" dx="1.02" dy="1.45" layer="1" roundness="49"/>
+<wire x1="-0.19" y1="0.77" x2="0.19" y2="0.77" width="0.12" layer="21"/>
+<wire x1="-0.19" y1="-0.77" x2="0.19" y2="-0.77" width="0.12" layer="21"/>
+<text x="0" y="0" size="1.2" layer="25" font="vector" ratio="10" align="center">&gt;Name</text>
+<wire x1="-1.57" y1="0.9" x2="1.57" y2="0.9" width="0.05" layer="39"/>
+<wire x1="1.57" y1="0.9" x2="1.57" y2="-0.9" width="0.05" layer="39"/>
+<wire x1="1.57" y1="-0.9" x2="-1.57" y2="-0.9" width="0.05" layer="39"/>
+<wire x1="-1.57" y1="-0.9" x2="-1.57" y2="0.9" width="0.05" layer="39"/>
+<wire x1="-1.075" y1="0.71" x2="1.075" y2="0.71" width="0.1" layer="51"/>
+<wire x1="1.075" y1="0.71" x2="1.075" y2="-0.71" width="0.1" layer="51"/>
+<wire x1="1.075" y1="-0.71" x2="-1.075" y2="-0.71" width="0.1" layer="51"/>
+<wire x1="-1.075" y1="-0.71" x2="-1.075" y2="0.71" width="0.1" layer="51"/>
+<rectangle x1="-1.075" y1="-0.71" x2="-0.405" y2="0.71" layer="51"/>
+<rectangle x1="0.405" y1="-0.71" x2="1.075" y2="0.71" layer="51"/>
+<circle x="-0.324" y="-0.629" radius="0.05" width="0.1" layer="51"/>
+<text x="0" y="0" size="2" layer="51" ratio="10" align="center">&gt;Name</text>
+</package>
+</packages>
+<symbols>
+<symbol name="INDUCTOR_CORE">
+<description>Inductor with magnetic core &lt;br&gt;
+Induktivität mit Magnetkern&lt;br&gt;
+DIN EN 60617-4 04-03-03</description>
+<wire x1="-5.08" y1="0" x2="-2.54" y2="0" width="0.254" layer="94" curve="-180"/>
+<wire x1="-2.54" y1="0" x2="0" y2="0" width="0.254" layer="94" curve="-180"/>
+<wire x1="0" y1="0" x2="2.54" y2="0" width="0.254" layer="94" curve="-180"/>
+<wire x1="2.54" y1="0" x2="5.08" y2="0" width="0.254" layer="94" curve="-180"/>
+<pin name="1" x="-5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1"/>
+<pin name="2" x="5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1" rot="R180"/>
+<text x="0" y="3.048" size="1.778" layer="95" align="bottom-center">&gt;NAME</text>
+<text x="0" y="-0.508" size="1.778" layer="96" align="top-center">&gt;VALUE</text>
+<wire x1="-5.08" y1="2.54" x2="5.08" y2="2.54" width="0.254" layer="94"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="0805F-?" prefix="L" uservalue="yes">
+<description>Chip Inductors for RF Applications (Wire wound-open)
+Ferrite Core</description>
+<gates>
+<gate name="G$1" symbol="INDUCTOR_CORE" x="0" y="0"/>
+</gates>
+<devices>
+<device name="R68K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="450m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="25.2M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="350M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="0.68u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-R68K-**" constant="no"/>
+<attribute name="QFACTOR" value="18" constant="no"/>
+<attribute name="RESISTANCE" value="0.5" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="0.68µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="R82K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="400m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="25.2M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="350M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="0.82u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-R82K-**" constant="no"/>
+<attribute name="QFACTOR" value="18" constant="no"/>
+<attribute name="RESISTANCE" value="0.55" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="0.82µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="1R0K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="250m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="350M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="1u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-1R0K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="0.5" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="1µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="1R2K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="220m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="300M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="1.2u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-1R2K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="0.65" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="1.2µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="1R5K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="200m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="250M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="1.5u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-1R5K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="0.75" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="1.5µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="1R8K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="190m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="200M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="1.8u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-1R8K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="0.85" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="1.8µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="2R2K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="130m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="200M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="2.2u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-2R2K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="1.7" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="2.2µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="2R7K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="120m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="200M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="2.7u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-2R7K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="2" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="2.7µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="3R3K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="100m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="200M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="3.3u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-3R3K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.3" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="3.3µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="3R9K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="95m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="150M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="3.9u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-3R9K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.6" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="3.9µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="4R7K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="90m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="150M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="4.7u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-4R7K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.8" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="4.7µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="5R6K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="175m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="80M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="5.6u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-5R6K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="2.8" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="5.6µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="6R2K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="165m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="70M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="6.2u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-6R2K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="6.2µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="6R8K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="160m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="65M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="6.8u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-6R8K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.1" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="6.8µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="7R5K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="160m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="60M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="7.5u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-7R5K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.4" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="7.5µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="8R2K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="160m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="55M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="8.2u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-8R2K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.7" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="8.2µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="9R1K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="150m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="50M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="9.1u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-9R1K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.7" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="9.1µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="100K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="150m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="45M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="10u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-100K-**" constant="no"/>
+<attribute name="QFACTOR" value="20" constant="no"/>
+<attribute name="RESISTANCE" value="3.8" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="10µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="120K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="150m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="25M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="12u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-120K-**" constant="no"/>
+<attribute name="QFACTOR" value="18" constant="no"/>
+<attribute name="RESISTANCE" value="4.2" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="12µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="150K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="150m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="25M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="15u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-150K-**" constant="no"/>
+<attribute name="QFACTOR" value="18" constant="no"/>
+<attribute name="RESISTANCE" value="5" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="15µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="220K-**" package="INDC200X127X145L47N_15X15X15L20">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="CURRENT" value="97m" constant="no"/>
+<attribute name="FREQUENCY_INDUCTANCE" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_QFACTOR" value="7.9M" constant="no"/>
+<attribute name="FREQUENCY_RESONANCE" value="30M" constant="no"/>
+<attribute name="HEIGHT" value="1.6" constant="no"/>
+<attribute name="INDUCTANCE" value="22u" constant="no"/>
+<attribute name="LENGTH" value="2" constant="no"/>
+<attribute name="PARTNUMBER" value="0805F-220K-**" constant="no"/>
+<attribute name="QFACTOR" value="15" constant="no"/>
+<attribute name="RESISTANCE" value="6" constant="no"/>
+<attribute name="TOLERANCE" value="10%" constant="no"/>
+<attribute name="VALUE" value="22µH" constant="no"/>
+<attribute name="WIDTH" value="1.27" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
+</drawing>
+</eagle>

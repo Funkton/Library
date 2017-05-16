@@ -1,0 +1,4 @@
+MENU '[L:\EAGLE\ulp\teardrop_113\tear_exec30.png]     Teardrops  : run L:\EAGLE\ulp\teardrop_113\cteardrops_113.ulp;' \      
+     '[L:\EAGLE\ulp\cleanwire_110\de_tear30.png]       CleanWire  : run L:\EAGLE\ulp\cleanwire_110\cleanwire_110.ulp;' 
+     
+ATTENTION: copy ikon images to C:\Program Files (x86)\EAGLE-5.11.0\bin

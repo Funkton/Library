@@ -1,0 +1,181 @@
+/*
+ *  This EAGLE User Language Program generates a Script
+ *  file that can be used to renumber the parts of a
+ *  board (then schematic) in respect of the values found.
+ *  ie : R1,R2,..., Rn : same value  
+ *
+ *  Ver 0.01 Laurent AUTHIER TABANON 12/04/2001
+ */
+string ValueFound[], TypeRef[];
+numeric string OldNames[], NewNames[];
+int NbNames = 0;
+
+
+// Returns the index of the first digit of the numeric part of Name
+// -1 indicates there is no numeric part in Name
+int GetNumberIndex(string Name)
+{
+  int l = strlen(Name) - 1;
+  for (int i = l; i >= 0; --i) {
+      if (!isdigit(Name[i]))
+         return i < l ? i + 1 : -1;
+      }
+  return 0;
+}
+
+
+// Search existing value
+// Return 1 if exists, 0 else.
+int ExistValue(string CurrVal, int Nb)
+{
+  int i=0;
+
+  while (( i < Nb) && (CurrVal != ValueFound[i])) 
+  {
+     i++; 
+  }
+  if (i == Nb)
+      return(0);
+  else
+      return(1);
+}
+
+// Search existing type 
+// returns index in array if exist, -1 else. 
+int ExistType(string CurrType, int Nb)
+{
+  int i=0;
+
+  while (( i < Nb) && (CurrType != TypeRef[i])) 
+  {
+     i++; 
+  }
+  //printf("Cuur type :%s +++ TypeRef :%s == Nb :%d == i:%d\n",CurrType, TypeRef[i], Nb, i); 
+  if (i == Nb)
+      return(-1);
+  else
+      return(i);
+}
+
+
+
+
+// Find new name in respect of the value index
+string FindName(string Name, int LenText,int Index)
+{
+   string WorkName, NumVal;
+
+   WorkName = strsub(Name, 0, LenText); // Text part
+   sprintf(NumVal ,"%d",Index);
+   WorkName += NumVal;
+   return(WorkName);
+}
+
+
+// Generates the EAGLE command necessary to change element name Old to New
+void Rename(string Old, string New)
+{
+ 
+  printf("Name '%s' '%s';\n", Old, New);
+}
+
+
+// Generates an EAGLE script file that does the whole renumbering.
+// The tricky part here is that we cannot rename an element to a name
+// that already exists in the board (which, e.g. might be necessary if
+// we had to swap the names of two elements). Therefore we have to
+// use a ScratchName wherever this is necessary.
+// If there is nothing to do, the resulting script file will be empty.
+void GenerateScript(void)
+{
+  int i[];
+
+  sort(NbNames, i, NewNames);
+  int ScratchIndex = 0;
+  string ScratchName;
+  for (int n = 0; n < NbNames; ++n) 
+  {
+    if (OldNames[i[n]] != NewNames[i[n]]) 
+    {
+       for (int k = n+1; k < NbNames; ++k) 
+       {
+         if (OldNames[i[k]] == NewNames[i[n]]) 
+         {
+           sprintf(ScratchName, "$%0*d", ELEMENT_NAME_LENGTH - 1, ++ScratchIndex);
+           Rename(OldNames[i[k]], ScratchName);
+           OldNames[i[k]] = ScratchName;
+           break;
+         }
+       }
+       Rename(OldNames[i[n]], NewNames[i[n]]);
+    }
+  }
+}
+
+
+//
+// Main
+//
+board(B) 
+{
+  string CurrValue, Type, CurrType, trace ="";
+  int  NbValue = 0, NbType = 0 , TypeFound[], LenText, CurrNumb = 1, i, j ;//
+
+// find nb of value and value and nb value for each type
+  B.elements(E) 
+  {
+    LenText = GetNumberIndex(E.name);
+    Type = strsub(E.name, 0, LenText); // Text part
+    if ((i = ExistType(Type,  NbType+1)) >=0)
+    {
+       TypeFound[i]++;
+    }
+    else
+    {
+       TypeRef[NbType] = Type; // text part
+       TypeFound[NbType] = 1; // first occurence
+       NbType++;
+    }
+    if( !ExistValue(E.value, NbValue+1 ))  
+    {  
+       //printf("Value : %s\n",E.value);
+       ValueFound[NbValue] = E.value;
+       NbValue ++;
+    }
+    //printf("Type : %s == TypeRef : %s  == TypeFound : %d\n",Type, TypeRef[NbType],TypeFound[NbType] );
+  }
+  //printf("Nb de val : %d == Nb de Type : %d\n",NbValue,NbType);
+// rename
+  for(j = 0; j < NbType ; j++)
+  { 
+    CurrNumb = 1;// new component
+    for(i = 0 ; i< NbValue ; i++)
+    {
+      B.elements(E)
+      { 
+        LenText = GetNumberIndex(E.name);
+        Type = strsub(E.name, 0, LenText); // Text part
+        //printf("Avant test Type : %s == CurrType : %s\n",Type,CurrType);
+        if (Type == TypeRef[j])
+        {
+          if (LenText > 0) 
+          {
+            if(ValueFound[i]  == E.value )  
+            {  
+              OldNames[NbNames] = E.name;
+              NewNames[NbNames] = FindName(E.name, LenText, CurrNumb);
+             /* printf("Type : %s == CurrType : %s == Value : %s == OldName : %s == NwName : %s\n"
+                     ,Type,CurrType, E.value,OldNames[NbNames], NewNames[NbNames] );*/
+              NbNames ++;
+              CurrNumb++;
+            }
+          }
+        }
+      }
+    }
+  }
+  output("RENUMBER.SCR")
+  {
+    GenerateScript();
+  }
+}

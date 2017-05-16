@@ -1,0 +1,79 @@
+#usage	"<h1>IPC Footprint Wizard</h1>"
+		"<p>IPC Footprint Wizard</p>"
+		"Author: <author>Simon Reuter</author>"
+
+if (!library) exit("");
+string wizardDescriptions[];
+string wizardNames[];
+string wizardFiles[];
+string selectedWizardDescription = wizardDescriptions[0];
+string temp = cfgget("ipcWizard.lastUsedWizardIndex", "0");
+int selectedWizardIndex = strtod(temp);
+
+void updateWizards() {
+	int l = 0;
+	string files[];
+	int n = fileglob(files, filedir(argv[0]) + "/ipc-wizard/*.ulp");
+	for (int i = 0; i < n; i++) {
+		string lines[];
+		int nlines = fileread(lines,files[i]);
+		if (nlines >= 2) {
+			if (strsub(lines[0], 0,2)=="//") {
+				wizardNames[l] = strsub(lines[0], 2);
+				wizardFiles[l] = files[i];
+			}
+			if (strsub(lines[1], 0,2)=="//") {
+				wizardDescriptions[l] = strsub(lines[1], 2);
+			}
+			
+			l++;
+		}
+	}
+}
+
+updateWizards();
+
+
+		
+int result = dlgDialog("IPC Footprint Wizard") {
+	dlgLabel("<table bgcolor='#ffffff' width='100%' cellpadding='10'><tr><td align='left'><font size=5>IPC<sup>&reg;</sup> Footprint Wizard</font><br><br>Select a footprint type</td></tr></table>");
+	dlgGridLayout {
+		//dlgCell(0,0) dlgStretch(1);
+		//dlgCell(0,1) dlgStretch(1);
+		//selectedWizardIndex=2;
+		dlgCell(1,0){
+			dlgListView("Name\tDescription\tPackages",wizardNames,selectedWizardIndex) {
+				if (dlgSelectionChanged()) {
+					 selectedWizardDescription = "<table bgcolor='#ffffff' height=70 width=400 height=400 cellpadding=10><tr><td>"+wizardDescriptions[selectedWizardIndex]+"</td></tr></table>";
+				} else {
+					dlgAccept(1);
+				}
+			}
+		}
+		dlgCell(1,1) {
+			dlgVBoxLayout {
+				dlgLabel(selectedWizardDescription,1);
+				dlgStretch(1);
+			}
+		}
+	}
+
+	dlgLabel("<hr>");
+	dlgHBoxLayout {
+		dlgStretch(1);
+		dlgPushButton("&Next >") {
+			dlgAccept(1);
+		}
+		dlgSpacing(8);
+		dlgPushButton("&Cancel") {
+			dlgReject(0);
+		}
+		
+    }
+};
+
+if (result == 1) {
+	sprintf(temp, "%d", selectedWizardIndex);
+	cfgset("ipcWizard.lastUsedWizardIndex", temp);
+	exit("RUN '"+wizardFiles[selectedWizardIndex]+"'");
+}

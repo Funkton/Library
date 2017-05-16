@@ -1,0 +1,68 @@
+# Library script
+# 
+# Exported from c:/EAGLE/lbr_user/untitled.lbr at 1/20/2010 9:36:55 AM
+# 
+# EAGLE Version 5.6.4 Copyright (c) 1988-2009 CadSoft
+# 
+Set Wire_Bend 2;
+# Grid changed to 'mm' to avoid loss of precision!
+Grid mm;
+
+Edit 'J-NV.sym';
+Layer 94;
+Change Style Continuous;
+Wire  0.1524 (0 0) (-1.905 0) 0.254 (-2.8575 0.635);
+Wire  0.254 (-1.905 0) (-2.8575 -0.635);
+Pin 'J' Pas None Short R180 Off 0 (2.54 0);
+Layer 95;
+Change Size 1.016;
+Change Ratio 12;
+Change Font Proportional;
+Text '>NAME' R0 (-1.905 0.635);
+Layer 96;
+Change Size 1.778;
+Change Ratio 12;
+Text '>VALUE' R0 (-2.54 2.54);
+Layer 95;
+Change Size 1.778;
+Change Ratio 12;
+Text '>PART' R0 (-2.54 5.08);
+
+Edit 'J-N.sym';
+Layer 94;
+Wire  0.1524 (0 0) (-1.905 0) 0.254 (-2.8575 0.635);
+Wire  0.254 (-1.905 0) (-2.8575 -0.635);
+Pin 'J' Pas None Short R180 Off 0 (2.54 0);
+Layer 95;
+Change Size 1.016;
+Change Ratio 12;
+Text '>NAME' R0 (-1.905 0.635);
+
+Edit 'P-NV.sym';
+Layer 94;
+Wire  0.1524 (0 0) (1.905 0) 0.254 (0.9525 0.635);
+Wire  0.254 (1.905 0) (0.9525 -0.635);
+Pin 'P' Pas None Short R0 Off 0 (-2.54 0);
+Layer 95;
+Change Size 1.016;
+Change Ratio 12;
+Text '>NAME' MR0 (0.635 0.635);
+Layer 96;
+Change Size 1.778;
+Change Ratio 12;
+Text '>VALUE' MR0 (2.54 2.54);
+Layer 95;
+Change Size 1.778;
+Change Ratio 12;
+Text '>PART' MR0 (2.54 5.08);
+
+Edit 'P-N.sym';
+Layer 94;
+Wire  0.1524 (0 0) (1.905 0) 0.254 (0.9525 0.635);
+Wire  0.254 (1.905 0) (0.9525 -0.635);
+Pin 'P' Pas None Short R0 Off 0 (-2.54 0);
+Layer 95;
+Change Size 1.016;
+Change Ratio 12;
+Text '>NAME' MR0 (0.635 0.635);
+Grid mil;

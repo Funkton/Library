@@ -1,0 +1,74 @@
+/*
+The MIT License (MIT)
+
+Eagle Group Move-By Displacement
+Copyright (c) 2017 Cameron Nicks, Phase IV Engineering <cnicks@phaseivengr.com>
+
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+Version: 0.8 05/12/17
+Basic operation. Enter values to move by.
+
+To-Do Feature List:
+1) Get and display units, use list box to override.
+2) Box to enter single components?
+3) Add option to enter origin.
+4) Rotate option
+
+*/
+
+#usage "Group move by x,y displacement."
+       "<author>Author: cnicks@phaseivengr.com</author>"
+
+
+real xVal = 0; // Set Defaults
+real yVal = 0;
+
+string Version = "0.8";
+string cmd;
+
+
+int Result = dlgDialog("Move By Displacement") {
+  dlgHBoxLayout {
+    dlgStretch(1);
+    dlgLabel("Move Group By...");
+    dlgStretch(1);
+    }
+  dlgHBoxLayout {
+  dlgLabel("X:");
+  dlgRealEdit(xVal);
+  dlgLabel("Y:");
+  dlgRealEdit(yVal);
+  }
+  dlgHBoxLayout {
+   // dlgStretch(1);
+    dlgPushButton("+OK")    dlgAccept();
+    dlgPushButton("Cancel") dlgReject();
+    }
+	};
+
+if (Result) {
+
+sprintf(cmd, "MOVE (>0 0) (%f %f);\n", xVal, yVal);
+
+exit(cmd);
+}
+

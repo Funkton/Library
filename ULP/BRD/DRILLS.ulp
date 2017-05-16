@@ -1,0 +1,1217 @@
+#usage "<b>Drill Legend for Eagle Board.</b><p>"
+       "This ULP add a drill legend in a board in Layer 144 (default).<br>"
+       "Sort both drill tools and drill diameters in the same ascending order as the drill legend.<br>"
+       "You could also generate the drill configuration for the CamProcessor.<p>"
+       "<author>Author: c.bohrer@m6net.fr></author><br>"
+       "<hr> "
+       "Place also the symbols of drills on board.<br>"
+       "Do not use the Option - Set - Drill set,<br>"
+       "while drills are roundet in diameter in this ULP!<br>"
+       "<font color = \"blue\">You can extend the symbol list below the line:</font><br>"
+       "<b><i>ARRAY OF EAGLE DRILL SYMBOLS</<i></b><br><font color = \"blue\">in the source text of this ULP. </font><br>"
+       "<author>support@cadsoft.de</author>"
+
+/****************************************************
+ * DRILEGEND 2.01    for Eagle 4.04    (12/04/2002) *
+ * By Christian BOHRER   (PCB Designer)             *
+ * c.bohrer@m6net.fr                                *
+ ****************************************************
+
+ * THIS PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY FOR POSSIBLE DAMAGE */
+
+string Version = "2.10"; // 2011-06-15  check if drillegend layer exist
+                         //             generate a layer for any stack deep
+//                2.02      2005-09-14  Place also the symbols of drills on board. alf@cadsoft.de
+//                2.03      2008-07-30  place correct symbol  alf@cadsoft.de
+//                2.04      2008-09-04  "_DL.scr" extension lower case
+//                2.10      2008-12-22  Place legend, define layer for stack (Vias) and
+//                                      draw symbols in Stack-Layer
+//                2.11      2011-12-20  corrected drill calculation for higher resolution in V6 alf@cadsoft.de
+//
+
+#require 5.0001;
+
+ /************** DEFAULT SETTINGS ***********************/
+
+int    Legend           = 1;     // ** mode for drawing drill-symbol 2005-09-14 **
+int    SymbolLayer      = 144;
+string SymbolLayerName  = "DrillLegend";
+string Legend_layer     ; sprintf(Legend_layer, "LAYER %d %s;\n", SymbolLayer, SymbolLayerName) ;  // ** the layer of drill symbols are drawing 2005-09-14 **
+int    SymbolSize       = 40;    /*Symbol diameter*/
+int    SymbolWidth      = 4;     /*Symbol wire width*/
+int    Drl_cnt = 0;              // drill count for array
+int    DrilSymbol[];             // symbol number of drill
+int    DrillDiam[];
+int    Drl_x[], Drl_y[];         // coordinate of drill   ** 2005-09-14
+numeric string Drl_stack[];      // drill stack deep    2010-12-22
+int    Idrl_stack = 0;           // index
+
+
+string TextFont[]     = {"Vector", "Proportional", "fixed"};
+real   TextSize       = 70;
+int    TextRatio      = 14;
+real   TextOffset     = 1.5;
+int    IdxFnt         = 0; //Vector
+
+int    decMM          = 2; /*number of decimal for milimeters*/
+int    decMIL         = 0; /*number of decimal fol mils*/
+int    SortHoles      = 1; /* 0= alternate, 1= mixed, 2= non-plated last*/
+string TolPlated      = "±0.003";
+string TolNonPlated   = "±0.003";
+int    VerticalChart  = 1; /* if 0 : Horizontal chart*/
+real   HighCellFactor = 1.1; /* 1.0 minimum*/
+real   WideCellFactor = 1.1; /* 1.0 minimum*/
+int    CellOutline   = 4;
+int    TitleOutline  = 4;
+int    TableOutline  = 8;
+
+string LField[] = {"&Symbols","&Tools No","&MM","M&ils","Mi&crons","&Quantity","&Plated","Tole&rance"};
+string LTitle[] = {"Sym","No","MM","Mils","Mic","Qty","Plated","Tol"};
+int    LRank[]  = {1,2,4,3,0,5,6,0}; //Rank = from 1 to 8. ( 0 = unselect)
+string Rank[]   = {"0","1","2","3","4","5","6","7","8"};
+string PlatedStatus[]  = {"NOT", "BOTH", "YES"};
+
+// LOCATION
+real   LoffsetX = 7.5;    // Legend offset in X 2010-12-22
+real   LoffsetY = 2.3;    // Legend offset in Y
+
+
+int    OutputDrillRack = 0;
+string DrillRackFile = "DRILLRACK.DRL"; /* drill rack file name */
+enum { unitMM, unitINCH };
+int    Unit   = unitMM; /* set this to the desired unit! */
+
+int    OutputUserCfg = 1;
+int    InputUserCfg  = 1;
+string UserCfgFile = "DRILEGEND.CFG"; /* drill legend user config */
+int    AbsoluteLibPath = 1;
+int    i, j, k, Dcnt = 0, Lcnt = 1, nlines, LayerSel;
+int    index[];
+int    Drills[], Pcnt[], Hcnt[], Ptype[], Htype[];
+string ScrName, ProjectPath, UserSettings[], LList[], LayerName[];
+int    Lpos[], Cell[], LCell[], Hcell[], Bcell[], LayerNbr[];
+
+int    EV = EAGLE_VERSION;
+int    ER = EAGLE_RELEASE;
+
+string BoardName;
+int    Bx, By;
+
+string str_symbols; // place the symbols on board on all drills 2005-09-14 alf@cadsoft.de
+
+/******* DRILL RACK FOR THE CAM PROCESSOR (DRILLCFG.ULP) *******/
+string unitName[] = { "mm", "in" };
+int    unitPrec[] = { 2, 3 };
+int    RoundFactor = pow(10, unitPrec[Unit]);
+real   Drilling[];
+int    imax = 0;
+
+
+/**************ADD OR UPDATE DRILL LEGEND***********************/
+
+int replace = 0;
+int rename  = 0;
+string lay;
+int laycnt = 0;
+
+board(B) {
+  int leglaynew = 1;  // 2008-07-30 alf@cadsoft.de
+  BoardName = B.name;
+  Bx = B.area.x1;
+  By = B.area.y1;
+  B.elements(E) {
+    if(E.name == "DRILEGEND"){
+      replace = 1;
+      leglaynew = 0;
+    }
+  }
+  ScrName = filesetext(B.name, "_DL.scr");  // 2008-09-04  extension lower case
+  ProjectPath = filedir(B.name);
+
+  B.layers(L) {
+    if(L.used == 1) {
+      if (L.number == SymbolLayer) {
+        Legend_layer = "";
+        leglaynew = 0;
+        string e;  // 2011-06-15
+        sprintf(e, "!Layer %d exist and used.\nDelete first all symbols in layer %d and the legend table.\n" +
+                   "To delete the legend table select layer tOrigin.", SymbolLayer, SymbolLayer);
+        dlgMessageBox(e, "OK");
+        exit(-1);
+      }
+      sprintf(lay,"%d  %s", L.number, L.name);
+      LayerName[laycnt] = lay;
+      LayerNbr[laycnt] = L.number;
+      laycnt++;
+    }
+  }
+ if (leglaynew) {
+   sprintf(lay,"%d  %s", SymbolLayer, SymbolLayerName);
+   LayerName[laycnt] = lay;           // 2005-09-14 alf@cadsoft.de
+   LayerNbr[laycnt] = SymbolLayer;
+   laycnt++;
+  }
+}
+
+string LbrPath;
+string UlpLbrPath;
+
+if(AbsoluteLibPath == 1) {
+ sprintf(LbrPath,"'%sdrilegend.lbr'",ProjectPath);    //With '' for path in script command
+ //Script command dont work without '' if the path contain a space like 'program Files'
+ sprintf(UlpLbrPath,"%sdrilegend.lbr",ProjectPath);   //Without '' for path in fileglob
+}
+else {
+ LbrPath = "./drilegend.lbr";
+ UlpLbrPath = "./drilegend.lbr";
+}
+
+string ok[];
+rename = fileglob(ok, UlpLbrPath); //Rename package if lbr exist
+
+int CreateCfgFile = 0;
+string CfgPath;
+sprintf(CfgPath,"%s\%s",ProjectPath,UserCfgFile);
+string cfg[];
+CreateCfgFile = fileglob(cfg, CfgPath);
+
+/*********** SAVE USER'S SETTINGS *************************/
+
+void OutputUserCfgFile() {
+ output(CfgPath) {
+  printf("InputUserCfg = %d\n", InputUserCfg);
+  printf("SymbolLayer = %d\n", SymbolLayer);
+  printf("SymbolSize = %d\n", SymbolSize);
+  printf("SymbolWidth = %d\n", SymbolWidth);
+
+  printf("TextSize = %.4f\n", TextSize);
+  printf("TextRatio = %d\n", TextRatio);
+  printf("IdxFnt = %d\n", IdxFnt);
+
+  printf("decMM = %d\n", decMM);
+  printf("decMIL = %d\n", decMIL);
+  printf("SortHoles = %d\n", SortHoles);
+  printf("TolPlated = %s\n", TolPlated);
+  printf("TolNonPlated = %s\n", TolNonPlated);
+  printf("PlatedStatusNot = %s\n", PlatedStatus[0]);
+  printf("PlatedStatusBoth = %s\n", PlatedStatus[1]);
+  printf("PlatedStatusYes = %s\n", PlatedStatus[2]);
+
+  printf("VerticalChart = %d\n", VerticalChart);
+  printf("HighCellFactor = %-.2f\n", HighCellFactor);
+  printf("WideCellFactor = %-.2f\n", WideCellFactor);
+  printf("CellOutline = %d\n", CellOutline);
+  printf("TitleOutline = %d\n", TitleOutline);
+  printf("TableOutline = %d\n", TableOutline);
+
+  printf("SymbTitle = %s\n", LTitle[0]);
+  printf("ToolTitle = %s\n", LTitle[1]);
+  printf("MMTitle = %s\n", LTitle[2]);
+  printf("MilTitle = %s\n", LTitle[3]);
+  printf("MicTitle = %s\n", LTitle[4]);
+  printf("QtyTitle = %s\n", LTitle[5]);
+  printf("TypeTitle = %s\n", LTitle[6]);
+  printf("ToleTitle = %s\n", LTitle[7]);
+
+  printf("SymbRank = %d\n", LRank[0]);
+  printf("ToolRank = %d\n", LRank[1]);
+  printf("MMRank = %d\n", LRank[2]);
+  printf("MilRank = %d\n", LRank[3]);
+  printf("MicRank = %d\n", LRank[4]);
+  printf("QtyRank = %d\n", LRank[5]);
+  printf("TypeRank = %d\n", LRank[6]);
+  printf("ToleRank = %d\n", LRank[7]);
+
+  printf("OutputDrillRack = %d\n", OutputDrillRack);
+  printf("DrillRackFile = %s\n", DrillRackFile);
+  printf("Unit = %d\n", Unit);
+
+  printf("OutputUserCfg = %d\n", OutputUserCfg);
+  printf("UserCfgFile = %s\n", UserCfgFile);
+ }
+ return;
+}
+
+/********* LOAD USER'S SETTINGS *********************/
+
+string LoadSettings(string var) {
+string a[], b; char c = ' ';
+ for(i = 0; i < nlines; i++){
+  b = UserSettings[i];
+  if (strsplit(a, b, c) == 3) {
+   if(var == a[0]) { return a[2];
+   }
+  }
+ }
+ return var;
+}
+
+void LoadUserCfgFile() {
+ InputUserCfg = strtol(LoadSettings("InputUserCfg"));
+ if(InputUserCfg == 1) {
+   SymbolLayer = strtol(LoadSettings("SymbolLayer"));
+   SymbolSize = strtol(LoadSettings("SymbolSize"));
+   SymbolWidth = strtol(LoadSettings("SymbolWidth"));
+
+   TextSize = strtod(LoadSettings("TextSize"));
+   TextRatio = strtol(LoadSettings("TextRatio"));
+   IdxFnt = strtol(LoadSettings("IdxFnt"));
+
+   decMM = strtol(LoadSettings("decMM"));
+   decMIL = strtol(LoadSettings("decMIL"));
+   SortHoles = strtol(LoadSettings("SortHoles"));
+   TolPlated = LoadSettings("TolPlated");
+   TolNonPlated = LoadSettings("TolNonPlated");
+   PlatedStatus[0] = LoadSettings("PlatedStatusNot");
+   PlatedStatus[1] = LoadSettings("PlatedStatusBoth");
+   PlatedStatus[2] = LoadSettings("PlatedStatusYes");
+
+   VerticalChart = strtol(LoadSettings("VerticalChart"));
+   HighCellFactor = strtod(LoadSettings("HighCellFactor"));
+   WideCellFactor = strtod(LoadSettings("WideCellFactor"));
+   CellOutline = strtod(LoadSettings("CellOutline"));
+   TitleOutline = strtod(LoadSettings("TitleOutline"));
+   TableOutline = strtod(LoadSettings("TableOutline"));
+
+   LTitle[0] = LoadSettings("SymbTitle");
+   LTitle[1] = LoadSettings("ToolTitle");
+   LTitle[2] = LoadSettings("MMTitle");
+   LTitle[3] = LoadSettings("MilTitle");
+   LTitle[4] = LoadSettings("MicTitle");
+   LTitle[5] = LoadSettings("QtyTitle");
+   LTitle[6] = LoadSettings("TypeTitle");
+   LTitle[7] = LoadSettings("ToleTitle");
+
+   LRank[0] = strtol(LoadSettings("SymbRank"));
+   LRank[1] = strtol(LoadSettings("ToolRank"));
+   LRank[2] = strtol(LoadSettings("MMRank"));
+   LRank[3] = strtol(LoadSettings("MilRank"));
+   LRank[4] = strtol(LoadSettings("MicRank"));
+   LRank[5] = strtol(LoadSettings("QtyRank"));
+   LRank[6] = strtol(LoadSettings("TypeRank"));
+   LRank[7] = strtol(LoadSettings("ToleRank"));
+
+   OutputDrillRack = strtol(LoadSettings("OutputDrillRack"));
+   DrillRackFile = LoadSettings("DrillRackFile");
+   Unit = strtol(LoadSettings("Unit"));
+
+   OutputUserCfg = strtol(LoadSettings("OutputUserCfg"));
+   UserCfgFile = LoadSettings("UserCfgFile");
+ }
+ return;
+}
+
+
+if(CreateCfgFile == 0) { OutputUserCfgFile(); }
+if(CreateCfgFile == 1) {
+ nlines = fileread(UserSettings, CfgPath);
+ LoadUserCfgFile();
+}
+
+
+/****************** HELP *************************/
+
+  string HelpLegend = "<qt bgcolor=wheat><h1>Legend</h1><hr><p><font size=5 color=blue><b>Drill legend Settings</b></font>" +
+                      "<p><table><tr><td width=20></td><td><font color=red><b>Title</b></font></td></tr>" +
+                      "<tr><td></td><td>Enter here the name of your choice for the title field.</td></tr>" +
+                      "<tr><td></td><td><font color=red><b>Rank</b></font></td></tr><tr><td></td>"+
+                      "<td>Choose here a number (from 1 to 8) for the position of each field in the drill legend. 0 = unselected.</td>" +
+                      "</tr></table><p>" +
+                      "<p><font size=5 color=blue><b>Drill legend Orientation</b></font><p><table><tr><td width=20></td>"+
+                      "<td><font color=red><b>Horizontal</b></font></td></tr><tr><td></td>" +
+                      "<td>Choose this option for horizontal drill legend.</td></tr><tr><td></td>"+
+                      "<td><font color=red><b>Vertical</b></font></td></tr><tr><td></td>" +
+                      "<td>Choose this option for vertical drill legend.</td></tr></table></qt>";
+
+  string HelpSymbols = "<qt bgcolor=wheat><h1>Symbols</h1><hr><p><font size=5 color=blue><b>Symbols Settings</b></font><p>" +
+                       "<table><tr><td width=20></td><td><font color=red><b>Symbol Layer</b></font></td></tr><tr><td></td>" +
+                       "<td>Choose in this field the layer in which you want draw this drill legend.</td></tr><tr><td></td>" +
+                       "<td><font color=red><b>Symbol Size</b></font></td></tr><tr><td></td>" +
+                       "<td>Enter in this field the symbol diameter (in mils).</td></tr><tr><td></td>" +
+                       "<td><font color=red><b>Symbol Width</b></font></td></tr><tr><td></td>" +
+                       "<td>Enter in this field the symbol line width (in mils).</td></tr></table><p>" +
+                       "<font color=darkgreen><b>Nota: </b></font>" +
+                       "Drilegend.ulp drills symbols and Eagle drills symbols are associated with the same drill tool number " +
+                       "in the same ascending order, so each drill tool number always is associated with the same drill symbol. " +
+                       "But, they are not associated in the same manner with the holes diameters.<p>" +
+                       "Drilegend.ulp sort the holes diameters (like drillcfg.ulp) in ascending order before to associate each with " +
+                       "a drill tool number, so drill tools numbers and holes diameters are sorted together in a same increasing order. " +
+                       "Eagle extract the holes diameters as is from the board, and give them a increasing tool number without sort before.<p>" +
+                       "The result of each method is evidently different and that's why it's very important after each run of this ulp " +
+                       "to open the \"Options>Settings>Drill\" and verify if it's necessary to update and sort holes diameters and tools numbers " +
+                       "in the same ascending order like the drill legend.</qt>";
+
+  string HelpTexts   = "<qt bgcolor=wheat><h1>Texts</h1><hr><p><font size=5 color=blue><b>Texts Settings</b></font><p>" +
+                       "<table><tr><td width=20></td><td><font color=red><b>Text Font</b></font></td></tr><tr><td></td>" +
+                       "<td>Choose a text font in the list.</td></tr><tr><td></td><td><font color=red><b>Text Size</b></font></td></tr>" +
+                       "<tr><td></td><td>Enter in this field the font size (in mils).</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Text Ratio</b></font></td></tr>" +
+                       "<tr><td></td><td>Enter in this field the font ratio (in %).</td></tr></table><p>" +
+                       "<font color=darkgreen><b>Nota: </b></font>For printer output choose the font what you want but " +
+                       "for gerber output keep VECTOR.</qt>";
+
+  string HelpTable   = "<qt bgcolor=wheat><h1>Table</h1><hr><p><font size=5 color=blue><b>Cell Margin Factor</b></font><p>" +
+                       "Enter in theses fields a value (from 1.0 to 9.9) for increase or decrease the space between texts and border cells.<p>" +
+                       "<table><tr><td width=20></td><td><font color=red><b>Horizontal </b></font></td></tr><tr><td></td>" +
+                       "<td>Horizontal space between texts and border cells.</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Vertical</b></font></td></tr><tr><td></td>" +
+                       "<td>Vertical space between texts and border cells.</td></tr></table><p><p>" +
+                       "<font size=5 color=blue><b>Outline Width</b></font><p><table><tr><td width=20></td>" +
+                       "<td><font color=red><b>Cell</b></td></tr><tr><td></td><td>Enter in this field the outline width of a cell (in mils).</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Title</b></td></tr><tr><td></td>" +
+                       "<td>Enter in this field the outline width of the title (in mils).</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Table</b></td></tr><tr><td></td>" +
+                       "<td>Enter in this field the outline width of the table (in mils).</td></tr></table></qt>";
+
+  string HelpHoles   = "<qt bgcolor=wheat><h1>Holes</h1><hr><p><font size=5 color=blue><b>Non-Plated</b></font><p>" +
+                       "All holes diameters (plated or not plated) are sorted in ascending mode.<p><p>" +
+                       "<table><tr><td width=20></td><td><font color=red><b>Alternate</b></font></td></tr><tr><td></td>" +
+                       "<td>For each diameter, non-plated holes are treated after plated holes but before the following diameter.</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Mixed</b></font></td></tr><tr><td></td>" +
+                       "<td>Only one diameter per column. Plated and non-plated holes with same diameter are added in the same column. " +
+                       "In this case, plated status show: \"BOTH\".</td></tr><tr><td></td>" +
+                       "<td><font color=red><b>Last</b></font></td></tr><tr><td></td>" +
+                       "<td>All plated holes diameter are treated first, then all non-plated are treated last.</td></tr></table><p><p>" +
+                       "<font size=5 color=blue><b>Plated Status</b></font><p><table><tr><td width=20></td>" +
+                       "<td><font color=red><b>Not Plated</b></td></tr><tr><td></td>" +
+                       "<td>Enter in this field a string meaning: not plated hole. Default: \"NOT\".</td></tr><tr><td></td>" +
+                       "<td><font color=red><b>Mixed</b></td></tr><tr><td></td>" +
+                       "<td>Enter in this field a string meaning: plated and not plated use the same drill tool. Default: \"BOTH\".</td></tr>" +
+                       "<tr><td></td><td><font color=red><b>Plated</b></td></tr><tr>" +
+                       "<td></td><td>Enter in this field a string meaning: plated hole. Default: \"YES\".</td></tr></table><p>" +
+                       "<font color=darkgreen><b>Nota: </b></font>Avoid to use the same diameter for plated an non-plated holes.<p><p>" +
+                       "<font size=5 color=blue><b>Unit Precision</b></font><p>" +
+                       "Choose here the number of unit after the decimal point." +
+                       "<table><tr><td width=20></td><td><font color=red><b>Mils</b></font></td></tr><tr><td></td>" +
+                       "<td>Unit of precision for mils.</td></tr><tr><td></td><td><font color=red><b>MM</b></font></td></tr><tr><td></td>" +
+                       "<td>Unit of precision for millimeters.</td></tr></table><p><p><font size=5 color=blue><b>Holes Tolerance</b></font><p><table>" +
+                       "<tr><td width=20></td><td><font color=red><b>Plated Holes</b></font></td></tr><tr><td></td>" +
+                       "<td>Enter in this field your value for plated holes tolerance.</td></tr><tr><td></td>" +
+                       "<td><font color=red><b>Non-Plated Holes</b></font></td></tr><tr><td></td>" +
+                       "<td>Enter in this field your value for non-plated holes tolerance.</td></tr></table><p>" +
+                       "<font color=darkgreen><b>Nota: </b></font>Tolerance field is String type, so you can enter anything like: 0,02 or +/- 0.03</qt>";
+
+  string HelpOutputs = "<qt bgcolor=wheat><h1>Outputs</h1><hr><p><font size=5 color=blue><b>Drill Rack File for CAM Processor</b></font><p>" +
+                       "<table><tr><td width=20></td><td><font color=red><b>Create file</b></font></td></tr><tr><td></td>" +
+                       "<td>Click on this check button for create the drill rack file used in the cam processor. " +
+                       "Choose the output unit: milimeters or inches.</td></tr></table></qt>";
+
+
+/******** ARRAY OF EAGLE DRILL SYMBOLS ********/
+// Y
+// 4 + + + + +
+// 3 + + + + +
+// 2 + + + + +
+// 1 + + + + +
+// 0 + + + + +
+//   0 1 2 3 4 X
+
+string Symbol[] = {
+  "W 24 20,W 02 42",                               // 1
+  "W 04 40,W 44 00",                               // 2
+  "W 22 24 44 40 00 04 24",                        // 3
+  "W 22 24 42 20 02 24",                           // 4
+  "W 04 44 00 40 04",                              // 5
+  "W 04 40 44 00 04",                              // 6
+  "W 02 42 24 20 02",                              // 7
+  "W 24 20 42 02 24",                              // 8
+  "W 04 40,W 44 00,W 24 20",                       // 9
+  "W 04 40,W 44 00,W 02 42",                       // 10
+  "W 04 44 22 04,W 22 20",                         // 11
+  "W 24 22 40 00 22",                              // 12
+  "W 02 22 44 40 22",                              // 13
+  "W 42 22 04 00 22",                              // 14
+  "W 24 20,W 02 42,C 22 42",                       // 15
+  "C 22 42,C 22 32,W 24 20,W 02 42",               // 16
+  "W 04 24 44 42 40 20 00 02 04,W 24 20,W 02 42",  // 17
+  "W 04 02 00 20 40 42 44 24 04,W 13 11 31 33 13,W 24 20,W 02 42",  // 18
+
+  "W 02 24,W 24 42,W 42 02,W 22 20",               // 19                    new 2005-09-14
+  "W 00 22,W 22 40,W 02 24,W 24 42",               // 20
+  "C 33 34,C 11 12",                               // 21
+  "C 33 34,W 00 20,W 20 22,W 22 02,W 02 00",       // 22
+  "C 22 24,W 00 40,W 40 44,W 44 04,W 04 00",       // 23
+  "C 22 24,W 02 24,W 24 42",                       // 24
+  "C 22 24,W 24 42,W 42 20",                       // 25
+  "C 22 24,W 42 20,W 20 02",                       // 26
+  "C 22 24,W 20 02,W 02 24",                       // 27
+  "C 22 24,C 13 23",                               // 28
+  "C 22 24,C 23 33",                               // 29
+  "C 22 24,C 33 43",                               // 30
+  "C 22 24,C 32 42",                               // 31
+  "C 22 24,C 31 41",                               // 32
+  "C 22 24,C 21 31",                               // 33
+  "C 22 24,C 11 21",                               // 34
+  "C 22 24,C 12 22",                               // 35
+  "C 12 22,W 44 22,W22 40",                        // 36
+  "C 23 33,W 40 22,W22 00",                        // 37
+  "C 32 42,W 00 22,W22 04",                        // 38
+  "C 21 32,W 44 22,W22 44",                        // 39
+
+  "C 22 42,W 00 44",                               // default **
+  ""
+  };
+
+
+string DrawSymbol(int No, int Xs, int Ys, int Mode) {
+ Xs = Xs - (SymbolSize/2);
+ Ys = Ys - (SymbolSize/2);
+ string a[], c[], tmps, cmd, hs;
+ int b = 0, d = 0, U = SymbolSize/4, sx, sy, m, p;
+ //sprintf(tmps, "# place Symbol Nb: %d;\n", No);
+ if (Symbol[No]) {                                // check if Symbol string defined
+  b = strsplit(a, Symbol[No], ',');
+  for(m=0; m<b; m++) {
+   d = strsplit(c, a[m], ' ');
+   if(c[0] == "W") {cmd = "Wire";}
+   if(c[0] == "C") {cmd = "Circle";}
+   sprintf(hs,"%s %d", cmd, SymbolWidth);
+   tmps += hs;
+   for(p=1;p<d;p++) {
+    sx = strtol(strsub(c[p], 0, 1));
+    sy = strtol(strsub(c[p], 1, 1));
+    if (Mode == Legend) {
+     sx = (sx*U) + Xs;
+     sy = (sy*U) + Ys;
+    }
+    else {
+     sx = sx*U - (SymbolSize/2);
+     sy = sy*U - (SymbolSize/2);
+    }
+    sprintf(hs," (R%d %d)", sx, sy);  // relativ coordinates 2005-09-14 alf@cadsoft.de
+    tmps += hs;
+   }
+   sprintf(hs,";\n");
+   tmps += hs;
+  }
+  return tmps;
+ }
+ else {
+  int n;
+  for (n = 0; Symbol[n]; n++);
+  sprintf(hs, "!%d differnt drills used.\nOnly %d Symbols are defined.\nProgram aborted.", Dcnt, n);
+  dlgMessageBox(hs, "OK");
+  exit(0);
+ }
+}
+
+int getDrill(int Size) {  // 2008-07-30
+  for (int n = 0; n < Dcnt; n++) {
+    if (Drills[index[n]] == Size) return n;
+  }
+  return -1;
+}
+
+
+/*****************************************************/
+
+int CenterText(string txt, int cell, int pos) {
+ return pos + (round((cell-((TextSize* 0.85)*strlen(txt)))/2));
+}
+
+void printCell(int left, int right, int top, int bottom, int width) {
+ printf("Wire %d (%d %d) (%d %d) (%d %d);\n", width,
+ left, bottom, right, bottom, right, top);
+}
+
+void DrillChartVertical(int bas) {
+ int haut;
+ if(TextSize > SymbolSize*0.7) { haut = TextSize * TextOffset * HighCellFactor;}
+ else { haut = SymbolSize * HighCellFactor;}
+ int org =  (haut - TextSize)/2, WideMax = 0;
+
+ for(int i = 0; i < Lcnt; ++i) {
+
+  for(k = 0; k < 8; k++){
+   if(LRank[k] > 0) {
+    if((k == 0) && (i > 0)) {
+     printf(DrawSymbol(strtol(LList[i]), Lpos[LRank[k]]+(LCell[k]/2), bas +(haut/2), Legend));
+    }
+    else {
+     printf("Text '%s' R0 (%d %d);\n", LList[(k*100)+i],
+       CenterText(LList[(k*100)+i], LCell[k], Lpos[LRank[k]]), bas + org);
+    }
+    printCell(Lpos[LRank[k]], Lpos[LRank[k]] + LCell[k], haut, bas, CellOutline);
+    if(i == 0) { WideMax = WideMax + LCell[k];}
+   }
+  }
+
+  bas -= haut;
+ }
+ printCell(0, WideMax, haut, 0, TitleOutline);
+ printCell(WideMax, 0, 0, haut, TitleOutline);
+ printCell(0, WideMax, haut, bas + haut, TableOutline);
+ printCell(WideMax, 0, bas + haut, haut, TableOutline);
+ return;
+}
+
+
+void DrillChartHorizontal(int gauche) {
+ int bas, org, WideMax = 0;
+
+ for(int i = 0; i < Lcnt; ++i) {
+
+  for(k = 0; k < 8; k++){ //k = 8 Fields
+   if(LRank[k] > 0) {
+
+    bas = Bcell[LRank[k]];
+    if(Cell[i] < Hcell[0]) { Cell[i] = SymbolSize * 1.3 * WideCellFactor;}
+    org =  (Hcell[k] - TextSize)/2;
+    if(bas < WideMax) { WideMax = bas;}
+    if((k == 0) && (i > 0)) {                 // if symbol field but not title field
+     printf(DrawSymbol(strtol(LList[i]),gauche+(Cell[i]/2), bas +(Hcell[k]/2), Legend));
+     printCell(gauche, gauche + Cell[i], bas + Hcell[k], bas, CellOutline);
+    }
+
+    else {
+     printf("Text '%s' R0 (%d %d);\n", LList[(k*100)+i],
+     CenterText(LList[(k*100)+i], Cell[i], gauche), bas + org);
+     printCell(gauche, gauche + Cell[i], bas + Hcell[k], bas, CellOutline);
+    }
+   }
+  }
+
+  gauche = gauche + Cell[i];
+
+  printCell(0, Cell[0], 0, WideMax, TitleOutline);
+  printCell( Cell[0], 0, WideMax, 0, TitleOutline);
+
+ }
+ printCell(0, gauche, 0, WideMax, TableOutline);
+ printCell(gauche, 0, WideMax, 0, TableOutline);
+}
+
+
+void defHigh() { // for horizontal table
+ if(TextSize > SymbolSize) { Hcell[0] = TextSize * TextOffset * HighCellFactor;}
+ else { Hcell[0] = SymbolSize * TextOffset * HighCellFactor;}
+ for(i = 1; i < 8; i++) {
+ Hcell[i] = TextSize * TextOffset * HighCellFactor;
+ }
+
+ int tmp[];
+ for(i = 0; i < 8; i++) {
+ tmp[LRank[i]] = Hcell[i];
+ }
+
+ for(i = 1; i < 9; i++) {
+  Bcell[i] = Bcell[i-1] - tmp[i];
+ }
+}
+
+
+void defPos() { //for vertical table
+ if(LCell[0] < SymbolSize*1.2) { LCell[0] = SymbolSize * 1.2 * WideCellFactor;}
+ int tmp[];
+ for(i = 0; i < 8; i++) {
+ tmp[LRank[i]] = LCell[i];
+ }
+
+ for(i = 1; i < 8; i++) {
+  Lpos[i+1] = Lpos[i] + tmp[i];
+ }
+}
+
+
+int CellLarge(string txt, int old) {
+ int new = (round((TextSize * 0.1 * WideCellFactor)*strlen(txt)))*10;
+ if( new > old) {return new;}
+ else { return old;}
+}
+
+void TitleList() {
+ for(i=0;i<8;i++){
+  LList[i*100]  = LTitle[i];
+  LCell[i]      = CellLarge(LList[i*100], LCell[i]);
+  Cell[0]       = CellLarge(LList[i*100], Cell[0]);
+ }
+}
+
+
+void List(int No, int Diam, int Qty, int Type, int cnt, string Tol) {
+ sprintf(LList[cnt], "%d",No);
+ sprintf(LList[100+cnt], "%d",No + 1);
+ if(decMM  == 0) {sprintf( LList[200+cnt], "%-.0f", round(u2mm(Diam)));}  // 2011-12-20
+ if(decMM  == 1) {sprintf( LList[200+cnt], "%-.1f", round(u2mm(Diam)*10)/10);}
+ if(decMM  == 2) {sprintf( LList[200+cnt], "%-.2f", round(u2mm(Diam)*100)/100);}
+ if(decMM  == 3) {sprintf( LList[200+cnt], "%-.3f", round(u2mm(Diam)*1000)/1000);}
+ if(decMIL == 0) {sprintf(LList[300+cnt], "%-.0f", round(u2mil(Diam)));}
+ if(decMIL == 1) {sprintf(LList[300+cnt], "%-.1f", round(u2mil(Diam)*10)/10);}
+ if(decMIL == 2) {sprintf(LList[300+cnt], "%-.2f", round(u2mil(Diam)*100)/100);}
+ if(decMIL == 3) {sprintf(LList[300+cnt], "%-.3f", round(u2mil(Diam)*1000)/1000);}
+ sprintf( LList[400+cnt], "%-.0f", round(Diam/10) );
+ sprintf( LList[500+cnt], "%d", Qty);
+ sprintf( LList[600+cnt], "%s", PlatedStatus[Type]);
+ sprintf( LList[700+cnt], "%s", Tol);
+
+ for(k=1;k<8;k++){
+ LCell[k]  = CellLarge(LList[(k*100)+cnt], LCell[k]);                         //Vertical table
+ if(LRank[k] > 0) {Cell[cnt] = CellLarge(LList[(k*100)+cnt], Cell[cnt]); }    //Horizontal table
+ }
+ return;
+}
+
+
+int DrillsCapture(int Size, int Plated) {
+ for(i = 0; i < Dcnt; i++) {
+  if(Drills[i] == Size) {
+   if(Plated == 1) {
+    Ptype[i] = 1;
+    Pcnt[i]++;
+    return i;
+   }
+   if(Plated == 0) {
+    Htype[i] = 0;
+    Hcnt[i]++;
+    return i;
+   }
+  }
+ }
+
+ Drills[Dcnt] = Size;
+ Htype[Dcnt] = 1;
+
+ if(Plated == 1) {
+  Ptype[Dcnt] = 1;
+  Pcnt[Dcnt]++;
+ }
+ if(Plated == 0) {
+  Htype[Dcnt] = 0;
+  Hcnt[Dcnt]++;
+ }
+ Dcnt++;
+ return i;  // 2008-07-30
+}
+
+
+
+void SortHolesMode(int Mode) {
+ if(Mode == 0) {  //ALTERNATE
+  for( i = 0; i < Dcnt; i++) {
+   if(Ptype[index[i]] == 1) {
+    List(i, Drills[index[i]], Pcnt[index[i]], Ptype[index[i]] + 1, Lcnt, TolPlated);
+    Lcnt++;
+   }
+   if(Htype[index[i]] == 0) {
+    List(i, Drills[index[i]], Hcnt[index[i]], Htype[index[i]] + 0, Lcnt, TolNonPlated);
+    Lcnt++;
+   }
+  }
+ }
+
+ if(Mode == 1) {  //MIXED
+  string tol;
+  for( i = 0; i < Dcnt; i++) {
+   if(Ptype[index[i]] + Htype[index[i]] == 0) {tol = TolNonPlated;}
+   else {tol = TolPlated;}
+   List(i, Drills[index[i]], Pcnt[index[i]] + Hcnt[index[i]], Ptype[index[i]] + Htype[index[i]], Lcnt, tol);
+   Lcnt++;
+  }
+ }
+ if(Mode == 2) {  //AT END
+  for( i = 0; i < Dcnt; i++) {
+   if(Ptype[index[i]] == 1) {
+    List(i, Drills[index[i]], Pcnt[index[i]], Ptype[index[i]] + 1, Lcnt, TolPlated);
+    Lcnt++;
+   }
+  }
+  for( i = 0; i < Dcnt; i++) {
+   if(Htype[index[i]] == 0) {
+    List(i, Drills[index[i]], Hcnt[index[i]], Htype[index[i]] + 0, Lcnt, TolNonPlated);
+    Lcnt++;
+   }
+  }
+ }
+}
+
+
+void AddDrilling(int Size) {
+  real x;
+  switch (Unit) {
+    case unitMM:   x = round(u2mm(Size) * RoundFactor) / RoundFactor;
+                   break;
+    case unitINCH: x = round(u2inch(Size) * RoundFactor) / RoundFactor;
+                   break;
+  }
+  for (int i = imax; --i >= 0; )
+      if (Drilling[i] == x)
+         return;
+  Drilling[imax++] = x;
+}
+
+
+void OutDrillRack() {
+ board(B) {
+  B.holes(H) AddDrilling(H.drill);
+  B.signals(S) S.vias(V) AddDrilling(V.drill);
+  B.elements(E) {
+   E.package.contacts(C) {
+    if (C.pad)
+     AddDrilling(C.pad.drill);
+   }
+   E.package.holes(H) AddDrilling(H.drill);
+  }
+  sort(imax, Drilling);
+  output(DrillRackFile) {
+   for (int i = 0; i < imax; ++i)
+    printf("T%02d %5.*f%s\n", i + 1, unitPrec[Unit], Drilling[i], unitName[Unit]);
+  }
+ }
+}
+
+
+void OutDriLegend() {
+ output(ScrName) {
+  printf("OPEN %s;\n",LbrPath);
+  int ttime = time();
+  string ftime;
+  sprintf(ftime,"%d",ttime);
+  string tfile = strsub(ftime, 2, 9);
+
+  if(rename == 1) {
+   printf("Rename drilegend.pac dl%s.pac\n",tfile);
+  }
+  printf("Edit drilegend.pac\n");
+  if (Legend_layer) printf("%s", Legend_layer);  // is legend-layer defined? 2005-09-14 alf@cadsoft.de
+  printf("Display none;\n");
+  printf("Display %d;\n", SymbolLayer);
+  printf("Set Wire_Bend 2;\n");
+  printf("Grid mil 25 1 mil;\n");
+
+  for(j = 0; j < laycnt; j++) {
+   printf("Layer %s;\n",LayerName[j]);
+  }
+  printf("Change layer %d;\n", SymbolLayer);
+  printf("Change Size %.4f;\n", TextSize);
+  printf("Change Ratio %d;\n", TextRatio);
+  printf("Change Font %s;\n", TextFont[IdxFnt]);
+  printf("MARK;\n");         // *** clear MARK 2005-09-14 alf@cadsoft.de ***
+
+  // Label
+  printf("Text 'Drills:' R0 (0 200);\n");
+
+  if(VerticalChart == 1) {
+   defPos();
+   DrillChartVertical(0);
+  }
+  if(VerticalChart == 0) {
+   defHigh();
+   DrillChartHorizontal(0);
+  }
+
+  printf("WRITE %s;\n",LbrPath);
+  printf("CLOSE;\n");
+//  printf("EDIT '%s';\n", BoardName);  // use always ' ' for 'path/name' 2005-09-14 alf@cadsoft.de
+  printf("EDIT .brd;\n");  //  2010-12-21 alf@cadsoft.de
+
+  if (Legend_layer) printf("%s", Legend_layer);  // is legend-layer defined? 2005-09-14 alf@cadsoft.de
+  printf("DISPLAY 23 44 45 %d;\n",SymbolLayer);
+  printf("GRID MIL 25 1 ;\n");
+  printf("SET WIRE_BEND 2;\n");
+  printf("USE %s\n",LbrPath);
+
+  if (replace == 0) {
+   printf("ADD 'DRILEGEND' DRILEGEND R0 (%.3f %.3f);\n", u2mil(Bx)-LoffsetX, u2mil(By)-LoffsetY );
+   printf("%s", str_symbols);
+  }
+  if (replace == 1) {
+   printf("UPDATE %s;\n",LbrPath);
+  }
+  printf("DISPLAY LAST;\n");  // 2015-05-14
+  printf("WIN FIT;\n");
+  printf("GRID LAST;\n");
+ }
+}
+
+
+void infoHelp( string info, string help, int b, int h) {
+ int Result = dlgDialog(info) {
+  dlgHBoxLayout dlgSpacing(b);
+  dlgHBoxLayout {
+   dlgVBoxLayout dlgSpacing(h);
+   dlgTextView(help);
+  }
+  dlgHBoxLayout {
+   dlgStretch(1);
+   dlgPushButton("+Ok") dlgAccept();
+   dlgStretch(1);
+  }
+ };
+ return;
+}
+
+
+/********************DIALOG***************************/
+void menu(void) {
+ int Result = dlgDialog("DRILL LEGEND") {
+  dlgHBoxLayout {
+   dlgTabWidget {
+    dlgTabPage("&Legend") {
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1, 0, 5) dlgGroup("Drill Legend Settings") {
+       dlgGridLayout {
+
+        dlgCell(0, 0) dlgLabel("Field");
+        dlgCell(0, 1) dlgStretch(0);
+        dlgCell(0, 2) dlgLabel("Title");
+        dlgCell(0, 3) dlgStretch(0);
+        dlgCell(0, 4) dlgLabel("Rank");
+
+
+        dlgCell(1, 0) dlgLabel(LField[0]);
+        dlgCell(1, 2) dlgStringEdit(LTitle[0]);
+        int SymbSel = LRank[0];
+        dlgCell(1, 4) dlgComboBox(Rank, SymbSel) LRank[0] = strtol(Rank[SymbSel]);
+
+        dlgCell(2, 0) dlgLabel(LField[1]);
+        dlgCell(2, 2) dlgStringEdit(LTitle[1]);
+        int ToolSel = LRank[1];
+        dlgCell(2, 4) dlgComboBox(Rank, ToolSel) LRank[1] = strtol(Rank[ToolSel]);
+
+        dlgCell(3, 0) dlgLabel(LField[2]);
+        dlgCell(3, 2) dlgStringEdit(LTitle[2]);
+        int MMSel = LRank[2];
+        dlgCell(3, 4) dlgComboBox(Rank, MMSel) LRank[2] = strtol(Rank[MMSel]);
+
+        dlgCell(4, 0) dlgLabel(LField[3]);
+        dlgCell(4, 2) dlgStringEdit(LTitle[3]);
+        int MilSel = LRank[3];
+        dlgCell(4, 4) dlgComboBox(Rank, MilSel) LRank[3] = strtol(Rank[MilSel]);
+
+        dlgCell(5, 0) dlgLabel(LField[4]);
+        dlgCell(5, 2) dlgStringEdit(LTitle[4]);
+        int MicSel = LRank[4];
+        dlgCell(5, 4) dlgComboBox(Rank, MicSel) LRank[4] = strtol(Rank[MicSel]);
+
+        dlgCell(6, 0) dlgLabel(LField[5]);
+        dlgCell(6, 2) dlgStringEdit(LTitle[5]);
+        int QtySel = LRank[5];
+        dlgCell(6, 4) dlgComboBox(Rank, QtySel) LRank[5] = strtol(Rank[QtySel]);
+
+        dlgCell(7, 0) dlgLabel(LField[6]);
+        dlgCell(7, 2) dlgStringEdit(LTitle[6]);
+        int TypeSel = LRank[6];
+        dlgCell(7, 4) dlgComboBox(Rank, TypeSel) LRank[6] = strtol(Rank[TypeSel]);
+
+        dlgCell(8, 0) dlgLabel(LField[7]);
+        dlgCell(8, 2) dlgStringEdit(LTitle[7]);
+        int ToleSel = LRank[7];
+        dlgCell(8, 4) dlgComboBox(Rank, ToleSel) LRank[7] = strtol(Rank[ToleSel]);
+
+       }
+      }
+      dlgCell(0, 6) dlgSpacing(20);
+      dlgCell(1, 0) dlgLabel("");
+      dlgCell(2, 1, 2, 3) dlgGroup("Drill Legend Orientation") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgRadioButton("Hori&zontal", VerticalChart);
+        dlgCell(0, 1) dlgLabel(" ");
+        dlgCell(0, 2) dlgRadioButton("&Vertical", VerticalChart);
+       }
+      }
+      dlgCell(2, 5) dlgPushButton("Help") infoHelp("Drill Legend Help", HelpLegend, 400, 400);
+     }
+     dlgSpacing(20);
+    }
+
+    dlgTabPage("&Holes") {
+     string dec[] = {"0","1","2","3"};
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1) dlgGroup("Non-Plated") {
+       dlgRadioButton("Alte&rnate ", SortHoles);
+       dlgRadioButton("Mix&ed", SortHoles);
+       dlgRadioButton("La&st", SortHoles);
+      }
+      dlgCell(0, 2) dlgSpacing(10);
+
+      dlgCell(0, 3, 0, 6) dlgGroup("Plated Status") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgLabel("&Not Plated ");
+        dlgCell(0, 1) dlgStringEdit(PlatedStatus[0]);
+        dlgCell(1, 0) dlgLabel("Mixe&d");
+        dlgCell(1, 1) dlgStringEdit(PlatedStatus[1]);
+        dlgCell(2, 0) dlgLabel("&Plated");
+        dlgCell(2, 1) dlgStringEdit(PlatedStatus[2]);
+       }
+      }
+      dlgCell(0, 7) dlgSpacing(20);
+      dlgCell(1, 1) dlgLabel("");
+
+      dlgCell(2, 1) dlgGroup("Unit Precision") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgLabel("M&ils ");
+        dlgCell(0, 1) dlgComboBox(dec, decMIL);
+        dlgCell(1, 0) dlgLabel("&MM");
+        dlgCell(1, 1) dlgComboBox(dec, decMM);
+       }
+      }
+
+      dlgCell(2, 3, 2, 6) dlgGroup("Holes Tolerance") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgLabel("Pl&ated ");
+        dlgCell(0, 1) dlgStringEdit(TolPlated);
+        dlgCell(1, 0) dlgLabel("Non-Pla&ted ");
+        dlgCell(1, 1) dlgStringEdit(TolNonPlated);
+       }
+      }
+      dlgCell(3, 1) dlgStretch(0);
+
+      dlgCell(4, 6) dlgPushButton("Help") infoHelp("Drill Legend Help", HelpHoles, 800, 600);
+     }
+     dlgSpacing(20);
+    }
+
+
+    dlgTabPage("S&ymbols") {
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1, 0, 4) dlgGroup("Symbol Settings") {
+       dlgLabel("");
+       dlgGridLayout {
+        dlgCell(0, 0) dlgLabel("L&ayer  ");
+        dlgCell(0, 1, 0, 2) dlgComboBox(LayerName, LayerSel) SymbolLayer = LayerNbr[LayerSel];
+
+        dlgCell(0, 3) dlgStretch(0);
+        dlgCell(1, 0) dlgLabel("");
+        dlgCell(2, 0) dlgLabel("&Size  ");
+        dlgCell(2, 1) dlgSpinBox(SymbolSize, 1, 500);
+        dlgCell(2, 2) dlgLabel(" mils");
+        dlgCell(2, 3) dlgStretch(0);
+        dlgCell(3, 0) dlgLabel("");
+        dlgCell(4, 0) dlgLabel("&Width  ");
+        dlgCell(4, 1) dlgSpinBox(SymbolWidth, 0, 20);
+        dlgCell(4, 2) dlgLabel(" mils");
+        dlgCell(4, 3) dlgSpacing(100);
+       }
+       dlgLabel("");
+      }
+      dlgCell(0, 5) dlgSpacing(20);
+      dlgCell(1, 1) dlgStretch(0);
+      dlgCell(2, 4) dlgPushButton("Help")  infoHelp("Drill Legend Help", HelpSymbols, 720, 400);
+     }
+     dlgSpacing(20);
+    }
+
+    dlgTabPage("Te&xts") {
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1, 0, 4) dlgGroup("Texts Settings") {
+       dlgLabel("");
+       dlgGridLayout {
+        int TfontSel = IdxFnt;
+        dlgCell(0, 0) dlgLabel("&Font  ");
+        dlgCell(0, 1, 0, 3) dlgComboBox(TextFont, TfontSel) IdxFnt = TfontSel;
+        dlgCell(0, 4) dlgLabel("\t\t        ");
+        dlgCell(1, 0) dlgLabel("");
+        dlgCell(2, 0) dlgLabel("&Size  ");
+        dlgCell(2, 1) dlgRealEdit(TextSize, 1.0, 500.0);
+        dlgCell(2, 2) dlgLabel(" mils\t    ");
+        dlgCell(3, 0) dlgLabel("");
+        dlgCell(4, 0) dlgLabel("&Ratio  ");
+        dlgCell(4, 1) dlgSpinBox(TextRatio, 0, 20);
+        dlgCell(4, 2) dlgLabel(" %");
+       }
+       dlgLabel("");
+      }
+      dlgCell(0, 5) dlgSpacing(20);
+      dlgCell(1, 1) dlgStretch(0);
+      dlgCell(2, 4) dlgPushButton("Help") infoHelp("Drill Legend Help", HelpTexts, 500, 300);
+     }
+     dlgSpacing(20);
+    }
+
+    dlgTabPage("Ta&ble") {
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1, 0, 4) dlgGroup("Cell Margin Factor") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgLabel("Hori&zontal ");
+        dlgCell(0, 1) dlgRealEdit(WideCellFactor, 1.0, 5.0);
+        dlgCell(0, 2) dlgLabel("\t\t ");
+        dlgCell(0, 3) dlgStretch(0);
+        dlgCell(2, 0) dlgLabel("&Vertical ");
+        dlgCell(2, 1) dlgRealEdit(HighCellFactor, 1.0, 5.0);
+       }
+      }
+      dlgCell(0, 5) dlgSpacing(20);
+      dlgCell(1, 1) dlgLabel(" ");
+      dlgCell(2, 1, 2, 4) dlgGroup("Outline Width") {
+       dlgGridLayout {
+       dlgCell(0, 0) dlgLabel("&Cell ");
+        dlgCell(0, 1) dlgSpinBox(CellOutline, 1, 50);
+        dlgCell(0, 2) dlgLabel(" mils\t\t");
+         dlgCell(0, 3) dlgStretch(0);
+        dlgCell(1, 0) dlgLabel("T&itle ");
+        dlgCell(1, 1) dlgSpinBox(TitleOutline, 1, 50);
+        dlgCell(1, 2) dlgLabel(" mils");
+        dlgCell(2, 0) dlgLabel("T&able ");
+        dlgCell(2, 1) dlgSpinBox(TableOutline, 1, 50);
+        dlgCell(2, 2) dlgLabel(" mils");
+       }
+      }
+
+      dlgCell(3, 1) dlgStretch(0);
+      dlgCell(4, 4) dlgPushButton("Help") infoHelp("Drill Legend Help", HelpTable, 600, 450);
+     }
+     dlgSpacing(20);
+    }
+
+
+    dlgTabPage("&Files") {
+     dlgSpacing(20);
+     dlgGridLayout {
+      dlgCell(0, 0) dlgSpacing(20);
+      dlgCell(0, 1, 0, 4) dlgGroup("Drill Rack File for CAM Processor") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgCheckBox("&Generate ", OutputDrillRack);
+        dlgCell(0, 1) dlgLabel("&Rack file ");
+        dlgCell(0, 2) dlgStringEdit(DrillRackFile);
+        int unit = Unit;
+        dlgCell(1, 0) dlgRadioButton("Unit &MM", unit) Unit = unitMM;
+        dlgCell(2, 0) dlgRadioButton("Unit &Inch", unit) Unit = unitINCH;
+       }
+      }
+      dlgCell(0, 5) dlgSpacing(20);
+
+
+
+      dlgCell(2, 1, 2, 4) dlgGroup("Drill Legend User Settings") {
+       dlgGridLayout {
+        dlgCell(0, 0) dlgCheckBox("&Save File ", OutputUserCfg);
+        dlgCell(1, 0) dlgCheckBox("Lo&ad File ", InputUserCfg);
+        dlgCell(0, 1) dlgSpacing(30);
+        dlgCell(0, 2) dlgLabel(UserCfgFile);
+       }
+      }
+      dlgCell(2, 5) dlgSpacing(20);
+      dlgCell(3, 1) dlgStretch(0);
+      dlgCell(4, 4) dlgPushButton("Help") infoHelp("Drill Legend Help", HelpOutputs, 400, 200);
+     }
+     dlgSpacing(20);
+    }
+   }
+   dlgSpacing(8);
+   dlgVBoxLayout {
+     dlgLabel(usage);
+     dlgStretch(1);
+   }
+  }
+  dlgHBoxLayout {
+   dlgStretch(0);
+   dlgPushButton("+OK") {
+    dlgAccept();
+    if(OutputUserCfg == 1) { OutputUserCfgFile(); }
+    if(OutputDrillRack == 1) {OutDrillRack(); }
+    TitleList();
+    SortHolesMode(SortHoles);
+    OutDriLegend();
+    exit("; SCR '" + ScrName + "';\n");
+   }
+
+   dlgStretch(0);
+   dlgPushButton("-Cancel") dlgReject();
+   dlgStretch(1);
+   dlgLabel("Version "+Version);
+  }
+ };
+}
+
+
+
+
+/*** ************* Main ************* ***/
+board(B) {
+  Drl_cnt = 0;
+  B.holes(H) {
+    DrilSymbol[Drl_cnt] = DrillsCapture(H.drill, 0);
+    DrillDiam[Drl_cnt] = H.drill;
+    Drl_x[Drl_cnt] = H.x; Drl_y[Drl_cnt] = H.y;
+    Drl_stack[Drl_cnt] = "01-20";
+    Drl_cnt++;
+  }
+  B.signals(S) {
+    S.vias(V) {
+      DrilSymbol[Drl_cnt] = DrillsCapture(V.drill, 1);
+      DrillDiam[Drl_cnt] = V.drill;
+      Drl_x[Drl_cnt] = V.x; Drl_y[Drl_cnt] = V.y;
+      sprintf(Drl_stack[Drl_cnt], "%02d-%02d", V.start, V.end);
+      Drl_cnt++;
+    }
+  }
+  B.elements(E)  {
+    E.package.contacts(C) {
+      if (C.pad) {
+        DrilSymbol[Drl_cnt] = DrillsCapture(C.pad.drill, 1);
+        DrillDiam[Drl_cnt] = C.pad.drill;
+        Drl_x[Drl_cnt] = C.pad.x; Drl_y[Drl_cnt] = C.pad.y;
+        Drl_stack[Drl_cnt] = "01-16";
+        Drl_cnt++;
+      }
+    }
+    E.package.holes(H) {
+      DrilSymbol[Drl_cnt] = DrillsCapture(H.drill, 0);
+      DrillDiam[Drl_cnt] = H.drill;
+      Drl_x[Drl_cnt] = H.x; Drl_y[Drl_cnt] = H.y;
+      Drl_stack[Drl_cnt] = "01-20";
+      Drl_cnt++;
+    }
+  }
+}
+
+sort(Dcnt, index, Drills);   // sortiere die Drill-Liste (Anzahl unterschiedliche Bohrungen/Rack)
+
+int Dindex[]; // 2010-12-22 alf
+sort(Drl_cnt, Dindex,  Drl_stack, DrillDiam); // sortiere die Drilldiameter nach Stacktiefe und Diameter
+string s;
+string stack = "";
+str_symbols = Legend_layer;
+real TextLength = TextSize * 5.0;
+
+// sprintf(s, "TEXT 'LAYER-STACK' (%.4f %.4f);\n",    // Layerbeschriftung/Kopfzeile 2010-12-22
+//              u2mil(Bx)-LoffsetX-TextLength*2.1,
+//              u2mil(By)-LoffsetY-(Idrl_stack  * TextSize * TextOffset * HighCellFactor)
+//           );
+str_symbols += s;
+
+for (int n = 0; n < Drl_cnt; n++) {
+  if (stack != Drl_stack[Dindex[n]]) {
+    stack = Drl_stack[Dindex[n]];
+    Idrl_stack++;
+    sprintf(s, "LAYER %d %s_%s;\n", SymbolLayer+Idrl_stack, SymbolLayerName, stack);  // neuer Layer zum zeichnen der Symbole je Stack 2010-12-22
+    str_symbols += s;
+    sprintf(s, "SET FILL_LAYER %d %d;\n", SymbolLayer+Idrl_stack, 9);
+    str_symbols += s;
+    sprintf(s, "SET COLOR_LAYER %d %d;\n", SymbolLayer+Idrl_stack,  Idrl_stack+1);
+    str_symbols += s;
+    if (Idrl_stack+1 > 16) {
+      string h;
+      sprintf(h, "Define color %d - Options - Set - Color - Palette ..", Idrl_stack+1);
+      dlgMessageBox(h, "OK");
+    }
+    sprintf(s, "CHANGE SIZE %.4f;\n", TextSize);    // Layerbeschriftung Textgroesse
+    str_symbols += s;
+    sprintf(s, "TEXT '%s' (%.4f %.4f);\n",    // Layerbeschriftung/Stacktiefe
+                 stack,
+                 u2mil(Bx)-LoffsetX-TextLength,
+                 u2mil(By)-LoffsetY-(Idrl_stack  * TextSize * TextOffset * HighCellFactor)
+           );
+    str_symbols += s;
+  }
+  sprintf(s, "MARK (%.4f %.4f);\n", u2mil(Drl_x[Dindex[n]]), u2mil(Drl_y[Dindex[n]]) );
+  str_symbols += s;
+  str_symbols += DrawSymbol(getDrill(DrillDiam[Dindex[n]]), 0, 0, 0);  // 2008-07-30 alf
+}
+
+/*******OUTPUT DRILL LEGEND FILE****************/
+
+for(j = 0; j < laycnt; j++) {
+ if(LayerNbr[j] == SymbolLayer) LayerSel = j;
+}
+menu();

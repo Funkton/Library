@@ -1,0 +1,10 @@
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC40X20X13L10N_2X2X2L3;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC60X30X23L15N_3X3X3L5;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC100X50X35L25N_5X5X5L10;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC160X80X45L25N_10X10X10L15;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC200X125X50L35N_10X10X10L20;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC310X160X55L40N_10X10X10L20;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC310X260X50L50N_10X15X10L20;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC310X460X55L40N_10X10X10L20;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC500X250X55L50N_10X15X10L20;
+RUN C:/Users/florianbehner/Documents/eagle-library/ulp/ipc-wizard/chip.ulp RESC635X310X55L50N_10X15X10L20;

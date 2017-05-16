@@ -1,0 +1,408 @@
+#usage "<b>Component-Array.ulp</b><br>"
+       "This ULP allows users to create both circular and rectangular"
+       " arrays using components already placed on the board\n"
+
+/*
+*******************************************************************************
+* Jorge Garcia, Cadsoft Computer
+* January 21, 2014
+*
+* Revision Log
+* V1.0 - Initial Release
+* V2.0 - Allowed for arbitrary angle swing
+* V3.0 - Improved accuracy
+*
+* Copyright (c) 2014 Newark, Premier Farnell DBA Cadsoft Computer
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+* IN THE SOFTWARE.
+*******************************************************************************
+*/
+
+string  Version = "3.0";
+string  help = "<p>This ULP assumes that the components to be arranged \
+have already been placed on the Board. The <b>prefix</b> and <b>index</b> \
+fields allow you to define the reference designator of the components and \
+what the starting index is, usually it will be 1 but there are cases in which \
+you might need to start with a different component. For example lets say \
+you want to arrange LED20-LED40, the <b>prefix</b> would be LED and \
+<b>index</b> would be 20.The <b>units</b> radio buttons allow you specify \
+the working units for the component placement.The values entered in the \
+various fields will assume these units.</p> \
+<p><u>For rectangular arrays</u>, <b>starting point</b> defines the bottom left\
+ corner of the array, the first element will be placed there. <b>Spacing</b> \
+defines the offset or seperation between elements in the X and Y dimensions. \
+<b>Rows</b> and <b>Columns</b> help you define the size of the array, for \
+example an array with 4 <b>rows</b> and 5 <b>columns</b> would give you a \
+total of 20 components.</p> \
+<p><u>For circular arrays</u>, the <b>center</b> and <b>radius</b> fields allow you \
+to define the parameters of the circle on which the components will be placed. \
+The <b>components</b> field defines the number of components that will be \
+placed around the circle. The <b>theta</b> field defines the angle over which \
+components will be placed. For example 360 is a full circle, while 180 is a \
+semi circle; the components will be placed assuming 0 deg is starting from the \
+3 o'clock postion. The <b>Rotate components toward center of array</b> checkbox\
+ will additionally rotate the components to point towards the center. This is \
+handy for arraying LEDs around a watch PCB.</p>";
+
+/*
+*******************************************************************************
+*                               GLOBAL VARIABLES
+*******************************************************************************
+*/
+
+string  prefix;
+real    x = 0;
+real    y = 0;
+real    start_angle = 0;
+real    end_angle = 360;
+real    radius;
+real    xo;
+real    yo;
+int     rows;
+int     columns;
+int     components = 1;
+int     units;
+int     rotation;
+int     index = 1;
+
+/*
+*******************************************************************************
+*                                GUI FUNCTIONS
+*******************************************************************************
+*/
+
+/*
+*******************************************************************************
+*                                  dlgMessage()
+*
+* Description:  This function displays useful documentation for the ULP, as well
+*               as any error messages that might popup.
+*
+* Arguments:    Name    Dialog Title
+*               MSG     Message to Display
+*
+* Return:       none
+*
+* Caller:       Master GUI, rect_ARRAY, circ_ARRAY
+*
+*******************************************************************************
+*/
+
+void dlgMessage(string Name, string MSG) {
+    int Result = dlgDialog(Name)
+    {
+        dlgLabel(MSG);
+        dlgPushButton("OK") dlgAccept();
+    };
+}
+
+/*
+*******************************************************************************
+*                                ARRAY FUNCTIONS
+*******************************************************************************
+*/
+
+/*
+*******************************************************************************
+*                                 rect_ARRAY()
+*
+* Description:  This function calculates and writes the command string necessary
+*               for arranging components in a rectangular array. Upon exit that
+*               string is passed onto EAGLE.
+*
+* Arguments:    pref    Component Prefix (R, C, IC, etc.)
+*               ind     Starting component index (Usually 1, but could be any
+*                       Integer.
+*               xr      Starting X coordinate
+*               yr      Starting Y coordinate
+*               xore    X offset for the rectangular array
+*               yore    Y offset for the rectangular array
+*               row     Number of rows
+*               col     Number of columns
+*               unit    Units of measure either inches or milimeters
+*
+* Return:       none
+*
+* Caller:       Master GUI
+*
+*******************************************************************************
+*/
+
+void rect_ARRAY(string  pref,
+                 int     ind,
+                 real    xr,
+                 real    yr,
+                 real    xore,
+                 real    yore,
+                 int     row,
+                 int     col,
+                 int     unit)
+{
+    int i = 0;
+    int n = 0;
+    int m = 0;                                                                  /* Loop Variables */
+    int in = ind;                                                               /* Index          */
+    real xp = xr;                                                               /* Starting Point */
+    real yp = yr;
+    string a[];                                                                /* Will store all of the command and later converted to a big string of EAGLE commands*/
+    string commands;                                                           /* Big string with all of the commands */
+
+    if (in < 1 || pref == "" || row <= 0 || col <= 0 || xore <= 0 || yore <= 0){
+        dlgMessage("ERROR", "<p>Make sure all fields have been filled. With the \
+        exception of the starting point, the numerical fields must have \
+        positive non-zero values</p>");
+        return;
+    }
+
+
+    if (unit == 0) {
+        a[i] = "GRID IN;";                                                      /* First command sets units */
+        i++;                                                                    /* Increment */
+    }
+    else {
+        a[i] = "GRID MM;";
+        i++;
+    }
+
+    for (n = 0; n < row; n++){                                                  /*This loop places components from left to right, bottom to top */
+        for (m = 0; m < col; m++) {
+            sprintf( a[i], "MOVE "+pref+"%d (%0.6f %0.6f);", in, xp, yp);
+            i++;
+            in++;
+            xp += xore;
+        }
+        yp += yore;
+        xp =  xr;
+    }
+
+    a[i] = "GRID LAST;";                                                        /* Restores Grid settings prior to running ULP */
+
+    commands = strjoin(a, ' ');                                                 /* This function takes the string array and combines it into.. */
+                                                                                /* .. one large single string which is executed upon exit.     */
+
+    exit (commands);                                                            /* Command string gets passed to EAGLE for processing */
+}
+
+/*
+*******************************************************************************
+*                                 circ_ARRAY()
+*
+* Description:  This function calculates and writes the command string necessary
+*               for arranging components in a circular array. Upon exit that
+*               string is passed onto EAGLE.
+*
+* Arguments:    pref    Component Prefix (R, C, IC, etc.)
+*               ind     Starting component index (Usually 1, but could be any
+*                       Integer.
+*               xc      Center X coordinate
+*               yc      Center Y coordinate
+*               rad     Radius of the circle the components will be placed on
+*               sang    Starting Angle over which to place components
+*               eang    Ending Angle over which to place components
+*               comp    Number of components to place
+*               rot     Determines if components will be rotated toward center
+*                       or not.
+*               unit    Units of measure either inches or milimeters
+*               edit    Tells what editor the ULP is running from
+*
+* Return:       none
+*
+* Caller:       Master GUI
+*
+*******************************************************************************
+*/
+
+void circ_ARRAY(string pref,
+                 int    ind,
+                 real   xc,
+                 real   yc,
+                 real   rad,
+                 real   sang,
+                 real   eang,
+                 int    comp,
+                 int    rot,
+                 int    unit,
+                 int    edit)
+{
+    int i = 0;                                                                  /* Loop variables */
+    int n = 0;
+    int in = ind;
+    real angle_offset = abs(eang - sang)/(comp-1);                              /* Angular seperation between elements of the array */
+    real direction = 1;                                                         /* Sets the direction of the part placement */
+    real cang;                                                                  /* Temporary place holder for rotation angle of component */
+    string a[];
+    string commands;
+
+    if (eang > sang) {                                                          /* Make sure rotation is in the correct direction */
+        direction = 1;
+    }
+    else {
+        direction = -1;
+    }
+
+    if (eang > 360 || eang < -360 || sang > 360 || sang < -360){                /* Make sure angle values are within limits */
+        dlgMessage("ERROR", "Angle values are outside of the range -360 to 360");
+        return;
+    }
+
+    if (in < 1 || pref == "" || comp <= 0 || rad <= 0){                         /* Error-checking */
+        dlgMessage("ERROR", "<p>Make sure all fields have been filled. The index, component and radius fields need to have positive non-zero values</p>");
+        return;
+    }
+
+    if (unit == 0) {
+        a[i] = "GRID IN;";                                                      /* First command sets units */
+        i++;                                                                    /* Increment */
+    }
+    else {
+        a[i] = "GRID MM;";
+        i++;
+    }
+
+    sprintf(a[i], "MARK (%0.6f %0.6f);", xc, yc);                               /* This command sets up the relative origin at the center of the circle */
+    i++;
+
+    for (n = 0; n < comp; n++) {                                                /* This for loop writes the command and depending on the rotation flag .. */
+        cang = n*direction*angle_offset + sang;                                 /* .. sets the rotation for the component in absolute terms.              */
+        sprintf(a[i], "MOVE "+pref+"%d (P %0.6f %0.6f);",in, rad, cang);
+        i++;
+        if (rot == 1 && edit == 0) {
+            sprintf(a[i], "ROTATE =R%0.6f '"+pref+"%d';", cang, in);
+            i++;
+        }
+        else if (rot == 1 && edit == 1) {                                       /* Detect that you're in the schematic and the rotation is set */
+            dlgMessage("ERROR","<p> The schematic editor forbids non-orthogonal rotations. Please uncheck the point to center checkbox.</p>");
+            return;
+        }
+        in++;
+    }
+    a[i] = "MARK;";                                                             /* Removes the relative origin */
+    i++;
+    a[i] = "GRID LAST;";                                                        /* Sets grid back to the way it was before running ULP */
+
+    commands = strjoin(a, ' ');
+    exit(commands);
+}
+
+/*
+*******************************************************************************
+*                  ULP STARTS EXECUTING FROM HERE
+*******************************************************************************
+*/
+
+int Result = dlgDialog("Component Array - "+Version)
+{
+    dlgTabWidget {
+        dlgTabPage("Rectangular Array") {
+            dlgGridLayout{
+                dlgCell (0,0) dlgLabel("Prefix");
+                dlgCell (0,1) dlgStringEdit(prefix);
+                dlgCell (0,2) dlgLabel("Starting Index");
+                dlgCell (0,3) dlgIntEdit(index);
+                dlgCell (1,0) dlgLabel("<u>(S)tart Point</u>");
+                dlgCell (1,2) dlgLabel("<u>Spacing</u>");
+                dlgCell (2,0) dlgLabel("X");
+                dlgCell (2,1) dlgRealEdit(x);
+                dlgCell (2,2) dlgLabel("XO");
+                dlgCell (2,3) dlgRealEdit(xo);
+                dlgCell (3,0) dlgLabel("Y");
+                dlgCell (3,1) dlgRealEdit(y);
+                dlgCell (3,2) dlgLabel("YO");
+                dlgCell (3,3) dlgRealEdit(yo);
+                dlgCell (4,0) dlgLabel("(R)ows");
+                dlgCell (4,1) dlgIntEdit(rows);
+                dlgCell (5,0) dlgLabel("(C)olumns");
+                dlgCell (5,1) dlgIntEdit(columns);
+                dlgCell (4,2,5,3) {
+                    dlgGroup("Units") {
+                        dlgRadioButton("Inches",units);                         /* units = 0 */
+                        dlgRadioButton("Millimeters",units);                    /* units = 1 */
+                    }
+                }
+                dlgCell (6,0) dlgPushButton("Help") dlgMessage("Help", help);
+                dlgCell (6,1) dlgPushButton("OK") rect_ARRAY(prefix,
+                                                             index,
+                                                             x,
+                                                             y,
+                                                             xo,
+                                                             yo,
+                                                             rows,
+                                                             columns,
+                                                             units);
+                dlgCell (6,2) dlgPushButton("Cancel") dlgReject();
+            }
+        }
+        dlgTabPage("Circular Array") {
+            dlgGridLayout{
+                dlgCell (0,0) dlgLabel("Prefix");
+                dlgCell (0,1) dlgStringEdit(prefix);
+                dlgCell (0,2) dlgLabel("Starting Index");
+                dlgCell (0,3) dlgIntEdit(index);
+                dlgCell (1,0) dlgLabel("<u>(C)enter</u>");
+                dlgCell (1,2) dlgLabel("(R)adius");
+                dlgCell (1,3) dlgRealEdit(radius);
+                dlgCell (2,0) dlgLabel("X");
+                dlgCell (2,1) dlgRealEdit(x);
+                dlgCell (2,2) dlgLabel("# Components");
+                dlgCell (2,3) dlgIntEdit(components);
+                dlgCell (3,0) dlgLabel("Y");
+                dlgCell (3,1) dlgRealEdit(y);
+                dlgCell (3,2) dlgLabel("(S)tart Angle");
+                dlgCell (3,3) dlgRealEdit(start_angle);
+                dlgCell (4,2) dlgLabel("(E)nd Angle");
+                dlgCell (4,3) dlgRealEdit(end_angle);
+                dlgCell (4,0,6,1) dlgCheckBox("Rotate components to point \ntowards center of array",rotation);      /* checked, rotation = 1; not checked, rotation = 0 */
+                dlgCell (5,2,6,3) {
+                    dlgGroup("Units") {
+                        dlgRadioButton("Inches",units);                         /* units = 0 */
+                        dlgRadioButton("Millimeters",units);                    /* units = 1 */
+                    }
+                }
+                dlgCell (7,0) dlgPushButton("Help") dlgMessage("Help", help);
+                if (schematic) {                                                /* The schematic forbids non-orthogonal rotations, this if ..   */
+                    dlgCell (7,1) dlgPushButton("OK") circ_ARRAY(prefix,        /* .. statement allows the program to detect that it's in the.. */
+                                                                 index,         /* .. schematic if point toward center is selected EAGLE will.. */
+                                                                 x,             /* .. flag a warning and not continue. The user will have to .. */
+                                                                 y,             /* .. uncheck the flag in order for the circular array to work. */
+                                                                 radius,
+                                                                 start_angle,
+                                                                 end_angle,
+                                                                 components,
+                                                                 rotation,
+                                                                 units,
+                                                                 1);
+                }
+                else {
+                    dlgCell (7,1) dlgPushButton("OK") circ_ARRAY(prefix,
+                                                                 index,
+                                                                 x,
+                                                                 y,
+                                                                 radius,
+                                                                 start_angle,
+                                                                 end_angle,
+                                                                 components,
+                                                                 rotation,
+                                                                 units,
+                                                                 0);
+                }
+                dlgCell (7,2) dlgPushButton("Cancel") dlgReject();
+            }
+        }
+    }
+};

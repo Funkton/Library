@@ -1,0 +1,1177 @@
+//EAGLE ULP "snap.ulp"
+//Copyright (c) 2012-07-09 Andreas Weidner
+//
+//Permission is hereby granted, free of charge, to any person obtaining a copy
+//of this software and associated documentation files (the "Software"), to deal
+//in the Software without restriction, including without limitation the rights
+//to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//copies of the Software, and to permit persons to whom the Software is
+//furnished to do so, subject to the following conditions:
+//
+//The above copyright notice and this permission notice shall be included in
+//all copies or substantial portions of the Software.
+//
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//SOFTWARE.
+
+#require 5.0600
+//Earlier EAGLE versions (from 5.0 upward) MAY be able to run this ULP, but
+//were not properly tested
+
+#usage "en: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Snap objects to a grid</h3>\n"
+    "This program <b>moves objects</b> from schematics, boards or libraries, "
+    "so that their origins (or end points) are on a given grid. The grid "
+    "size and the objects to snap can be set with a dialog box or the command "
+    "line.<p>"
+    "<author>&copy; 2012-07-09 Andreas Weidner</author></td></tr></table>"
+    "<br><br>"
+    "<b>Usage:</b><dl>"
+    "<dt><tt>RUN snap [<i>dx</i> [<i>dy</i>]] [group|sheet] [<i>objects</i>]"
+    "</tt></dt>"
+    "<dd>Sets the grid size to <b>dx</b> horizontally and <b>dy</b> "
+    "vertically. If <b>group</b> is used, only objects inside the current "
+    "group are moved, if <b>sheet</b> is used, only objects on the current "
+    "schematics sheet are moved. If no <b>objects</b> are given, a snap "
+    "dialog pops up. If <b>objects</b> are given, the snapping is done "
+    "immediately (without a dialog). For a list of allowed objects, see "
+    "below.</dd></dl>"
+    "<b>Examples:</b><dl>"
+    "<dt><tt>RUN snap</tt></dt>"
+    "<dd>Opens the snap dialog and lets the user set all options.</dd>"
+    "<dt><tt>RUN snap 0.1 0.2</tt></dt>"
+    "<dd>Sets the grid size to <b>0.1</b> horizontally and <b>0.2</b> "
+    "vertically and shows the snap dialog.</dd>"
+    "<dt><tt>RUN snap 0.05 group all</tt></dt>"
+    "<dd>Snaps <b>all</b> supported objects belonging to the currently "
+    "defined <b>group</b> to a grid of <b>0.05</b> in both directions.</dd>"
+    "</dl>"
+    "<b>Supported objects:</b><p>"
+    "<table border=0 cellspacing=2 cellpadding=3>"
+    "<tr><th bgcolor=#E0E0E0>Editor</th><th bgcolor=#E0E0E0>Objects</th>"
+    "<th bgcolor=#E0E0E0>Description</th></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Schematic</th><td bgcolor=#EEEEEE><tt>"
+    "gates</tt></td><td bgcolor=#EEEEEE>Moves <b>gates</b> added from "
+    "libraries. Junctions and nets connected directly to the gate pins are "
+    "also moved.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>nets</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>nets</b>, busses and junctions. Cross-reference labels connected "
+    "directly to net endpoints are also moved.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>all</b> of the above supported schematic objects.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Board</th><td bgcolor=#EEEEEE><tt>"
+    "elements</tt></td><td bgcolor=#EEEEEE>Moves <b>elements</b> added from "
+    "libraries. Vias and signal wires connected directly to the element pads "
+    "or SMDs are also moved.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>signals</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>signal</b> wires, vias and polygons.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>all</b> of the above supported board objects.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=2>Symbol</th><td bgcolor=#EEEEEE><tt>pins"
+    "</tt></td><td bgcolor=#EEEEEE>Moves <b>pins</b>. If the pin locations "
+    "are shared with other objects, these are also moved. If a group is "
+    "defined, it will be changed during program execution.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>all</b> of the above supported symbol objects.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Package</th><td bgcolor=#EEEEEE><tt>"
+    "pads</tt></td><td bgcolor=#EEEEEE>Moves <b>pads</b>.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>smds</tt></td><td bgcolor=#EEEEEE>Moves <b>"
+    "SMDs</b>.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Moves "
+    "<b>all</b> of the above supported package objects.</td></tr>"
+    "</table><br><br>"
+    "<b>Hints:</b><ol>"
+    "<li>The grid size always uses the current editor unit. If you want to "
+    "use a different unit, use the snap dialog.</li>"
+    "<li>If no <b>dy</b> is given, the vertical grid is equal to the "
+    "horizontal one. If no grid size is given, the current grid is used.</li>"
+    "<li>Objects are snapped irrespective of their current visibility (even "
+    "objects from hidden layers are moved). If you want to exclude some "
+    "objects from snapping, first create a group that does <b>not</b> contain "
+    "them.</li>"
+    "<li>If <b>group</b> is used, but no group is currently defined, no "
+    "objects are moved.</li>"
+    "<li>Options can be abbreviated (e.g., <b>gr</b> instead of <b>group</b>) "
+    "as long as there is no ambiguity (e.g., <b>g</b> could mean either <b>"
+    "group</b> or <b>gates</b>).</li>"
+    "</ol>",
+  "de: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Objekte auf Gitter einrasten</h3>\n"
+    "Dieses Programm <b>verschiebt Objekte</b> im Schaltplan, auf der Platine "
+    "oder in Bibliotheken, so daß ihre Nullpunkte (oder Endpunkte) auf einem "
+    "definierten Raster liegen. Rasterabstand und einzurastende Objekte "
+    "können per Dialogbox oder mit der Kommandozeile festgelegt werden.<p>"
+    "<author>&copy; 2012-07-09 Andreas Weidner</author></td></tr></table>"
+    "<br><br>"
+    "<b>Aufruf:</b><dl>"
+    "<dt><tt>RUN snap [<i>dx</i> [<i>dy</i>]] [group|sheet] [<i>Objekte</i>]"
+    "</tt></dt>"
+    "<dd>Setzt den Gitterabstand auf <b>dx</b> horizontal und <b>dy</b> "
+    "vertikal. Ist <b>group</b> angegeben, werden nur Objekte innerhalb der "
+    "aktuellen Gruppe verschoben, ist <b>sheet</b> angegeben, werden nur "
+    "Objekte auf der aktuellen Schaltplanseite verschoben. Sind keine "
+    "<b>Objekte</b> angegeben, wird ein Auswahldialog angezeigt. Werden "
+    "<b>Objekte</b> verwendet, findet der Rastvorgang sofort (und ohne "
+    "Dialogfenster) statt. Eine Liste unterstützter Objekte befindet sich "
+    "unten.</dd></dl>"
+    "<b>Beispiele:</b><dl>"
+    "<dt><tt>RUN snap</tt></dt>"
+    "<dd>Öffnet den Einrastdialog, in dem der Benutzer alle Optionen "
+    "einstellt.</dd>"
+    "<dt><tt>RUN snap 0.1 0.2</tt></dt>"
+    "<dd>Setzt den Gitterabstand auf <b>0.1</b> horizontal und <b>0.2</b> "
+    "vertikal und zeigt den Einrastdialog an.</dd>"
+    "<dt><tt>RUN snap 0.05 group all</tt></dt>"
+    "<dd>Verschiebt <b>alle</b> unterstützten Objekte, die sich in der "
+    "momentan definierten <b>Gruppe</b> befinden, auf ein Raster von <b>0.05"
+    "</b> in beiden Richtungen.</dd>"
+    "</dl>"
+    "<b>Unterstützte Objekte:</b><p>"
+    "<table border=0 cellspacing=2 cellpadding=3>"
+    "<tr><th bgcolor=#E0E0E0>Editor</th><th bgcolor=#E0E0E0>Objekte</th>"
+    "<th bgcolor=#E0E0E0>Beschreibung</th></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Schaltplan</th><td bgcolor=#EEEEEE><tt>"
+    "gates</tt></td><td bgcolor=#EEEEEE>Verschiebt aus Bibliotheken "
+    "eingefügte <b>Gatter</b>. Direkt mit den Gatteranschlüssen verbundene "
+    "Netze und Kreuzungspunkte werden ebenfalls verschoben.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>nets</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>Netze</b>, Busse und Kreuzungspunkte. Direkt mit Netzenden verbundene "
+    "Querverweistexte werden ebenfalls verschoben.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>alle</b> oben angegebenen Schaltplanobjekte.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Platine</th><td bgcolor=#EEEEEE><tt>"
+    "elements</tt></td><td bgcolor=#EEEEEE>Verschiebt aus Bibliotheken "
+    "eingefügte <b>Elemente</b>. Direkt mit den Bauteilanschlüssen verbundene "
+    "Kupferbahnen und Durchkontaktierungen werden ebenfalls verschoben.</td>"
+    "</tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>signals</tt></td><td bgcolor=#EEEEEE>"
+    "Verschiebt mit <b>Signalen</b> verbundene Kupferbahnen, "
+    "Durchkontaktierungen und Polygone.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>alle</b> oben angegebenen Platinenobjekte.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=2>Symbol</th><td bgcolor=#EEEEEE><tt>pins"
+    "</tt></td><td bgcolor=#EEEEEE>Verschiebt <b>Gatteranschlüsse</b>. "
+    "Stimmen deren Positionen mit anderen Objekten überein, werden diese "
+    "ebenfalls verschoben. Ist eine Gruppe definiert, wird diese während der "
+    "Programmausführung verändert.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>alle</b> oben angegebenen Symbolobjekte.</td></tr>"
+    "<tr><th bgcolor=#E0E0E0 rowspan=3>Gehäuse</th><td bgcolor=#EEEEEE><tt>"
+    "pads</tt></td><td bgcolor=#EEEEEE>Verschiebt <b>Lötaugen</b>.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>smds</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>SMD-Lötflächen</b>.</td></tr>"
+    "<tr><td bgcolor=#EEEEEE><tt>all</tt></td><td bgcolor=#EEEEEE>Verschiebt "
+    "<b>alle</b> oben angegebenen Gehäuseobjekte.</td></tr>"
+    "</table><br><br>"
+    "<b>Hinweise:</b><ol>"
+    "<li>Der Rasterabstand verwendet immer die aktuelle Editor-Einheit. Zur "
+    "Benutzung einer anderen Einheit kann der Einrastdialog angezeigt "
+    "werden.</li>"
+    "<li>Ist kein <b>dy</b> angegeben, wird das vertikale Raster gleich dem "
+    "horizontalen gesetzt. Wird gar kein Gitterabstand angegeben, wird "
+    "das aktuelle Raster verwendet.</li>"
+    "<li>Objekte werden unabhängig von ihrer aktuellen Sichtbarkeit "
+    "eingerastet (auch Objekte in ausgeblendeten Ebenen werden verschoben). "
+    "Wollen Sie einige Objekte vom Einrasten ausnehmen, erzeugen Sie zuerst "
+    "eine Gruppe <b>ohne</b> sie.</li>"
+    "<li>Wird <b>group</b> übergeben, wenn momentan keine Gruppe definiert "
+    "ist, wird kein Objekt verschoben.</li>"
+    "<li>Die Optionen können abgekürzt werden (z.B. <b>gr</b> statt <b>group"
+    "</b>), wenn dadurch keine Mißverständnisse entstehen (z.B. könnte <b>g"
+    "</b> sowohl <b>group</b> als auch <b>gates</b> bedeuten).</li></ol>"
+
+//----- FUNCTIONS COPIED FROM THE INCLUDE FILE 'awtools.inc'
+//----- (By default, this program uses several functions from an include file
+//----- 'awtools.inc'. To make the ULP independent of any includes for easier
+//----- distribution, the necessary function have been copied to this file
+//----- (unsorted). If 'awtools.inc' IS available and its usage desired,
+//----- uncomment the next line and delete all text up to (and including)
+//----- 'END OF TEXT COPIED FROM AWTOOLS.INC'
+
+//#include "awtools.inc"
+
+string AWExitCommand="";
+  //Global string that takes up script commands to execute after ULP exitting
+
+string AWTrim(string Text) {
+  //Removes leading and trailing blanks, tabs and line feeds from TEXT
+  string NewText,Character;
+  NewText=Text;
+  //Remove leading blanks and tabs
+  Character=strsub(NewText,0,1);
+  while ((Character==" ") || (Character=="\t") || (Character=="\n")) {
+    NewText=strsub(NewText,1);
+    Character=strsub(NewText,0,1);
+    }
+  //Ditto with trailing ones
+  Character=strsub(NewText,strlen(NewText)-1);
+  while ((Character==" ") || (Character=="\t") || (Character=="\n")) {
+    NewText=strsub(NewText,0,strlen(NewText)-1);
+    Character=strsub(NewText,strlen(NewText)-1);
+    }
+  return NewText;
+  }
+
+int AWParameterFound(string Name,int Abbreviate) {
+  //Returns 1 if the ULP was started with the (case-insensitive) command line
+  //parameter NAME (0 otherwise). If ABBREVIATE<>0, the parameter is also found
+  //when it was typed abbreviated
+  int Nr;
+  string Text;
+  //Exit if no parameter or no name was given
+  Name=strupr(AWTrim(Name));
+  if ((argc<2) || (!Name))
+    return 0;
+  //Check all given parameters separately
+  for (Nr=1;Nr<argc;Nr++) {
+    Text=strupr(argv[Nr]);
+    if (((Abbreviate) && (strsub(Name,0,strlen(Text))==Text)) || (Name==Text))
+      return 1;
+    }
+  //Desired parameter not found
+  return 0;
+  }
+
+int AWIsGerman() {
+  //Returns 1, if a German EAGLE version is running (0 otherwise)
+  if (language()=="de")
+    return 1;
+  return 0;
+  }
+
+string AWLocalise(string EnglishText,string GermanText) {
+  //Depending on the current EAGLE language, returns ENGLISHTEXT or GERMANTEXT
+  string Text;
+  //Select the desired language string
+  if (AWIsGerman())
+    Text=GermanText;
+  else
+    Text=EnglishText;
+  return Text;
+  }
+
+string AWIntToStr(int x) {
+  //Returns the integer X formatted as string
+  string Text;
+  sprintf(Text,"%d",x);
+  return Text;
+  }
+
+//----- END OF TEXT COPIED FROM 'AWTOOLS.INC' -----
+  
+//----- (DIALOG) GLOBAL VARIABLES -----
+
+real GridX,GridY;
+  //Desired grid distance in microns
+real dlgGridX,dlgGridY;
+  //Grid distance in the current dialog units
+int dlgGridEqual=1;
+  //1, if both X any Y directions use the SAME grid distance (0 otherwise)
+int dlgGridUnit;
+  //The grid unit selected in the dialog
+int OldUnit;
+  //Used internally to allow automatic number conversion when switching between
+  //units in the dialog
+enum {scopeGroup,scopeAll,scopeSheet};
+  //Available options for the SCOPE of objects to be snapped: Only objects in
+  //the current group, ALL objects (on all sheets), all objects from the
+  //CURRENT sheet (only useful in the schematics)
+int dlgScope=scopeAll;
+  //Object scope selected in the dialog
+int dlgSnapPins=1;
+  //Objects to snap in the symbol editor
+int dlgSnapPads=1,dlgSnapSMDs=1;
+  //Objects to snap in the package editor
+int dlgSnapElements=1,dlgSnapSignals=0,dlgSnapSignalsPass2=0;
+  //Objects to snap in the board editor. PASS2 is NOT available via the GUI,
+  //but is used internally (the first pass snaps only the vias, and the second
+  //pass snaps only the signals)
+int dlgSnapGates=1,dlgSnapNets=1,dlgSnapNetsPass2=0;
+  //Objects to snap in the schematics editor. PASS2 is NOT available via the
+  //GUI, but is used internally (the first pass snaps only the junctions, and
+  //the second pass snaps only nets and busses)
+int NoDialog=0;
+  //1, if the snap dialog needs NOT be shown (0 otherwise)
+
+//----- SNAPPING MATH FUNCTIONS -----
+
+int OffGridX(int Number) {
+  //Returns 1 if the X coordinate NUMBER (in editor units) is off grid
+  //(0 otherwise)
+  return (abs((u2mic(Number)/GridX)-round(u2mic(Number)/GridX))*GridX>=0.05);
+  }
+
+int OffGridY(int Number) {
+  //Returns 1 if the Y coordinate NUMBER (in editor units) is off grid
+  //(0 otherwise)
+  return (abs((u2mic(Number)/GridY)-round(u2mic(Number)/GridY))*GridY>=0.05);
+  }
+
+int PointOffGrid(int x,int y) {
+  //Returns 1 if the point (X,Y) in editor units is off grid (0 otherwise)
+  return ((OffGridX(x)) || (OffGridY(y)));
+  }
+
+int PointNeedsMoving(int x,int y,int Grouped) {
+  //Returns 1 if the point (X,Y) in editor units must be moved (0 otherwise)
+  if ((PointOffGrid(x,y)) && ((dlgScope!=scopeGroup) || (Grouped)))
+    return 1;
+  else
+    return 0;
+  }
+
+real SnapX(int Number) {
+  //Returns the grid X coordinate (in micron) next to NUMBER (in editor units)
+  return round(u2mic(Number)/GridX)*GridX;
+  }
+
+real SnapY(int Number) {
+  //Returns the grid Y coordinate (in micron) next to NUMBER (in editor units)
+  return round(u2mic(Number)/GridY)*GridY;
+  }
+
+string SnapPoint(int x,int y) {
+  //Returns the script command to snap the point (x,y) in editor units
+  string Result;
+  sprintf(Result,"MOVE (%f %f) (%f %f);\n",u2mic(x),u2mic(y),SnapX(x),
+    SnapY(y));
+  return Result;
+  }
+
+string SnapGroupedPoint(int x,int y) {
+  //Returns the script command to snap EVERYTHING that can be selected at the
+  //point (x,y) in editor units
+  string Result;
+  sprintf(Result,"GROUP (%f %f) (%f %f) (%f %f) (>%f %f);\n"+
+    "MOVE (>%f %f) (%f %f);\n",
+    u2mic(x)-0.1,u2mic(y)-0.1,u2mic(x)-0.1,u2mic(y)+0.1,
+    u2mic(x)+0.1,u2mic(y)+0.1,u2mic(x)+0.1,u2mic(y)-0.1,
+    u2mic(x),u2mic(y),SnapX(x),SnapY(y));
+  return Result;
+  }
+
+//----- GRID CALCULATION FUNCTIONS -----
+
+void SetDialogGrid(int GridUnit) {
+  //Fills the dialog box entries with the current grid distance (in microns),
+  //converting it to the desired GRIDUNIT
+  int IntX,IntY;
+  IntX=GridX/u2mic(1);
+  IntY=GridY/u2mic(1);
+  if (GridUnit==GRID_UNIT_MIC) {
+    dlgGridX=u2mic(IntX);
+    dlgGridY=u2mic(IntY);
+    }
+  else if (GridUnit==GRID_UNIT_MM) {
+    dlgGridX=u2mm(IntX);
+    dlgGridY=u2mm(IntY);
+    }
+  else if (GridUnit==GRID_UNIT_MIL) {
+    dlgGridX=u2mil(IntX);
+    dlgGridY=u2mil(IntY);
+    }
+  else if (GridUnit==GRID_UNIT_INCH) {
+    dlgGridX=u2inch(IntX);
+    dlgGridY=u2inch(IntY);
+    }
+  dlgGridUnit=GridUnit;
+  OldUnit=GridUnit;
+  }
+
+void GetDialogGrid(int GridUnit) {
+  //Extracts the desired grid distance (in micron) from the dialog settings,
+  //converting the values from the GRIDUNIT
+  int IntX,IntY;
+  if (GridUnit==GRID_UNIT_MIC) {
+    IntX=dlgGridX/u2mic(1);
+    IntY=dlgGridY/u2mic(1);
+    }
+  else if (GridUnit==GRID_UNIT_MM) {
+    IntX=dlgGridX/u2mm(1);
+    IntY=dlgGridY/u2mm(1);
+    }
+  else if (GridUnit==GRID_UNIT_MIL) {
+    IntX=dlgGridX/u2mil(1);
+    IntY=dlgGridY/u2mil(1);
+    }
+  else if (GridUnit==GRID_UNIT_INCH) {
+    IntX=dlgGridX/u2inch(1);
+    IntY=dlgGridY/u2inch(1);
+    }
+  GridX=u2mic(IntX);
+  GridY=u2mic(IntY);
+  }
+
+void GetDefaultGrid() {
+  //Extracts the desired grid from the grid settings of the current editor
+  //window and the command line parameters and puts them into the corresponding
+  //global variables
+  real Distance;
+  int DistUnit,IntDistance;
+  //Get the current grid unit from the active window
+  if (schematic)
+    schematic(S) {
+      dlgGridUnit=S.grid.unit;
+      DistUnit=S.grid.unitdist;
+      Distance=S.grid.distance;
+      }
+  if (board)
+    board(B) {
+      dlgGridUnit=B.grid.unit;
+      DistUnit=B.grid.unitdist;
+      Distance=B.grid.distance;
+      }
+  if (library)
+    library(L) {
+      dlgGridUnit=L.grid.unit;
+      DistUnit=L.grid.unitdist;
+      Distance=L.grid.distance;
+      }
+  if (DistUnit==GRID_UNIT_MIC)
+    IntDistance=Distance/u2mic(1);
+  else if (DistUnit==GRID_UNIT_MM)
+    IntDistance=Distance/u2mm(1);
+  else if (DistUnit==GRID_UNIT_MIL)
+    IntDistance=Distance/u2mil(1);
+  else if (DistUnit==GRID_UNIT_INCH)
+    IntDistance=Distance/u2inch(1);
+  GridX=u2mic(IntDistance);
+  GridY=GridX;
+  //Convert the microns above into the current grid unit and put the result
+  //into the dialog fields
+  SetDialogGrid(dlgGridUnit);
+  //Return, if no command line parameters were given
+  if (argc<2)
+    return;
+  //The first parameter (if available and a proper number) is always the grid
+  //distance in X direction (in the current grid unit)
+  if (strtod(argv[1]))
+    dlgGridX=strtod(argv[1]);
+  //The second (if available and a proper number) is the Y distance (otherwise
+  //the Y distance is the same as the X distance
+  if ((argc>=3) && (strtod(argv[2]))) {
+    dlgGridY=strtod(argv[2]);
+    dlgGridEqual=0;
+    }
+  else
+    dlgGridY=dlgGridX;
+  //If the command line parameters have changed the dialog's grid settings,
+  //convet those back to microns for internal use
+  GetDialogGrid(dlgGridUnit);
+  //For later passes, the grid settings are ALWAYS given in CORRECT microns, so
+  //in this case, just read them again
+  if (AWParameterFound("microns",0)) {
+    GridX=strtod(argv[1]);
+    GridY=strtod(argv[2]);
+    }
+  }
+
+//----- SCOPE SETTING FUNCTIONS -----
+
+void GetDefaultScope() {
+  //Calculates the default SCOPE setting based on the currently defined group
+  //and the command line parameters. The setting ALL is possible under all
+  //circumstances
+  dlgScope=scopeAll;
+  //For the second and third ULP pass, do NOT change the default scope
+  //automatically, but ONLY take the scope from the ULP parameters
+  if (!AWParameterFound("microns",0)) {
+    //In a schematics, use GROUP if a group is defined, or SHEET otherwise
+    if (sheet) {
+      sheet(SH)
+        if (ingroup(SH))
+          dlgScope=scopeGroup;
+        else
+          dlgScope=scopeSheet;
+      }
+    //In a board, use GROUP if a group is defined, or ALL otherwise
+    if (board)
+      board(B)
+        if (ingroup(B))
+          dlgScope=scopeGroup;
+    //(In the symbol or package editors, use ALL by default)
+    }
+  //If the command line parameters say otherwise, use those settings
+  if (AWParameterFound("group",1))
+    dlgScope=scopeGroup;
+  if ((AWParameterFound("sheet",1)) && (schematic))
+    dlgScope=scopeSheet;
+  }
+
+//----- OBJECT SETTING FUNCTIONS -----
+
+void ResetSnapObjects() {
+  //Switches off the snapping procedures for all supported objects and inhibits
+  //the display of the snap dialog
+  dlgSnapPins=0;
+  dlgSnapPads=0;
+  dlgSnapSMDs=0;
+  dlgSnapElements=0;
+  dlgSnapSignals=0;
+  dlgSnapSignalsPass2=0;
+  dlgSnapGates=0;
+  dlgSnapNets=0;
+  dlgSnapNetsPass2=0;
+  NoDialog=1;
+  }
+
+void GetDefaultObjects() {
+  //Extracts the objects to snap from the command line parameters and decides,
+  //whether or not the snap dialog needs to be shown. If any objects ARE given
+  //in the command line, the dialog needs NOT be shown
+  if (schematic) {
+    if (AWParameterFound("all",1) || AWParameterFound("gates",1) ||
+        AWParameterFound("nets",1) || AWParameterFound("netspass2",0))
+      ResetSnapObjects();
+    if (AWParameterFound("all",1) || AWParameterFound("gates",1))
+      dlgSnapGates=1;
+    if (AWParameterFound("all",1) || (AWParameterFound("nets",1) && 
+        !AWParameterFound("netspass2",0)))
+      dlgSnapNets=1;
+    if (AWParameterFound("netspass2",0))
+      dlgSnapNetsPass2=1;
+    }
+  if (board) {
+    if (AWParameterFound("all",1) || AWParameterFound("elements",1) ||
+        AWParameterFound("signals",1) || AWParameterFound("signalspass2",0))
+      ResetSnapObjects();
+    if (AWParameterFound("all",1) || AWParameterFound("elements",1))
+      dlgSnapElements=1;
+    if (AWParameterFound("all",1) || (AWParameterFound("signals",1) && 
+        !AWParameterFound("signalspass2",0)))
+      dlgSnapSignals=1;
+    if (AWParameterFound("signalspass2",0))
+      dlgSnapSignalsPass2=1;
+    }
+  //Even if objects ARE given in the command line, show the dialog if the
+  //desired grid settings are erraneous
+  if ((GridX<0) || ((GridX<1) && (GridX>0)) || (GridX>500000) || (GridY<0) ||
+      ((GridY<1) && (GridY>0)) || (GridY>500000))
+    NoDialog=0;
+  }
+
+//----- DIALOG FUNCTIONS -----
+  
+void ChangeUnit() {
+  //Redisplays the dialog's edit fields if the desired grid unit is changed
+  GetDialogGrid(OldUnit);
+  SetDialogGrid(dlgGridUnit);
+  dlgRedisplay();
+  }
+
+void ShowDistanceGroup() {
+  //Creates all dialog elements of the 'GRID DISTANCE' group
+  dlgGroup(AWLocalise(" GRID DISTANCE: "," RASTERABSTAND: ")) {
+    dlgHBoxLayout {
+      dlgLabel("X:  ");
+      dlgRealEdit(dlgGridX,0,1e6);
+      dlgSpacing(20);
+      dlgCheckBox("=",dlgGridEqual)
+        dlgAccept(2);
+      if (!dlgGridEqual) {
+        dlgSpacing(12);
+        dlgLabel("Y:   ");
+        dlgRealEdit(dlgGridY,0,1e6);
+        }
+      else
+        dlgLabel("Y");
+      }
+    dlgHBoxLayout {
+      dlgRadioButton(AWLocalise("Micrometer (mic)","Mikrometer (mic)"),
+          dlgGridUnit)
+        ChangeUnit();
+      dlgRadioButton(AWLocalise("Millimeter (mm)","Millimeter (mm)"),
+          dlgGridUnit)
+        ChangeUnit();
+      dlgRadioButton("Mil (1/1000\")",dlgGridUnit)
+        ChangeUnit();
+      dlgRadioButton(AWLocalise("Inch (\")","Zoll (\")"),dlgGridUnit)
+        ChangeUnit();
+      }
+    }
+  }
+
+void ShowScopeGroup() {
+  //Creates all dialog elements of the 'OBJECT SCOPE' group plus the following
+  //'OK' and 'Cancel' buttons
+  dlgGroup(AWLocalise(" OBJECT SCOPE: "," GELTUNGSBEREICH: ")) {
+    dlgRadioButton(AWLocalise("Only objects in the current group (if "+
+      "defined)","Nur Objekte aus der aktuellen Gruppe (wenn definiert)"),
+      dlgScope);
+    if (schematic) {
+      dlgRadioButton(AWLocalise("All objects on all schematic sheets (if "+
+        "available)","Alle Objekte auf allen Schaltplanseiten"),dlgScope);
+      dlgRadioButton(AWLocalise("Only objects on the current sheet","Nur "+
+      "Objekte auf der aktuellen Schaltplanseite"),dlgScope);
+      }
+    else
+      dlgRadioButton(AWLocalise("All objects in the current window","Alle "+
+        "Objekte im aktuellen Fenster"),dlgScope);
+    }
+  dlgHBoxLayout {
+    dlgStretch(0);
+    dlgPushButton("+OK") {
+      if (dlgGridEqual)
+        dlgGridY=dlgGridX;
+      GetDialogGrid(dlgGridUnit);
+      //In case of grid settings problems, complain
+      if ((GridX<1) || (GridY<1))
+        dlgMessageBox(AWLocalise(":The grid distance must be larger than 1um.",
+          ":Der Rasterabstand muß größer als 1um sein."));
+      else if ((GridX>500000) || (GridY>500000))
+        dlgMessageBox(AWLocalise(":The grid distance must be smaller than "+
+          "500mm.",":Der Rasterabstand muß kleiner als 500mm sein."));
+      else
+        dlgAccept(1);
+      }
+    dlgPushButton(AWLocalise("-Cancel","-Abbrechen"))
+      dlgReject(0);
+    }
+  }
+
+//----- SNAPPING PROCEDURES FOR THE SYMBOL EDITOR -----
+
+string SnapPins() {
+  //Returns the script text necessary to snap the desired pins from the
+  //current symbol
+  string Result="",Text;
+  symbol(S)
+    S.pins(P)
+      if (PointNeedsMoving(P.x,P.y,ingroup(P)))
+        //Unfortunately, pins can only be moved while displaying the 'symbols'
+        //layer. This can create problems, because instead of the desired pin,
+        //sometimes the WIRE at this point is moved (especially valid for
+        //'point' pins). Therefore, build a SMALL group around each pin and
+        //move it INCLUDING the wire(s)
+        Result+=SnapGroupedPoint(P.x,P.y);
+  if (Result)
+    Result="DISPLAY None Symbols;\n"+
+      "GRID Mic Finest;\n"+
+      Result+
+      "GRID Last;\n"+
+      "DISPLAY Last;\n";
+  return Result;
+  }
+
+void SnapSymbol() {
+  //Snaps all desired objects in the current symbol editor window
+  int Result=2;
+  //Do nothing, if the current window is not the symbol editor
+  if (!symbol)
+    return;
+  //If a dialog is desired, show it as often as necessary (until the user has
+  //selected all options). The dialog returns 0 for 'cancel', 1 for 'OK' and 2
+  //for 'not yet finished'
+  if (NoDialog)
+    Result=1;
+  while (Result==2)
+    Result=dlgDialog(AWLocalise("Snap symbol objects","Symbolobjekte "+
+        "einrasten")) {
+      ShowDistanceGroup();
+      dlgGroup(AWLocalise(" OBJECT TYPES: "," OBJEKTTYPEN: "))
+        dlgCheckBox("Pins",dlgSnapPins);
+      ShowScopeGroup();
+      };
+  //Exit the ULP, if the dialog was cancelled or no objects were selected
+  if ((!Result) || (!dlgSnapPins))
+    exit(0);
+  //If pins are to be snapped, do just that
+  if (dlgSnapPins)
+    AWExitCommand+=SnapPins();
+  //Process the exit command
+  exit(AWExitCommand);
+  }
+
+//----- SNAPPING PROCEDURES FOR THE PACKAGE EDITOR -----
+
+string SnapPadsSMDs(int Pads,int SMDs) {
+  //Returns the script text necessary to snap the desired pads and SMDs from
+  //the current package
+  string Result="",Text;
+  package(P)
+    P.contacts(C)
+      if (PointNeedsMoving(C.x,C.y,ingroup(C)))
+        if (((Pads) && (C.pad)) || ((SMDs) && (C.smd))) {
+          sprintf(Text,"MOVE %s (%.1f %.1f);\n",C.name,SnapX(C.x),SnapY(C.y));
+          Result+=Text;
+          }
+  if (Result) {
+    Result="DISPLAY None Top Bottom Pads;\n"+
+      "GRID Mic Finest;\n"+
+      Result+
+      "GRID Last;\n"+
+      "DISPLAY Last;\n";
+    }
+  return Result;
+  }
+
+void SnapPackage() {
+  //Snaps all desired objects in the current package editor window
+  int Result=2;
+  //Do nothing, if the current window is not the package editor
+  if (!package)
+    return;
+  //If a dialog is desired, show it as often as necessary (until the user has
+  //selected all options). The dialog returns 0 for 'cancel', 1 for 'OK' and 2
+  //for 'not yet finished'
+  if (NoDialog)
+    Result=1;
+  while (Result==2)
+    Result=dlgDialog(AWLocalise("Snap package objects","Gehäuseobjekte "+
+        "einrasten")) {
+      ShowDistanceGroup();
+      dlgGroup(AWLocalise(" OBJECT TYPES: "," OBJEKTTYPEN: ")) {
+        dlgHBoxLayout {
+          dlgCheckBox("Pads",dlgSnapPads);
+          dlgCheckBox("SMDs",dlgSnapSMDs);
+          }
+        }
+      ShowScopeGroup();
+      };
+  //Exit the ULP, if the dialog was cancelled or no objects were selected
+  if ((!Result) || ((!dlgSnapPads) && (!dlgSnapSMDs)))
+    exit(0);
+  //If objects are to be snapped, do just that
+  if ((dlgSnapPads) || (dlgSnapSMDs))
+    AWExitCommand+=SnapPadsSMDs(dlgSnapPads,dlgSnapSMDs);
+  //Process the exit command
+  exit(AWExitCommand);
+  }
+
+//----- POINT LIST FUNCTIONS -----
+//Snapping vias/wires or junctions/nets is NOT so trivial, because when moving
+//ONE (line end) point, several others connected to it might also be moved
+//automatically. Therefore, don't move these objects separately, but keep a
+//list of POINTS to be moved and do the whole moving in several passes. The
+//idea for this method of moving was taken from the CadSoft ULPs
+//'snap-on-grid-sch.ulp' and 'cmd-snap-board.ulp' (even though the actual
+//source code wasn't)
+   
+int PointX[],PointY[],PointLayer[],PointCount=0;
+  //The point list: (X,Y) coordinates, point layer, list size
+int PointLayerUsed[];
+  //A separate entry for each layer defines whether this layer contains
+  //objects that need moving (1) or not (0)
+  
+int IsNewPoint(int x,int y,int Layer) {
+  //Returns 1 if the point (X,Y) on the LAYER does NOT yet exist in the point
+  //list (0 otherwise)
+  int Nr;
+  for (Nr=0;Nr<PointCount;Nr++)
+    if ((PointX[Nr]==x) && (PointY[Nr]==y) && (PointLayer[Nr]==Layer))
+      return 0;
+  return 1;
+  }
+
+int AddPoint(int x,int y,int Layer,int Grouped) {
+  //Adds the point (X,Y) on the LAYER to the point list, if it is off-grid, may
+  //be moved and does not already belong to the list. GROUPED defines whether
+  //or not the point is a member of the current group. Returns 1 if the point
+  //was added (0 otherwise)
+  if ((!PointNeedsMoving(x,y,Grouped)) || (!IsNewPoint(x,y,Layer)))
+    return 0;
+  PointX[PointCount]=x;
+  PointY[PointCount]=y;
+  PointLayer[PointCount]=Layer;
+  PointLayerUsed[Layer]=1;
+  PointCount++;
+  return 1;
+  }
+
+void AddWirePoints(UL_WIRE W) {
+  //Adds both end points of the wire W to the point list, if necessary
+  AddPoint(W.x1,W.y1,W.layer,ingroup(W) & 1);
+  AddPoint(W.x2,W.y2,W.layer,ingroup(W) & 2);
+  }
+
+string MoveLayerPoints(int Layer) {
+  //Returns a script string that moves all off-grid points on the LAYER to
+  //their new (snapped) positions
+  string Result;
+  int Nr;
+  //Do nothing if there are no movable points in this layer
+  if (!PointLayerUsed[Layer])
+    return "";
+  status(AWLocalise("Processing layers","Verarbeite Ebenen")+": "+
+    AWIntToStr(Layer)+"...");
+  //Go through all available points and move them, if they are on the
+  //desired layer
+  sprintf(Result,"DISPLAY None %d;\n",Layer);
+  for (Nr=0;Nr<PointCount;Nr++)
+    if (PointLayer[Nr]==Layer)
+      Result+=SnapPoint(PointX[Nr],PointY[Nr]);
+  Result+="DISPLAY Last;\n";
+  return Result;
+  }
+
+//----- SNAPPING PROCEDURES FOR THE BOARD EDITOR -----
+
+string SnapElements() {
+  //Returns the script text necessary to snap the desired elements from the
+  //current board
+  string Result="",Text;
+  board(B)
+    B.elements(E)
+      if (PointNeedsMoving(E.x,E.y,ingroup(E))) {
+        sprintf(Text,"MOVE %s (%.1f %.1f);\n",E.name,SnapX(E.x),SnapY(E.y));
+        Result+=Text;
+        }
+  if (Result)
+    Result="DISPLAY None tOrigins bOrigins tDocu bDocu;\n"+
+      "GRID Mic Finest;\n"+
+      "SET Optimizing Off;\n"+
+      Result+
+      "SET Optimizing On;\n"+
+      "OPTIMIZE;\n"+
+      "GRID Last;\n"+
+      "DISPLAY Last;\n";
+  return Result;
+  }
+
+string SnapVias() {
+  //Returns the script text necessary to snap the desired vias from the current
+  //board
+  string Result="";
+  board(B)
+    B.signals(S)
+      S.vias(V)
+        if (PointNeedsMoving(V.x,V.y,ingroup(V)))
+          Result+=SnapPoint(V.x,V.y);
+  if (Result)
+    Result="DISPLAY None Vias;\n"+
+      "GRID Mic Finest;\n"+
+      "SET Optimizing Off;\n"+
+      Result+
+      "SET Optimizing On;\n"+
+      "OPTIMIZE;\n"+
+      "GRID Last;\n"+
+      "DISPLAY Last;\n";
+  return Result;
+  }
+
+string SnapSignals() {
+  //Returns the script text necessary to snap the desired signal wires and
+  //polygons from the current board
+  string Result="",Text;
+  int Nr;
+  //Collect all unique signal wire points in the point list
+  board(B)
+    B.signals(S) {
+      status(AWLocalise("Processing signals: ","Verarbeite Signale: ")+
+        S.name+"...");
+      S.wires(W)
+        AddWirePoints(W);
+      }
+  //Move all the points in this list to their new positions
+  for (Nr=LAYER_TOP;Nr<=LAYER_BOTTOM;Nr++)
+    Result+=MoveLayerPoints(Nr);
+  //Create a separate list for all signal polygon wire points and move them
+  board(B)
+    B.signals(S)
+      S.polygons(P) {
+        PointCount=0;
+        P.wires(W)
+          AddWirePoints(W);
+        Result+=MoveLayerPoints(P.layer);
+        }
+  if (Result)
+    Result="GRID Mic Finest;\n"+
+      "SET Optimizing Off;\n"+
+      Result+
+      "SET Optimizing On;\n"+
+      "OPTIMIZE;\n"+
+      "GRID Last;\n";
+  return Result;
+  }
+
+void SnapBoard() {
+  //Snaps all desired objects in the current board editor window
+  int Result=2;
+  string Text;
+  //Do nothing, if the current window is not the board editor
+  if (!board)
+    return;
+  //If a dialog is desired, show it as often as necessary (until the user has
+  //selected all options). The dialog returns 0 for 'cancel', 1 for 'OK' and 2
+  //for 'not yet finished'
+  if (NoDialog)
+    Result=1;
+  while (Result==2)
+    Result=dlgDialog(AWLocalise("Snap board objects","Platinenobjekte "+
+        "einrasten")) {
+      ShowDistanceGroup();
+      dlgGroup(AWLocalise(" OBJECT TYPES: "," OBJEKTTYPEN: "))
+        dlgGridLayout {
+          dlgCell(0,0)
+            dlgCheckBox(AWLocalise("Components (elements)","Bauteile "+
+              "(elements)"),dlgSnapElements);
+          dlgCell(0,1)
+            dlgCheckBox(AWLocalise("Copper tracks (signals, vias, polygons)",
+              "Kupferbahnen (signals, vias, polygons)"),dlgSnapSignals);
+          }
+      ShowScopeGroup();
+      };
+  //Exit the ULP, if the dialog was cancelled or no objects were selected
+  if ((!Result) || ((!dlgSnapElements) && (!dlgSnapSignals) &&
+      (!dlgSnapSignalsPass2)))
+    exit(0);
+  //If elements are to be snapped, do just that
+  if (dlgSnapElements)
+    AWExitCommand+=SnapElements();
+  //If elements AND signals are to be processed, the elements have already been
+  //snapped here, and the signals should NOT be processed in the same run.
+  //Therefore, after snapping the elements properly, start this ULP again (with
+  //all desired options) and snap the signals in the second (and third) run
+ if (AWExitCommand) {
+    if (dlgSnapSignals) {
+      sprintf(Text,"RUN snap %f %f",GridX,GridY);
+      AWExitCommand+=Text;
+      if (dlgScope==scopeGroup)
+        AWExitCommand+=" group";
+      if (dlgSnapSignals)
+        AWExitCommand+=" signals";
+      AWExitCommand+=" microns;\n";
+      }
+    exit(AWExitCommand);
+    }
+  //If signals are to be snapped, first just snap all vias and then start the
+  //ULP again (with all desired options) to snap the wires in yet another run
+  if (dlgSnapSignals) {
+    AWExitCommand+=SnapVias();
+    sprintf(Text,"RUN snap %f %f",GridX,GridY);
+    AWExitCommand+=Text;
+    if (dlgScope==scopeGroup)
+      AWExitCommand+=" group";
+    AWExitCommand+=" signalspass2 microns;\n";
+    exit(AWExitCommand);
+    }
+  //If vias have already been snapped, now snap the signals and polygons in
+  //the last run
+  if (dlgSnapSignalsPass2)
+    AWExitCommand+=SnapSignals();
+  //Process the exit command
+  exit(AWExitCommand);
+  }
+
+//----- SNAPPING PROCEDURES FOR THE SCHEMATIC EDITOR -----
+
+string SnapParts() {
+  //Returns the exit command necessary for snapping all desired library parts
+  //in the current schematics editor window
+  string Result="",Text;
+  int Moved=0,CurrentSheet;
+  sheet(SH)
+    CurrentSheet=SH.number;
+  schematic(S)
+    S.sheets(SH)
+      if ((dlgScope!=scopeSheet) || (SH.number==CurrentSheet)) {
+        sprintf(Text,"EDIT .s%d;\n",SH.number);
+        if (dlgScope==scopeAll)
+          Result+=Text;
+        SH.parts(P)
+          P.instances(I)
+            if (PointNeedsMoving(I.x,I.y,ingroup(I))) {
+              sprintf(Text,"MOVE %s (%.1f %.1f);\n",I.name,SnapX(I.x),
+                SnapY(I.y));
+              Result+=Text;
+              Moved=1;
+              }
+        }
+  if (!Moved)
+    return "";
+  Result="DISPLAY None Symbols;\n"+
+    "GRID Mic Finest;\n"+
+    Result+
+    "GRID Last;\n"+
+    "DISPLAY Last;\n";
+  return Result;
+  }
+
+string SnapJunctions() {
+  //Returns the exit command necessary for snapping all desired junctions in
+  //the current schematics editor window
+  string Result="",Text;
+  int Moved=0,CurrentSheet;
+  sheet(SH)
+    CurrentSheet=SH.number;
+  schematic(S)
+    S.sheets(SH)
+      if ((dlgScope!=scopeSheet) || (SH.number==CurrentSheet)) {
+        sprintf(Text,"EDIT .s%d;\n",SH.number);
+        if (dlgScope==scopeAll)
+          Result+=Text;
+        SH.nets(N)
+          N.segments(SEG)
+            SEG.junctions(J)
+              if (PointNeedsMoving(J.x,J.y,ingroup(J))) {
+                Result+=SnapPoint(J.x,J.y);
+                Moved=1;
+                }
+        }
+  if (!Moved)
+    return "";
+  Result="DISPLAY None Nets;\n"+
+    "GRID Mic Finest;\n"+
+    Result+
+    "GRID Last;\n"+
+    "DISPLAY Last;\n";
+  return Result;
+  }
+
+string SnapNets() {
+  //Returns the exit command necessary for snapping all desired nets in the
+  //current schematics editor window
+  string Result="";
+  int Moved=0,CurrentSheet;
+  sheet(SH)
+    CurrentSheet=SH.number;
+  schematic(S)
+    S.sheets(SH)
+      if ((dlgScope!=scopeSheet) || (SH.number==CurrentSheet)) {
+        if (dlgScope==scopeAll)
+          Result+="EDIT .s"+AWIntToStr(SH.number)+";\n";
+        SH.nets(N)
+          N.segments(SEG)
+            SEG.wires(W) {
+              if (AddPoint(W.x1,W.y1,LAYER_NETS,ingroup(W) & 1)) {
+                Result+=SnapPoint(W.x1,W.y1);
+                Moved=1;
+                }
+              if (AddPoint(W.x2,W.y2,LAYER_NETS,ingroup(W) & 2)) {
+                Result+=SnapPoint(W.x2,W.y2);
+                Moved=1;
+                }
+              }
+        }
+  if (!Moved)
+    return "";
+  Result="DISPLAY None Nets;\n"+
+    "GRID Mic Finest;\n"+
+    Result+
+    "GRID Last;\n"+
+    "DISPLAY Last;\n";
+  return Result;
+  }
+
+string SnapBusses() {
+  //Returns the exit command necessary for snapping all desired busses in the
+  //current schematics editor window
+  string Result="";
+  int Moved=0,CurrentSheet;
+  sheet(SH)
+    CurrentSheet=SH.number;
+  schematic(S)
+    S.sheets(SH)
+      if ((dlgScope!=scopeSheet) || (SH.number==CurrentSheet)) {
+        if (dlgScope==scopeAll)
+          Result+="EDIT .s"+AWIntToStr(SH.number)+";\n";
+        SH.busses(B)
+          B.segments(SEG)
+            SEG.wires(W) {
+              if (AddPoint(W.x1,W.y1,LAYER_BUSSES,ingroup(W) & 1)) {
+                Result+=SnapPoint(W.x1,W.y1);
+                Moved=1;
+                }
+              if (AddPoint(W.x2,W.y2,LAYER_BUSSES,ingroup(W) & 2)) {
+                Result+=SnapPoint(W.x2,W.y2);
+                Moved=1;
+                }
+              }
+        }
+  if (!Moved)
+    return "";
+  Result="DISPLAY None Busses;\n"+
+    "GRID Mic Finest;\n"+
+    Result+
+    "GRID Last;\n"+
+    "DISPLAY Last;\n";
+  return Result;
+  }
+
+void SnapSchematic() {
+  //Snaps all desired objects in the current schematics editor window
+  int Result=2;
+  string Text;
+  //Do nothing, if the current window is not the schematics editor
+  if (!schematic)
+    return;
+  //If a dialog is desired, show it as often as necessary (until the user has
+  //selected all options). The dialog returns 0 for 'cancel', 1 for 'OK' and 2
+  //for 'not yet finished'
+  if (NoDialog)
+    Result=1;
+  while (Result==2)
+    Result=dlgDialog(AWLocalise("Snap schematic objects","Schaltplanobjekte "+
+        "einrasten")) {
+      ShowDistanceGroup();
+      dlgGroup(AWLocalise(" OBJECT TYPES: "," OBJEKTTYPEN: ")) {
+        dlgHBoxLayout {
+          dlgCheckBox(AWLocalise("Parts, gates","Bauteile (parts, gates)"),
+            dlgSnapGates);
+          dlgCheckBox(AWLocalise("Connections (nets, busses, junctions)",
+            "Verbindungen (nets, busses, junctions)"),dlgSnapNets);
+          }
+        }
+      ShowScopeGroup();
+      };
+  //Exit the ULP, if the dialog was cancelled or no objects were selected
+  if ((!Result) || ((!dlgSnapGates) && (!dlgSnapNets)) && (!dlgSnapNetsPass2))
+    exit(0);
+  //If gates are to be snapped, do just that
+  if (dlgSnapGates)
+    AWExitCommand+=SnapParts();
+  //If gates AND nets are to be processed, the gates have already been snapped
+  //here, and the nets should NOT be processed in the same run. Therefore,
+  //after snapping the gates properly, start this ULP again (with all desired
+  //options) and snap the nets in the second (and third) run
+  if (AWExitCommand) {
+    if (dlgSnapNets) {
+      sprintf(Text,"RUN snap %f %f",GridX,GridY);
+      AWExitCommand+=Text;
+      if (dlgScope==scopeGroup)
+        AWExitCommand+=" group";
+      if (dlgScope==scopeSheet)
+        AWExitCommand+=" sheet";
+      if (dlgSnapNets)
+        AWExitCommand+=" nets";
+      AWExitCommand+=" microns;\n";
+      }
+    exit(AWExitCommand);
+    }
+  //If nets are to be snapped, first just snap all junctions and then start the
+  //ULP again (with all desired options) to snap the nets in yet another run
+  if (dlgSnapNets) {
+    AWExitCommand+=SnapJunctions();
+    sprintf(Text,"RUN snap %f %f",GridX,GridY);
+    AWExitCommand+=Text;
+    if (dlgScope==scopeGroup)
+      AWExitCommand+=" group";
+    if (dlgScope==scopeSheet)
+      AWExitCommand+=" sheet";
+    AWExitCommand+=" netspass2 microns;\n";
+    exit(AWExitCommand);
+    }
+  //If junctions have already been snapped, now snap the nets and busses in
+  //the last run
+  if (dlgSnapNetsPass2)
+    AWExitCommand+=SnapNets()+SnapBusses();
+  //Process the exit command
+  exit(AWExitCommand);
+  }
+
+//----- MAIN PROGRAM -----
+
+void main(void) {
+  GetDefaultScope();
+  GetDefaultGrid();
+  GetDefaultObjects();
+  SnapSymbol();
+  SnapPackage();
+  SnapBoard();
+  SnapSchematic();
+  }

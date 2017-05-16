@@ -1,0 +1,114 @@
+# Command Menu Setup
+#
+# This is an example that shows how to set up a complex command menu,
+# including submenus and command aliases. To display the command menu in
+# the editor windows you have to activate the option 'Command texts'
+# in the 'Options/User Interface' menu.
+
+MENU
+     'Grid {\
+             Metric   {\
+                        0.05 mm : Grid mm 0.05; |\
+                        0.10 mm : Grid mm 0.1; |\
+                        0.25 mm : Grid mm 0.25; |\
+                        0.50 mm : Grid mm 0.5; |\
+                        1.00 mm : Grid mm 1; |\
+                        2.50 mm : Grid mm 2.5; |\
+                        5.00 mm : Grid mm 5.0; |\
+                        10.00 mm : Grid mm 10.0;\
+                      } | \
+             5 mil : Grid mil 5; |\
+             6.25 mil : Grid mil 6.25; |\
+             10 mil : Grid mil 10; |\
+             12.5 mil : Grid mil 12.5; |\
+             20 mil : Grid mil 20; |\
+             25 mil : Grid mil 25; |\
+             30 mil : Grid mil 30; |\
+             50 mil : Grid mil 50; |\
+             100 mil : Grid mil 100; |\
+             Show Grid : Grid On; | \
+             Hide Grid : Grid Off;\
+           }'\
+     'Display {\
+                Top       : Display None Top tOrigins tStop Unrouted Pads Vias Dimension; |\
+                Top/Place : Display None Top tPlace tOrigins tNames tValues tStop Unrouted Pads Vias Dimension; |\
+                Top/Place/Doc : Display None Top tPlace tDoc tOrigins tNames tValues tStop Unrouted Pads Vias Dimension; |\
+                Bottom    : Display None Bottom bOrigins bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place : Display None Bottom bPlace bOrigins bNames bValues bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place/Doc : Display None Bottom bPlace bDoc bOrigins bNames bValues bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom : Display None Top Bottom tOrigins bOrigins tStop bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom/Place: Display None Top Bottom tPlace bPlace tOrigins bOrigins tNames tValues bNames bValues tStop bStop Unrouted Pads Vias Dimension; \
+              }'\
+     '---'\
+     'Next : run editnext-dev-sym-pac.ulp;'\
+     'Prev : run editprev-dev-sym-pac.ulp;'\
+     '---'\
+     'Next Pkg/Desc : run nextpacdescript.ulp;'\
+     'Prev Pkg/Desc : run prevpacdescript.ulp;'\
+     '---'\
+     'Next Dev/Desc : run nextdevdescript.ulp;'\
+     'Prev Dev/Desc : run prevdevdescript.ulp;'\
+     '---'\
+     'Selection {\
+         Selection On: GROUP|\
+         Selection All: GROUP ALL;\
+     }'\
+     '---'\
+     'Copy {\
+         Duplicate On: COPY|\
+         Copy Selection: CUT;|\
+         Copy and Paste Selection: CUT; COPY (C>0 0)|\
+         Copy All: GROUP ALL; CUT;|\
+         Copy All and Paste: GROUP ALL; CUT; COPY (C>0 0)\
+     }'\
+     '---'\
+     'Paste: PASTE'\
+     '---'\
+     'Delete {\
+         Delete On: DELETE|\
+         Delete Selection: DELETE (C>0 0);|\
+         Delete All: GROUP ALL; DELETE (C>0 0)\
+     }'\
+     '---'\
+     'Move {\
+         Move On: MOVE|\
+         Move Selection: MOVE (C>0 0);|\
+         Move All: GROUP ALL; MOVE (C>0 0)\
+     }'\
+     '---'\
+     'Rename : run cmd-rename-in-lbr.ulp;'\
+     '---'\
+     'Remove : run remove-dev-sym-pac.ulp;'\
+     '---'\
+     'Import BMP : run import-bmp.ulp;'\
+     '---'\
+     'Make BSDL : run make-symbol-device-package-bsdl.ulp;'\
+     '---'\
+     'Make Connector : run make-connector.ulp;'\
+     '---'\
+     'Statistics: run statistic-lbr.ulp;'\
+     '---'\
+     'Add Name/Value : run add-name-value.ulp;'\
+     '---'\
+     'Change  {\
+         Cap : change cap |\
+         Font : change font |\
+         Function : change function |\
+         Layer : change layer |\
+         Ratio : change ratio |\
+         Size : change size |\
+         Style : change style |\
+         Text : change text |\
+         ---|\
+         Drill : change drill |\
+         Diameter : change diameter |\
+         Pour : change pour |\
+         Shape : change shape |\
+         Width : change width |\
+         ---|\
+         Direction : change dir|\
+         Function : change func|\
+         Length : change len|\
+         Swaplevel : change swaplevel\
+     }'\
+     '---';

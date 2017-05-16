@@ -1,0 +1,518 @@
+#usage "<b>Renumber the parts of a schematic, optionally specifying start number, skipping digits and/or only those parts within a user specified rectangular area</b>\n"
+       "<p>"
+       "Based on renumber-sch.ulp written by: support@cadsoft.de"
+       "<author>Author: Neil Allison, avon.tech.solutions@clear.net.nz</author>\n"
+
+/*
+Rev History
+File:   renumber-sch-group v2.ulp
+Author: Neil Allison, 
+        Avon Technical Solutions, PO Box 20350, Christchurch, New Zealand
+        email: neil@avon-tech-solutions.co.nz
+Date:   18-Aug-2002  NJA  Adapted from Eagle 4.09r1, renumber-sch.ulp adding start number, skipped digits, primitive group
+        22-Feb-2004  NJA  Bug Fix - Added sheet checks so when rectangle used only the sheet it is drawn on is renumbered
+*/
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+string Info = "<b>Please verify that your corresponding layout file (if already existing) " +
+       "has been loaded with the schematic file " +
+       "otherwise back-/forward-annotation will not work afterwards.</b><p>\n" +
+       "This version renumbers only devices with package (no supply) " +
+       "sorted by sheets and coordinates (vertical/descending, horizontal/ascending).<p>\n" +
+       " You can change the following sorting parameters:<br>" +
+       " descx = 0 (X ascending [left >> right])<br>" +
+       " descx = 1 (X descending [right >> left])<br>" +
+       " descy = 0 (Y ascending)<br>" +
+       " descy = 1 (Y descending)";
+ 
+string Info_Extras =      "<b>Additions to this version</b> by Neil Allison, avon.tech.solutions@clear.net.nz<p>\n" +
+       "Change the start number if required (e.g. 1 => R1, R2,...; 101 => R101, R102,...)<p>\n" +
+       "Skip least significant digits by leaving the box(es) unchecked.  e.g. Leaving 0, 8 and 9\n" +
+       "    unchecked skips all numbers ending in these digits: R8,R9,R10,R18,R19,R20,R28,...<p>\n"+
+       "Renumber only parts within a rectangle on a layer (default 254)<p>" +
+       "<b><centre>THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED</centre></b>";
+
+string Version = "4.2.0";
+int descy = 1;         // set to 0 sorting ascending
+int descx = 0;         // set to 1 sorting descending
+
+numeric string OldNames[], NewNames[];
+int x[], y[], i[], sh[];
+int nrNames = 0;
+
+// Additions for group functions
+int startNum = 1;	//Default renumber starting number
+
+int digit0 = 1;		//Default skip "0"? 0=Skip/Unchecked, 1=Use digit/Checked
+int digit1 = 1;		// ditto "1"
+int digit2 = 1;		// ditto "2"
+int digit3 = 1;		// ditto "3"
+int digit4 = 1;		// ditto "4"
+int digit5 = 1;		// ditto "5"
+int digit6 = 1;		// ditto "6"
+int digit7 = 1;		// ditto "7"
+int digit8 = 1;		// ditto "8"
+int digit9 = 1;		// ditto "9"
+
+int usedDigit = 0;	// logical test variables
+int test;
+
+int useRectangle = 0;		//Default use rectangle checkbox: 0=All/Unchecked, 1=rectangle/Checked
+int rectangleLayer = 254;	//Choose a user layer, out of the way of other stuff
+real rectX1;			//Rectangle coords - lower left corner
+real rectY1;
+real rectX2;			//Rectangle coords - upper right corner
+real rectY2;
+int rectSheet;			//If use rectangle, only want changes on that sheet
+string rectError;
+
+numeric string SymNames[];     // Device-Name of Symbol
+int symsh[];
+int sx[], sy[];
+int Snr = 0;
+int Dnr = 0;
+
+string error = "";
+string SymPrefix[];
+string DevPrefix[];
+string DevName[];
+string SymDevName[];
+
+string cmd;
+string c;
+
+real Grid = 100; // in 100 Mil
+string lbr[], dev[], sym[];
+
+int GetNumberIndex(string Name)
+{
+  // Returns the index of the first digit of the numeric part of Name
+  // -1 indicates there is no numeric part in Name
+  int l = strlen(Name) - 1;
+  for (int i = l; i >= 0; --i) {
+      if (!isdigit(Name[i]))
+         return i < l ? i + 1 : -1;
+      }
+  return 0;
+}
+
+string prefix(string name)      // Prefix of Device
+{
+  int num = GetNumberIndex(name);
+  if (num < 1) return name;
+  else {
+     string pfx = name;
+     pfx[num] = 0;
+     return pfx;
+     }
+}
+
+void DescendingY(void)
+{
+  for (int ny = 0;  ny < nrNames ; ny++) {
+    y[ny] = 0 - y[ny];
+    }
+}
+
+void DescendingX(void)
+{
+  for (int nx = 0;  nx < nrNames ; nx++) {
+    x[nx] = 0 - x[nx];
+    }
+}
+
+void SortElements(void)
+{
+  // Sorts the elements according to their location, first by ascending
+  // x coordinates, then by ascending y coordinates.
+  // If you prefer a different kind of sorting, you can implement this here.
+  // As a result, the integer array i[] must contain the new sequence
+  // in which to renumber the elements.
+  if (descy) DescendingY();
+  if (descx) DescendingX();
+
+  sort(nrNames,i, sh, y, x);
+  if (descy) DescendingY();
+  if (descx) DescendingX();
+  return;
+}
+
+void GenerateNames(void)	//Modified from original by NJA
+{
+  // Generates new numeric parts to the element names in NewNames
+  for (int n = 0; n < nrNames - 1; ++n) {
+     int k = startNum - 1;
+     // Ensure startNum is not an excluded digit
+     do { k++;
+          usedDigit = 1;
+          test = k % 10;			//modulus i.e. remainder
+          if (test == 0) usedDigit = digit0; 	//switch might be faster!
+          if (test == 1) usedDigit = digit1; 
+          if (test == 2) usedDigit = digit2; 
+          if (test == 3) usedDigit = digit3; 
+          if (test == 4) usedDigit = digit4; 
+          if (test == 5) usedDigit = digit5; 
+          if (test == 6) usedDigit = digit6; 
+          if (test == 7) usedDigit = digit7; 
+          if (test == 8) usedDigit = digit8; 
+          if (test == 9) usedDigit = digit9; 
+        } while (usedDigit != 1);
+
+    if (OldNames[i[n]] != NewNames[i[n]]) {   //Skip outside rectangle
+     string s = NewNames[i[n]];
+     if (!isdigit(s[strlen(s) - 1])) {
+        for (int j = n; j < nrNames; ++j) {
+           if (NewNames[i[j]] == s) {
+              sprintf(NewNames[i[j]], "%s%d", NewNames[i[j]], k);
+	      	// Skip last significant digits we're not using
+           	do { 	k++;
+			usedDigit = 1;
+			test = k % 10;		//modulus i.e. remainder
+			if (test == 0) usedDigit = digit0;
+			if (test == 1) usedDigit = digit1; 
+			if (test == 2) usedDigit = digit2; 
+			if (test == 3) usedDigit = digit3; 
+			if (test == 4) usedDigit = digit4; 
+			if (test == 5) usedDigit = digit5; 
+			if (test == 6) usedDigit = digit6; 
+			if (test == 7) usedDigit = digit7; 
+			if (test == 8) usedDigit = digit8; 
+			if (test == 9) usedDigit = digit9; 
+		   } while (usedDigit != 1);
+		}	
+
+           }
+        }
+      } 
+     }
+  return;
+}
+
+void Rename(int x, int y, string New)
+{
+  // Generates the EAGLE command necessary to change element name Old to New
+  sprintf(c, "Name '%s' (%d %d);\n", New, x, y);
+  cmd += c;
+  return;
+}
+
+void GenerateScript(void)
+{
+  // Generates an EAGLE script file that does the whole renumbering.
+  // The tricky part here is that we cannot rename an element to a name
+  // that already exists in the schematic (which, e.g. might be necessary if
+  // we had to swap the names of two elements). Therefore we have to
+  // use a ScratchName wherever this is necessary.
+
+  // If there is nothing to do, the resulting script file will be empty.
+
+  int ScratchIndex = 0;
+  string ScratchName;
+  int sch = 0;
+  for (int n = 0; n < nrNames; ++n) {
+     if (sh[i[n]] != sch) {
+        sch = sh[i[n]];              // *** change sheet
+        sprintf(c, "Edit .s%d;\n", sch);
+        cmd += c;
+        }
+     if (OldNames[i[n]] != NewNames[i[n]]) {
+        for (int k = n + 1; k < nrNames; ++k) {
+           if (OldNames[i[k]] == NewNames[i[n]]) {
+              sprintf(ScratchName, "$%0*d", ELEMENT_NAME_LENGTH - 1, ++ScratchIndex);
+
+              if (sh[i[k]] != sch) {
+                 sch = sh[i[k]];              // *** change sheet
+                 sprintf(c, "Edit .s%d;\n", sch);
+                 cmd += c;
+                 }
+              Rename(x[i[k]],y[i[k]], ScratchName);
+
+              if (sh[i[n]] != sch) {
+                 sch = sh[i[n]];              // *** change sheet
+                 sprintf(c, "Edit .s%d;\n", sch);
+                 cmd += c;
+                 }
+
+              OldNames[i[k]] = ScratchName;
+              break;
+              }
+           }
+        if (sh[i[n]] != sch) {
+           sch = sh[i[n]];              // *** change sheet
+           }
+        Rename(x[i[n]],y[i[n]], NewNames[i[n]]);
+        }
+     }
+  return;
+}
+
+// *** check collision befor rename ***
+string CheckNames(void) {
+   string new_name = ";";
+   string h;
+
+   for (int Dn = 0; Dn < Dnr; Dn++ ) {
+      for (int Sn = 0; Sn < Snr; Sn++) {
+         if (DevPrefix[Dn] == SymPrefix[Sn]) {
+            sprintf(h, "# Do not use Prefix %s on Device with Package (%s) and Device without Package (%s)\n",
+                                SymPrefix[Sn], DevName[Dn], SymDevName[Sn]);
+            error += h;
+            break;
+            }
+         }
+      }
+   for (int n = 0; n < nrNames - 1; ++n) {     // make a long string
+      new_name += NewNames[n] + ";";
+      }
+
+   for (int xx = 0; xx < Snr - 1; xx++) {
+      string sd = SymNames[xx];
+      if(sd[0] == '$') {                       // if first character a $ on Symbolname
+         error +=  "# Do not use $ character on first position in device name\n";
+         sprintf(h, "# RENAME %s on (%.2f %.2f) - sheet %d befor run this ULP again' (%.2f %.2f)\n",
+                                 SymNames[xx], sx[xx] / 1000.0, sy[xx] / 1000.0, symsh[xx], sx[xx] / 1000.0, sy[xx] / 1000.0);
+         error += h;
+         }
+
+      int s;
+      int pos = strrstr(new_name, ";" + SymNames[xx] + ";");
+      if (pos > 0 ) {
+         for (s = 0; s < nrNames - 1; s++) {
+            if(NewNames[s] == SymNames[xx]) {
+               break;
+               }
+            }
+         error +=  "# Collision by symbol name and device name (eg. Frames, Supply ...)\n";
+         sprintf(h, "# Rename PREFIX of Device %s on (%.2f %.2f) - sheet %d befor rename %s on (%.2f %.2f) - sheet %d';\n",
+                                 SymNames[xx], sx[xx] / 1000.0, sy[xx] / 1000.0, symsh[xx],
+                                 OldNames[s], x[s] / 1000.0, y[s] / 1000.0, sh[s] );
+         error += h;
+         }
+      }
+  return error;
+}
+
+void setgridmil (void)
+{
+  sprintf(c, "GRID MIL 100 OFF;\n");
+  cmd += c;
+  sprintf(c, "DISPLAY NONE 94 95 -96;\n");
+  cmd += c;
+  return;
+}
+
+void visible(UL_SCHEMATIC S) {
+  sprintf(c, "DISP NONE ");
+  cmd += c;
+  S.layers(L) {
+     if (L.visible) {
+        sprintf(c, "%d ", L.number);
+        cmd += c;
+        }
+     }
+  cmd += ";\n";
+  return;
+}
+
+void menue(void) {	//modified from original
+   int Result = dlgDialog("Renumber Schematic") {
+      dlgLabel(Info);
+      dlgHBoxLayout {
+         dlgGroup("Sort X") {
+            dlgRadioButton("&Ascending", descx);
+            dlgRadioButton("&Descending", descx);
+            }
+         dlgGroup("Sort Y") {
+            dlgRadioButton("A&scending", descy);
+            dlgRadioButton("D&escending", descy);
+            }
+         }
+
+      dlgLabel(Info_Extras);
+
+      dlgHBoxLayout {
+  	 dlgLabel("Enter the Start &Number between 0 and 9999");
+  	 dlgIntEdit(startNum, 0, 9999);
+      }
+      
+      dlgGroup("Which digits to use?") { 
+         dlgHBoxLayout {
+	    dlgCheckBox("0", digit0);
+            dlgCheckBox("1", digit1);
+            dlgCheckBox("2", digit2);
+            dlgCheckBox("3", digit3);
+            dlgCheckBox("4", digit4);
+            dlgCheckBox("5", digit5);
+            dlgCheckBox("6", digit6);
+            dlgCheckBox("7", digit7);
+            dlgCheckBox("8", digit8);
+            dlgCheckBox("9", digit9);
+            }
+         }
+
+      dlgHBoxLayout {
+	 dlgLabel("Use Parts inside Rectangle (leave Unchecked for ALL parts)?");
+         dlgCheckBox("", useRectangle);
+         }
+      dlgHBoxLayout {
+  	 dlgLabel("Enter rectangle Layer Number between 100 and 255 (Default is 254)");
+  	 dlgIntEdit(rectangleLayer, 100, 255);
+         }
+
+      dlgHBoxLayout {
+         dlgPushButton("+&OK") dlgAccept();
+         dlgStretch(1);
+         dlgPushButton("-&Cancel") dlgReject();
+         }
+      };
+   if (!Result) exit (0);
+   return ;
+   }
+
+void getRectangleXY(void) //New subroutine
+{
+   int rectCount = 0;
+   schematic(grS) {
+      grS.sheets(grSH) {
+         grSH.rectangles(R) {
+            if (R.layer == rectangleLayer) {
+               rectCount++;
+               rectX1 = u2mm(R.x1);
+               rectY1 = u2mm(R.y1);
+               rectX2 = u2mm(R.x2);
+               rectY2 = u2mm(R.y2);
+               rectSheet = grSH.number;
+            }
+         }
+      }
+   }
+   if (rectCount > 1) {
+        //string rectError;
+        sprintf(rectError, "Only 1 Rectangle allowed on layer %d", rectangleLayer);
+        dlgMessageBox(rectError, "&Quit ULP");
+        exit (0);
+     }
+   if (rectCount < 1) {
+        //string rectError;
+        sprintf(rectError, "No Rectangle on layer %d, so nothing to do!", rectangleLayer);
+        dlgMessageBox(rectError, "&Quit ULP");
+        exit (0);
+     }
+
+      //sprintf(rectError, "Sheet Number %d", rectSheet);
+      //dlgMessageBox(rectError);
+   return;
+}
+
+
+//Main	modified from original
+if (schematic) {
+ schematic(S) {
+  menue();
+
+  if (useRectangle == 1) {
+     getRectangleXY();    // NJA Get Rectangle x & y limits
+  }
+
+  int l = 1;
+  S.sheets(SH) {
+    SH.parts(P) {
+      int n = GetNumberIndex(P.name);
+      if (n > 0) {
+
+        if (P.device.package) {    // **** only Devices with Package
+                                   // **** without Supply symbol Frames ect...
+           DevPrefix[Dnr] = prefix(P.name);
+           DevName[Dnr] = P.name;
+           ++Dnr;
+           P.instances(I) {
+
+             int found = -1;
+             for (int fn = 0; fn < nrNames; fn++) {
+               if (OldNames[fn] == P.name) {
+                  found = fn;
+                  break;
+                  }
+               }
+             if (found < 0) {
+
+               x[nrNames] = u2mil(I.x);    // cannot use E.x/y directly because of
+               y[nrNames] = u2mil(I.y);    // sort() problem with integers > 32767
+               OldNames[nrNames] = P.name; // in version 3.50
+
+               	// Added by Neil Allison
+		// 22-Feb-04, NJA, Added rectSheet <> SH.number
+               if ((useRectangle == 1) && ((SH.number != rectSheet) || (u2mm(I.x) < rectX1) || (u2mm(I.x) > rectX2) || (u2mm(I.y) < rectY1) || (u2mm(I.y) > rectY2)))
+                   NewNames[nrNames] = OldNames[nrNames];
+               else
+                   NewNames[nrNames] = strsub(P.name, 0, n);
+               sh[nrNames] = I.sheet;
+               ++nrNames;
+               }
+
+             else {
+                if (sh[fn] == I.sheet) {
+                  if ( u2mil(I.x) < x[fn] || u2mil(I.y) > y[fn] ) {
+                      // tausche wenn x kleiner oder y groesser
+                      x[fn] > u2mil(I.x);
+                      y[fn] > u2mil(I.y);
+                      }
+                  }
+               }
+             }
+           }
+
+        // Only Symbol (Supply, Port, Frame...)
+        else {  // *** check PartName on Symbols Supply, Port, Frame ... ***
+           SymPrefix[Snr] = prefix(P.name);
+           SymDevName[Snr] = P.name;
+           P.instances(I) {
+              SymNames[Snr] = P.name;     // Device-Name of Symbol
+              sx[Snr] = u2mil(I.x);       // cannot use E.x/y directly because of
+              sy[Snr] = u2mil(I.y);       // sort() problem with integers > 32767
+              symsh[Snr] = I.sheet;
+              ++Snr;
+              break;
+              }
+           }
+        }
+      }
+    }
+
+  SortElements();
+  GenerateNames();
+  setgridmil ();
+  GenerateScript();
+
+  if (CheckNames()) {
+    int select;
+    dlgDialog("Symbol ref Device Names") {
+    dlgVBoxLayout {
+       dlgLabel("Warnings for renumber!");
+       dlgTextView(error);
+       }
+    dlgHBoxLayout {
+       dlgSpacing(450);
+       }
+    dlgHBoxLayout {
+       dlgPushButton("+&OK") dlgAccept();
+       dlgStretch(1);
+         }
+       };
+    exit (-1);
+    }
+
+  sprintf(c, "GRID INCH 0.1;\n");
+  cmd += c;
+  sprintf(c, "EDIT .S1;\n");
+  cmd += c;
+  visible(S);
+  exit (cmd);
+ }
+}
+
+else {
+   dlgMessageBox("\n    Start this ULP in a Schematic    \n");
+   exit (0);
+}

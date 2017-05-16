@@ -1,0 +1,86 @@
+#usage "en: Import and create device variants\n"
+           "Imports a device variant description in csv format as exported with export-dev-attribute and creates the device variants\n"
+           "Usage: RUN import-dev-attribute.ulp ['temp'|filename]\n"
+           "Author: behner@zess.uni-siegen.de"
+
+string lines[];
+string keys[];
+int nkeys;
+
+string outStr = "";
+
+string file_name =  EAGLE_HOME+'/'+"temp.csv";
+
+string oldCodec = cfgget("EAGLE:Option.Codec");
+cfgset("EAGLE:Option.Codec", "UTF-8");
+if (deviceset){
+	if (argc>1){
+		if (argv[1] != "temp")
+			file_name = argv[1];
+		else
+			file_name =  EAGLE_HOME+'/'+"temp.csv";
+	}
+	else {
+		library(L) {
+			file_name = dlgFileOpen("Select the device Table", filedir(L.name), "*.csv");
+		};
+	}
+		
+		
+	if (file_name!=""){
+		int nLines = fileread(lines,file_name);
+		nkeys = strsplit(keys, lines[0],';');
+		library(L) {
+			string libContent;
+			fileread(libContent, L.name);
+			deviceset(D) {
+				int s = 0;
+				int l = 0;
+				int e;
+
+				s = strstr(libContent, "<deviceset name=\"" + D.name + "\"", s);
+				s = strstr(libContent, "<devices>", s);
+				e = strstr(libContent, "</devices>", s);
+				output(L.name, "wtF")  {
+					printf("%s",  strsub(libContent, 0, s+10));
+					
+					for (int i=1; i<nLines; i++){
+						string values[];
+						int nvalues = strsplit(values, lines[i],';');
+						printf("<device name=\"%s\" package=\"%s\">\n<connects>\n", values[0], values[2]);
+						string connectStr[];
+						int nconnects = strsplit(connectStr, values[3],' ');
+						for (int j = 0; j<nconnects; j = j+2) {
+							string gateStr[];
+							strsplit(gateStr, connectStr[j], '.');
+							string pad = strsub(connectStr[j+1], 1, strlen(connectStr[j+1])-2);
+							printf("<connect gate=\"%s\" pin=\"%s\" pad=\"%s\"/>\n", gateStr[0], gateStr[1], pad);
+						}
+						if (values[1] == "''") {
+							values[1] = "";
+						}
+						printf("</connects>\n<technologies>\n<technology name=\"%s\">\n", values[1]);
+						for (j=4; j<nkeys; j++){
+							if (values[j]!="")
+								printf("<attribute name=\"%s\" value=\"%s\" constant=\"no\"/>\n", keys[j], values[j]);
+						}
+						printf("%s","</technology>\n</technologies>\n</device>\n");
+					}
+					
+					printf("%s",  strsub(libContent, e));
+				};
+				string outScr = "";
+				sprintf(outScr,"OPEN '%s'; EDIT %s.dev;\n", L.name, D.name);
+				cfgset("EAGLE:Option.Codec", oldCodec);
+				exit(outScr);
+			};
+		};
+		
+	}
+	
+	else {
+		cfgset("EAGLE:Option.Codec", oldCodec);
+		exit(-1);
+	}
+}
+cfgset("EAGLE:Option.Codec", oldCodec);

@@ -1,0 +1,88 @@
+#usage "en: Creates a supply symbol from EQUIPOTENTIAL\n"
+           "Creates a supply symbol from EQUIPOTENTIAL\n"
+           "Usage: RUN create-supply.ulp [net_name positive_flag voltage]\n"
+           "Author: behner@zess.uni-siegen.de"
+string outscript="";
+string net_name="";
+string sym_name="EQUIPOTENTIAL";
+real voltage = 0;
+int high_potential=1;
+string dest_library = "general.lbr";
+
+if (argc==4){
+	net_name = argv[1];
+	high_potential = strtol(argv[2])>0;
+	voltage = strtod(argv[3]);
+}
+else {
+	int rval = dlgDialog("Enter Net Name") {
+		dlgVBoxLayout {
+			dlgHBoxLayout{
+				dlgLabel("Net Name:");
+				dlgStringEdit(net_name);
+			}
+			dlgHBoxLayout{
+				dlgLabel("Voltage:");
+				dlgRealEdit(voltage);
+			}
+			dlgCheckBox("&Positive", high_potential);
+		}
+		dlgHBoxLayout {
+			dlgPushButton("+&OK")    dlgAccept(0);
+			dlgPushButton("&Cancel") dlgReject(-1);
+		}
+	};
+	if (rval<0) 
+		exit(-1);
+}
+if (net_name=="") 
+	exit(-1);
+if (high_potential)
+	sym_name = "EQUIPOTENTIAL_HIGH";
+net_name = strupr(net_name);
+string new_sym_name = sym_name + "@" + net_name;
+string device_name = "SUPPLY_" + net_name;
+int device_exist = 0;
+int symbol_exist = 0;
+
+if (schematic) {
+	outscript = "OPEN " + dest_library + ";\n";
+	sprintf(outscript,"%sRUN create-supply.ulp %s %d %g;\n",outscript,net_name,high_potential,voltage);
+	outscript += "WRITE\n;EDIT .sch;";
+	outscript += "ADD " + device_name;
+	exit(outscript);
+}
+
+if (library) {
+	library(L){
+		L.devices(D){
+			if (D.name == device_name)
+				device_exist = 1;
+		}
+		L.symbols(S){
+			if (S.name == new_sym_name)
+				symbol_exist = 1;
+		}
+	}
+
+	if (device_exist) 
+		outscript += "SET CONFIRM YES;REMOVE " + device_name + ".dev;SET CONFIRM OFF;\n";
+	if (symbol_exist)
+		outscript += "SET CONFIRM YES;REMOVE " + new_sym_name + ".sym;SET CONFIRM OFF;\n";
+	outscript += "COPY " + sym_name + "@ " + new_sym_name + ";\n";
+	outscript += "EDIT " + new_sym_name + ".sym;\n";
+	outscript += "NAME " + sym_name + " " + net_name + ";\n";
+	outscript += "SET CONFIRM YES;EDIT " + device_name + ".dev;SET CONFIRM OFF;\n";
+	outscript += "ADD " + new_sym_name + " (0 0);\n";
+	outscript += "ATTRIBUTE VALUE '" + net_name + "';\n";
+	sprintf(outscript,"%sATTRIBUTE VOLTAGE '%.4g';\n",outscript,voltage);
+	if (high_potential){
+		outscript += "PREFIX P+;\n";
+	}
+	else {
+		outscript += "PREFIX P-;\n";
+	}
+	outscript += "EDIT;";
+	//dlgMessageBox(outscript);
+	exit(outscript);
+}

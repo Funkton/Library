@@ -1,0 +1,135 @@
+# Phase IV Engineering, inc
+# Innovative Wireless Sensing
+# 2820 Wilderness Place, Suite C
+# Boulder, CO 80301
+#
+#
+# File: EAGLE.SCR
+# Description: Master script file.
+# Author: Cameron Nicks, PCB Designer
+# 
+#
+#   This file must be copied to scr/eagle.scr in the Eagle installation
+#   directory whenever changes are made or a new version of Eagle is installed.
+#   It will be run automatically when Eagle is started and when various windows
+#   are brought up.
+#___________________________________
+
+# SCRIPTS
+
+#run Configure/COLORS.scr;
+#run Configure/SHORTCUTS.scr
+
+#----------------------------------#
+#------------ GENERAL--------------#
+#----------------------------------#
+
+	Change Ratio 18;
+	
+	set Interface.PreferredUnit 2;
+
+	set Cmd.Wire.IgnoreCtrlForRadiusMode 1;
+
+	set Option.AutoLoadMatchingDrawingFile 1;
+	set Option.FileLocking 0;
+	set Option.RepositionMouseCursorAfterContextMenu 1;
+	set Option.SelectFactor 0.02;
+	set Option.ShowPartOrigins 1;
+	set Option.ShowTextOrigins 1;
+	set Option.SnapLength 508;
+	set Option.UnpopulatedMarkScaling .7;
+	set Option.ToggleCtrlForGroupSelectionAndContextMenu 1;
+	set vector_font on;
+	set Warning.PartHasNoUserDefinableValue 0;
+	set Warning.SupplyPinAutoOverwriteGeneratedNetName 0;
+
+	SET WIDTH_MENU 0.05mm 0.1mm 0.20mm 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 1.0mm 2.5mm;
+
+#----------------------------------#
+#---------- BOARD EDITOR ----------#
+#----------------------------------#
+
+BRD:
+
+	SET WIRE_BEND @ 0 1 2;
+	Set Drill 0.254mm;
+	Change Shape Round;
+	Change Width 0.2mm;
+	Change Font Vector;
+	Change Ratio 18;
+
+	SET CONTEXT;
+	SET CONTEXT ELEMENT   'Show Part Airwires'   'RUN SHOW-NETS GND';
+
+	# Text Command Menu Setup
+
+		MENU
+		'RENDER {\
+						Top       : SCRIPT RenderT.scr; |\
+						Bottom : SCRIPT RenderB.scr; |\
+						Mirror Brd : RUN mirror-board; |\
+				}'\
+
+			
+	# Toolbar Hack Settings from eaglerc.usr
+	
+	# Brd.ToolBar.Action = "2 1 1 0 2"
+	# Brd.ToolBar.CommandButtons = "3 0 1 0 3"
+	# Brd.ToolBar.CommandTexts = "2 0 1 0 2"
+	# Brd.ToolBar.Parameters = "3 1 1 0 3"
+
+
+#----------------------------------#
+#------- SCHEMATIC EDITOR ---------#
+#----------------------------------#
+
+SCH:
+
+	Grid IN .1;
+	Grid ALT IN .025;
+
+	Change Font Vector;
+
+	SET WIRE_BEND @ 0;
+
+	SET CONTEXT;
+	SET CONTEXT ELEMENT   'Show Airwires'   'RUN SHOW-AIRWIRES';
+
+	
+	# Text Command Menu Setup
+
+		MENU
+		'SHOW GRP : Run showgroup;'
+
+
+	# Toolbar Hack Settings from eaglerc.usr
+
+	# Sch.ToolBar.Action = "2 1 1 0 2"
+	# Sch.ToolBar.CommandButtons = "3 0 1 0 3"
+	# Sch.ToolBar.CommandTexts = "2 0 1 0 2"
+	# Sch.ToolBar.Parameters = "3 1 1 0 3"
+
+#----------------------------------#
+#--------- LIBRARY EDITOR ---------#
+#----------------------------------#
+
+LBR:
+
+PAC:
+	Grid MM .1;
+	Grid ALT MM .05;
+	Change Font Vector;
+	Change Width 0.2;
+
+SYM:
+	Grid IN .1;
+	Grid alt .025;
+	Change Font Vector;
+	Change Width 0.016;
+
+	# Toolbar Hack Settings from eaglerc.usr
+
+	# Lbr.ToolBar.Action = "2 1 1 0 2"
+	# Lbr.ToolBar.CommandButtons = "3 0 1 0 3"
+	# Lbr.ToolBar.CommandTexts = "2 0 1 0 2"
+	# Lbr.ToolBar.Parameters = "3 1 1 0 3"

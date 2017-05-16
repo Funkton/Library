@@ -1,0 +1,63 @@
+/*
+ *  This EAGLE User Language Program creates the proper format
+ *  Centroid file for assembly at Screaming Circuits including
+ *  the reference designator, position, layer and orientation
+ *  of each part
+ *
+ *  www.screamingcircuits.com
+ *
+ */
+ #usage "Create Centroid file for Screaming Circuits assembly<p>"
+        "<author>Author www.screamingcircuits.com</author>"
+
+string Version = "1.1";  // Version 1.1,  CNicks edit of Centroid ulp, add partno
+string fileMessage;
+
+string rotation(real Angle)
+{
+  string s;
+  sprintf(s, "%.1f", Angle);
+  int pos = strchr(s, '.');
+  if (pos >= 0) if (s[pos + 1] == '0') s[pos] = 0;
+  return s;
+}
+
+string side(int Mirror)
+{
+  string s;
+
+  if (Mirror){
+    s = "Bottom";
+  }
+  else {
+    s = "Top";
+  }
+  return s;
+}
+
+if (!board) {
+   dlgMessageBox("<hr><b>ERROR: This ULP will only operate in the board layout view.</b></hr><p>Switch to the board layout editor and re-run.");
+   exit(1);
+}
+
+if (board) board(B) {
+   output(filesetext(B.name, "-XY.csv")) {
+     printf("Phase IV Engineering SMD component position file.\n");
+     printf("Created by XY.ulp Version %s.\n\n", Version);
+     printf("Placement Data for pc board: \"%s\" as of: %s\n", filename(B.name), t2string(time()));
+     printf("Measurements are in inches. Comma delimited\n");
+     printf("Only surface mount components included\n\n");
+     printf("%s,%s,%s,%s,%s, %s\n", "RefDes", "Layer", "LocationX", "LocationY", "Rotation");
+     B.elements(E) {
+       int isSmd;
+       isSmd = 0;
+       E.package.contacts(C) { if (C.smd) isSmd = 1; }
+       if (isSmd) printf("%s,%s,%5.3f,%5.3f,%s\n", E.name, side(E.mirror), u2inch(E.x), u2inch(E.y), rotation(E.angle));
+       }
+     }
+
+	//fileMessage = "<hr><b>Centroid file for Screaming Circuits PCB assembly.</b></hr><p>Include this file in the .ZIP file along with your GERBER files and Bill of Materials:<P>" + filesetext(B.name, "_centroid.csv\n");
+
+	//dlgMessageBox(fileMessage);
+}
+

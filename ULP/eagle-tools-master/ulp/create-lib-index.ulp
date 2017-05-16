@@ -1,0 +1,192 @@
+string oldCodec = cfgget("EAGLE:Option.Codec");
+cfgset("EAGLE:Option.Codec", "UTF-8");
+
+string fileNames[];
+string fileHeaders[];
+string fileContents[];
+
+string standardFileHeader = "LIBRARY\tDEVICE\tPACKAGE";
+
+string baseFileDir = filedir(argv[0]) + "../lib/";
+
+int loadSymbolFile(string symbolName) {
+	for (int i = 0; fileNames[i] != ""; i++) {
+		if (fileNames[i] == symbolName)
+			break;
+	}
+	
+	if (fileNames[i]=="") {
+		fileNames[i] = symbolName;
+		string lines[];
+		string files[];
+		int n = fileglob(files, baseFileDir+symbolName+".idx");
+		
+		if (n > 0) {
+			int nLines = fileread(lines, baseFileDir+symbolName+".idx");
+			fileHeaders[i] = lines[0];
+			for (int k = 1; k < nLines; k++) {
+				fileContents[i] = fileContents[i] + lines[k]+ "\n";
+			}
+		} else {
+			fileHeaders[i] = standardFileHeader;
+			fileContents[i] = "";
+		}	
+	}
+	return i;
+}
+
+void addContent(string symbolName, string dataset) {
+	int i = loadSymbolFile(symbolName);
+	string dummy[];
+	//int nLines = strsplit(dummy,fileContents[i],'\n');
+	sprintf(fileContents[i],"%s%s\n",fileContents[i], dataset);
+	//fileContents[i] = fileContents[i] + dataset+ "\n";
+}
+	
+int getAttributeIndex(string symbolName, string attribute) {
+	int i = loadSymbolFile(symbolName);
+	
+	string headerFields[];
+	int n = strsplit(headerFields, fileHeaders[i], '\t');
+	for (int k = 3; k < n; k++) {
+		if (headerFields[k] == strupr(attribute))
+			break;
+	}
+	
+	if (headerFields[k] == "") {
+		headerFields[k] = strupr(attribute);
+	}
+	
+	fileHeaders[i] = strjoin(headerFields,'\t');
+	return k;
+}
+
+int index = 0;
+
+if (argc>1) {
+	
+	index =  strtol(argv[1]); 
+}
+
+if (index==0) {
+	string files[];
+	int n = fileglob(files, baseFileDir+"*.idx");
+	for (int i = 0; i < n; i++) {
+		output (files[i], "wtD") {
+			printf("%s", standardFileHeader);
+		}
+	}
+	
+}
+
+string lib = used_libraries[index];
+
+if (index > 0) {
+	library (L) {
+		L.devices(D) {
+				
+			string symbolName;
+			string uniqueSymbolNames[];
+			int symbolNameCounts[];
+			int k = 0;
+			D.gates(G) {
+				string symbolNamePart[];
+				strsplit(symbolNamePart, G.symbol.name, '@');
+				string gateSymbolName = symbolNamePart[0];
+				for (k = 0; uniqueSymbolNames[k]!="";k++) {
+					if (uniqueSymbolNames[k]==gateSymbolName) {
+						symbolNameCounts[k]++;
+						break;
+					}
+				}
+				if (uniqueSymbolNames[k]=="") {
+					uniqueSymbolNames[k] = gateSymbolName;
+					symbolNameCounts[k] = 1;
+				}
+			}
+			for (k = 0; uniqueSymbolNames[k]!="";k++) {
+				if (k>0) {
+					symbolName += " ";
+				}
+				if (symbolNameCounts[k] > 1) {
+					sprintf(symbolName,"%s%sc%d",symbolName,uniqueSymbolNames[k],symbolNameCounts[k]);
+				} else {
+					sprintf(symbolName,"%s%s",symbolName,uniqueSymbolNames[k]);
+				}
+			}
+			
+			string technologies[];
+			int nTechnologies = strsplit(technologies, D.technologies, ' ');
+			for (k = 0; k < nTechnologies; k++) {
+				string technology = technologies[k];
+				string variantName = D.name;
+				if (technology == "''") {
+					technology = "";
+				}
+				if (variantName == "''") {
+					variantName = "";
+				}
+				string packageName = "";
+				string deviceName = D.name;
+				/*
+				int pos = strchr(deviceName, '*');
+				if (pos >= 0) {
+					deviceName = strsub(deviceName, 0, pos) + technology + strsub(deviceName, pos+1);
+				} else {
+					deviceName = deviceName + technology;
+				}
+				pos = strchr(deviceName, '?');
+				if (pos >= 0) {
+					deviceName = strsub(deviceName, 0, pos) + variantName + strsub(deviceName, pos+1);
+				} else {
+					deviceName = deviceName + variantName;
+				}
+				*/
+				
+				if (D.package) {
+					packageName = D.package.name;
+				}
+				//string commonData = D.name + "@" + filename(L.name) + "\t" + D.name + "\t" + filename(L.name) + "\t" + packageName;
+				string attributeFields[];
+				int nFields = 0;
+				attributeFields[nFields++] = filename(L.name);
+				attributeFields[nFields++] = deviceName;
+				attributeFields[nFields++] = packageName;
+				//attributeFields[nFields++] = variantName;
+				D.attributes(A, technology) {
+					string attrName = A.name;
+					if (attrName[0] != '_') {
+						int index = getAttributeIndex(symbolName, A.name);
+						attributeFields[index] = A.value;
+						if (index>=nFields) {
+							nFields = index + 1;
+						}
+					}
+				}
+				string data = "";
+				for (int i = 0; i < nFields; i++) {
+					if (i>0) data += "\t";
+					data += attributeFields[i];
+				}
+				
+				addContent(symbolName,data);
+			};
+		}
+	}
+	
+	for (int k = 0; fileNames[k] != ""; k++) {
+		output(baseFileDir+fileNames[k]+".idx", "wt") {
+			printf("%s\n",fileHeaders[k]);
+			printf("%s",fileContents[k]);
+		}
+	}
+}
+
+if (lib!="") {
+	string cmd;
+	sprintf(cmd,"OPEN "+lib+";\nRUN "+argv[0]+" %d;", index+1);
+	exit(cmd);
+}
+
+
+cfgset("EAGLE:Option.Codec", oldCodec);

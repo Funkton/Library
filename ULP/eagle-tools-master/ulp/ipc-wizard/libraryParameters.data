@@ -1,0 +1,29 @@
+#Tab	Terminal
+fabTol	Fabrication Tol. &plusmn;	real	0.05
+placeTol	Placement Tol. &plusmn;	real	0.025
+padPlaceRoundOff	Pad Place Round-off	real	0.01
+padSizeRoundOff	Pad Size Round-off	real	0.01
+cornerRadius	Corner Radius (% of min. width)	real	25.0
+cornerRadiusLimit	Corner Radius Limit (max)	real	0.25
+cornerRadiusRoundOff	Corner Radius Round-off	real	0.01
+#Tab	Through Hole Terminal
+thtPadSizeRoundOff	Pad Size Round-off	real	0.01
+thtCourtyardExcess	Courtyard Excess	real	0.25
+thtCourtyardRound	Courtyard Round-off	real	0.01
+thtHoleOverRoundLead	Hole Over Round Lead	real	0.20
+thtHoleOverRectangularLead	Hole Over Rectangular Lead	real	0.15
+thtMinimumAnnularRing	Minimum Annular Ring	real	0.20
+thtPadToHoleRatio	Pad to Hole Ratio	real	1.5
+#Tab	Style
+#Header	Courtyard
+courtyardLineWidth	Line Width	real	0.05
+#Header	Legend
+legendLineWidth	Line Width	real	0.10	0.12	0.15;
+legendClearance	Clearance	real	0.10	0.12	0.15;
+legendFontHeight	Font Height	real	1.0	1.2	1.5;
+legendFontRatio	Font Width (% of height).	real	10;
+legendRoundOff	Round-off	real	0.01;
+#Header	Component Outline
+componentFontHeight	Font Height	real	2.0;
+componentLineWidth	Line Width	real	0.1;
+componentRoundOff	Round-off	real	0.01;

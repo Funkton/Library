@@ -1,0 +1,975 @@
+int treeDepth[];
+int treeObjectExpanded[];
+string treeObjectName[];
+string treeObjectType[];
+string treeObjectValue[];
+int treeIndex = 0;
+
+string treeData[];
+int treeDataIndex[];
+int treeDataSize = 0;
+
+string dtostr(real d) {
+	string temp;
+	sprintf(temp,"%.3f",d);
+	return temp;	
+}
+
+string ltostr(int i) {
+	string temp;
+	sprintf(temp,"%d",i);
+	return temp;	
+}
+
+void addTreeElement(int depth, string name, string type, string value, int expanded) {
+	if (type == "int") {
+		if (strstr(name, "x") == 0 ||
+			strstr(name, "y") == 0 ||
+			strstr(name, "size") == 0 ||
+			strstr(name, "radius") == 0 ||
+			strstr(name, "width") == 0 || 
+			strstr(name, "diameter") == 0 ||
+			(strstr(name, "drill") == 0 && strstr(name, "drillsymbol") < 0) ||
+			strstr(name, "dx") == 0 ||
+			strstr(name, "dy") == 0) {
+				int u = strtol(value);
+				value = value + " := " + dtostr(u2mm(u)) + " mm | " + dtostr(u2inch(u)) + " inch";
+			}
+			
+	}
+	treeObjectExpanded[treeIndex] = expanded;
+	treeDepth[treeIndex] = depth;
+	treeObjectName[treeIndex] = name;
+	treeObjectType[treeIndex] = type;
+	treeObjectValue[treeIndex++] = value;
+};
+
+int currentTreeDepth = 0;
+int cti = 0;
+
+void buildClass(UL_CLASS A, int d) {
+	string clearance = "[" + ltostr(A.clearance);
+	int i = 0;
+	for (i = 1; i <= A.number; i++) {
+		clearance = clearance + ", "+ltostr(A.clearance);
+	}
+	clearance = clearance + "]";
+	addTreeElement(d, "clearance", "int[]", clearance, -1);
+	addTreeElement(d, "drill", "int", ltostr(A.drill), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "number", "int", ltostr(A.number), -1);
+	addTreeElement(d, "width", "int", ltostr(A.width), -1);
+}
+
+void buildCircle(UL_CIRCLE A, int d) {
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "radius", "int", ltostr(A.radius), -1);
+	addTreeElement(d, "width", "int", ltostr(A.width), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+}
+
+void buildVia(UL_VIA A, int d) {
+	addTreeElement(d, "drill", "int", ltostr(A.drill), -1);
+	addTreeElement(d, "drillsymbol", "int", ltostr(A.drillsymbol), -1);
+	addTreeElement(d, "start", "int", ltostr(A.start), -1);
+	addTreeElement(d, "end", "int", ltostr(A.end), -1);
+	addTreeElement(d, "flags", "int", ltostr(A.flags), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	addTreeElement(d, "diameter", "int", "", 0);
+	int i = 0;
+	for (i=LAYER_TOP; i<=LAYER_BOTTOM; i++) {
+		addTreeElement(d+1, "diameter[" + ltostr(i) + "]", "int", ltostr(A.diameter[i]), 0);
+	}
+	addTreeElement(d+1, "diameter[TSTOP]", "int", ltostr(A.diameter[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "diameter[BSTOP]", "int", ltostr(A.diameter[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "diameter[VIAS]", "int", ltostr(A.diameter[LAYER_VIAS]), 0);
+	
+	addTreeElement(d, "shape", "int", "", 0);
+	i = 0;
+	for (i=LAYER_TOP; i<=LAYER_BOTTOM; i++) {
+		addTreeElement(d+1, "shape[" + ltostr(i) + "]", "int", ltostr(A.shape[i]), 0);
+	}
+	addTreeElement(d+1, "shape[TSTOP]", "int", ltostr(A.shape[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "shape[BSTOP]", "int", ltostr(A.shape[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "shape[VIAS]", "int", ltostr(A.shape[LAYER_VIAS]), 0);
+}
+
+void buildArc(UL_ARC A, int d) {
+	addTreeElement(d, "angle1", "real", dtostr(A.angle1), -1);
+	addTreeElement(d, "angle2", "real", dtostr(A.angle2), -1);
+	addTreeElement(d, "cap", "int", ltostr(A.cap), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "radius", "int", ltostr(A.radius), -1);
+	addTreeElement(d, "width", "int", ltostr(A.width), -1);
+	addTreeElement(d, "x1", "int", ltostr(A.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(A.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(A.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(A.y2), -1);
+	addTreeElement(d, "xc", "int", ltostr(A.xc), -1);
+	addTreeElement(d, "yc", "int", ltostr(A.yc), -1);
+}
+
+void buildWire(UL_WIRE W, int d) {
+	addTreeElement(d, "cap", "int", ltostr(W.cap), -1);
+	addTreeElement(d, "curve", "real", dtostr(W.curve), -1);
+	addTreeElement(d, "layer", "int", ltostr(W.layer), -1);
+	addTreeElement(d, "style", "int", ltostr(W.style), -1);
+	addTreeElement(d, "width", "int", ltostr(W.width), -1);
+	addTreeElement(d, "x1", "int", ltostr(W.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(W.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(W.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(W.y2), -1);
+	
+	if (W.arc) {
+		addTreeElement(d, "arc", "UL_ARC", "", 0);
+		buildArc(W.arc, d+1);
+	}
+	addTreeElement(d, "pieces()", "UL_WIRE", "", 0);
+	int i = 0;
+	W.pieces(W2) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		addTreeElement(d+2, "cap", "int", ltostr(W2.cap), -1);
+		addTreeElement(d+2, "curve", "real", dtostr(W2.curve), -1);
+		addTreeElement(d+2, "layer", "int", ltostr(W2.layer), -1);
+		addTreeElement(d+2, "style", "int", ltostr(W2.style), -1);
+		addTreeElement(d+2, "width", "int", ltostr(W2.width), -1);
+		addTreeElement(d+2, "x1", "int", ltostr(W2.x1), -1);
+		addTreeElement(d+2, "y1", "int", ltostr(W2.y1), -1);
+		addTreeElement(d+2, "x2", "int", ltostr(W2.x2), -1);
+		addTreeElement(d+2, "y2", "int", ltostr(W2.y2), -1);
+		if (W2.arc) {
+			addTreeElement(d+2, "arc", "UL_ARC", "", 0);
+			buildArc(W2.arc, d+3);
+		}
+	};
+	
+}
+
+void buildText(UL_TEXT T, int d) {
+	addTreeElement(d, "align", "int", ltostr(T.align), -1);
+	addTreeElement(d, "angle", "real", dtostr(T.angle), -1);
+	addTreeElement(d, "font", "int", ltostr(T.font), -1);
+	addTreeElement(d, "layer", "int", ltostr(T.layer), -1);
+	addTreeElement(d, "linedistance", "int", ltostr(T.linedistance), -1);
+	addTreeElement(d, "mirror", "int", ltostr(T.mirror), -1);
+	addTreeElement(d, "ratio", "int", ltostr(T.ratio), -1);
+	addTreeElement(d, "size", "int", ltostr(T.size), -1);
+	addTreeElement(d, "spin", "int", ltostr(T.spin), -1);
+	addTreeElement(d, "value", "string", (T.value), -1);
+	addTreeElement(d, "x", "int", ltostr(T.x), -1);
+	addTreeElement(d, "y", "int", ltostr(T.y), -1);
+	
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	int i = 0;
+	T.wires(W) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(W, d+2);
+	};
+	
+}
+
+void buildAttribute(UL_ATTRIBUTE A, int d) {
+	addTreeElement(d, "constant", "int", ltostr(A.constant), -1);
+	addTreeElement(d, "defaultvalue", "string", (A.defaultvalue), -1);
+	addTreeElement(d, "display", "int", ltostr(A.display), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "value", "string", (A.value), -1);
+	addTreeElement(d, "text", "UL_TEXT", "", 0);
+	buildText(A.text, d+1);
+}
+
+void buildGrid(UL_GRID G, int d) {
+	addTreeElement(d, "distance", "real", dtostr(G.distance), -1);
+	addTreeElement(d, "dots", "int", ltostr(G.dots), -1);
+	addTreeElement(d, "multiple", "int", ltostr(G.multiple), -1);
+	addTreeElement(d, "on", "int", ltostr(G.on), -1);
+	addTreeElement(d, "unit", "int", ltostr(G.unit), -1);
+	addTreeElement(d, "unitdist", "int", ltostr(G.unitdist), -1);
+}
+
+void buildArea(UL_AREA A, int d) {
+	addTreeElement(d, "x1", "int", ltostr(A.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(A.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(A.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(A.y2), -1);
+}
+
+void buildDimension(UL_DIMENSION A, int d) {
+	addTreeElement(d, "dtype", "int", ltostr(A.dtype), -1);
+	addTreeElement(d, "extlength", "int", ltostr(A.extlength), -1);
+	addTreeElement(d, "extoffset", "int", ltostr(A.extoffset), -1);
+	addTreeElement(d, "extwidth", "int", ltostr(A.extwidth), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "precision", "int", ltostr(A.precision), -1);
+	addTreeElement(d, "ratio", "int", ltostr(A.ratio), -1);
+	addTreeElement(d, "size", "int", ltostr(A.size), -1);
+	addTreeElement(d, "unit", "int", ltostr(A.unit), -1);
+	addTreeElement(d, "visible", "int", ltostr(A.visible), -1);
+	addTreeElement(d, "width", "int", ltostr(A.width), -1);
+	addTreeElement(d, "x1", "int", ltostr(A.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(A.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(A.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(A.y2), -1);
+	addTreeElement(d, "x3", "int", ltostr(A.x3), -1);
+	addTreeElement(d, "y3", "int", ltostr(A.y3), -1);
+	
+	int i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	i = 0;
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+
+
+void buildPolygon(UL_POLYGON A, int d) {
+	addTreeElement(d, "isolate", "int", ltostr(A.isolate), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "orphans", "int", ltostr(A.orphans), -1);
+	addTreeElement(d, "pour", "int", ltostr(A.pour), -1);
+	addTreeElement(d, "rank", "int", ltostr(A.rank), -1);
+	addTreeElement(d, "spacing", "int", ltostr(A.spacing), -1);
+	addTreeElement(d, "thermals", "int", ltostr(A.thermals), -1);
+	addTreeElement(d, "width", "int", ltostr(A.width), -1);
+	
+	int i = 0;
+	addTreeElement(d, "contours()", "UL_WIRE", "", 0);
+	A.contours(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "fillings()", "UL_WIRE", "", 0);
+	A.fillings(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildPad(UL_PAD A, int d) {
+	addTreeElement(d, "angle", "real", dtostr(A.angle), -1);
+	addTreeElement(d, "drill", "int", ltostr(A.drill), -1);
+	addTreeElement(d, "drillsymbol", "int", ltostr(A.drillsymbol), -1);
+	addTreeElement(d, "elongation", "int", ltostr(A.elongation), -1);
+	addTreeElement(d, "flags", "int", ltostr(A.flags), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "signal", "string", (A.signal), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	addTreeElement(d, "diameter", "int", "", 0);
+	int i = 0;
+	for (i=LAYER_TOP; i<=LAYER_BOTTOM; i++) {
+		addTreeElement(d+1, "diameter[" + ltostr(i) + "]", "int", ltostr(A.diameter[i]), 0);
+	}
+	addTreeElement(d+1, "diameter[TSTOP]", "int", ltostr(A.diameter[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "diameter[BSTOP]", "int", ltostr(A.diameter[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "diameter[PADS]", "int", ltostr(A.diameter[LAYER_PADS]), 0);
+	
+	addTreeElement(d, "shape", "int", "", 0);
+	i = 0;
+	for (i=LAYER_TOP; i<=LAYER_BOTTOM; i++) {
+		addTreeElement(d+1, "shape[" + ltostr(i) + "]", "int", ltostr(A.shape[i]), 0);
+	}
+	addTreeElement(d+1, "shape[TSTOP]", "int", ltostr(A.shape[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "shape[BSTOP]", "int", ltostr(A.shape[LAYER_TSTOP]), 0);
+	addTreeElement(d+1, "shape[PADS]", "int", ltostr(A.shape[LAYER_PADS]), 0);
+}
+
+void buildSmd(UL_SMD A, int d) {
+	addTreeElement(d, "angle", "real", dtostr(A.angle), -1);
+	
+	addTreeElement(d, "flags", "int", ltostr(A.flags), -1);
+	addTreeElement(d, "dx", "int", ltostr(A.dx), 0);
+	if (A.layer == LAYER_TOP) {
+		addTreeElement(d+1, "dx[TOP]", "int", ltostr(A.dx[LAYER_TOP]), 0);
+		addTreeElement(d+1, "dx[TSTOP]", "int", ltostr(A.dx[LAYER_TSTOP]), 0);
+		addTreeElement(d+1, "dx[TCREAM]", "int", ltostr(A.dx[LAYER_TCREAM]), 0);
+	} else {
+		addTreeElement(d+1, "dx[BOTTOM]", "int", ltostr(A.dx[LAYER_BOTTOM]), 0);
+		addTreeElement(d+1, "dx[BSTOP]", "int", ltostr(A.dx[LAYER_BSTOP]), 0);
+		addTreeElement(d+1, "dx[BCREAM]", "int", ltostr(A.dx[LAYER_BCREAM]), 0);
+	}
+	
+	addTreeElement(d, "dy", "int", ltostr(A.dy), 0);
+	if (A.layer == LAYER_TOP) {
+		addTreeElement(d+1, "dx[TOP]", "int", ltostr(A.dy[LAYER_TOP]), 0);
+		addTreeElement(d+1, "dx[TSTOP]", "int", ltostr(A.dy[LAYER_TSTOP]), 0);
+		addTreeElement(d+1, "dx[TCREAM]", "int", ltostr(A.dy[LAYER_TCREAM]), 0);
+	} else {
+		addTreeElement(d+1, "dx[BOTTOM]", "int", ltostr(A.dy[LAYER_BOTTOM]), 0);
+		addTreeElement(d+1, "dx[BSTOP]", "int", ltostr(A.dy[LAYER_BSTOP]), 0);
+		addTreeElement(d+1, "dx[BCREAM]", "int", ltostr(A.dy[LAYER_BCREAM]), 0);
+	}
+	
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "roundness", "int", ltostr(A.roundness), -1);
+	addTreeElement(d, "signal", "string", (A.signal), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+}
+
+void buildContact(UL_CONTACT A, int d) {
+	addTreeElement(d, "name", "string", A.name, -1);
+	addTreeElement(d, "signal", "string", A.signal, -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	if (A.pad) {
+		addTreeElement(d, "pad", "UL_PAD", "", 0);
+		buildPad(A.pad, d+1);
+	}
+	
+	if (A.smd) {
+		addTreeElement(d, "pad", "UL_SMD", "", 0);
+		buildSmd(A.smd, d+1);
+	}
+	
+	int i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "polygons()", "UL_POLYGON", "", 0);
+	A.polygons(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_POLYGON", "", 0);
+		buildPolygon(B, d+2);
+	};
+}
+
+void buildHole(UL_HOLE A, int d) {
+	addTreeElement(d, "diameter[TSTOP]", "int", ltostr(A.diameter[LAYER_TSTOP]), -1);
+	addTreeElement(d, "diameter[BSTOP]", "int", ltostr(A.diameter[LAYER_BSTOP]), -1);
+	addTreeElement(d, "drill", "int", ltostr(A.drill), -1);
+	addTreeElement(d, "drillsymbol", "int", ltostr(A.drillsymbol), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+} 
+
+void buildFrame(UL_FRAME A, int d) {
+	addTreeElement(d, "columns", "int", ltostr(A.columns), -1);
+	addTreeElement(d, "rows", "int", ltostr(A.rows), -1);
+	addTreeElement(d, "border", "int", ltostr(A.border), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "x1", "int", ltostr(A.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(A.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(A.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(A.y2), -1);
+	
+	int i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildRectangle(UL_RECTANGLE A, int d) {
+	addTreeElement(d, "angle", "real", dtostr(A.angle), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "x1", "int", ltostr(A.x1), -1);
+	addTreeElement(d, "y1", "int", ltostr(A.y1), -1);
+	addTreeElement(d, "x2", "int", ltostr(A.x2), -1);
+	addTreeElement(d, "y2", "int", ltostr(A.y2), -1);
+}
+
+void buildPackage(UL_PACKAGE A, int d) {
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(A.area, d+1);
+	addTreeElement(d, "name", "string", A.name, -1);
+	addTreeElement(d, "description", "string", A.description, -1);
+	addTreeElement(d, "headline", "string", A.headline, -1);
+	addTreeElement(d, "library", "string", A.library, -1);
+	
+	int i = 0;
+	addTreeElement(d, "circles()", "UL_CIRCLE", "", 0);
+	A.circles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CIRCLE", "", 0);
+		buildCircle(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "contacts()", "UL_CONTACT", "", 0);
+	A.contacts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CONTACT", "", 0);
+		buildContact(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "dimensions()", "UL_DIMENSION", "", 0);
+	A.dimensions(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DIMENSION", "", 0);
+		buildDimension(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "frames()", "UL_FRAME", "", 0);
+	A.frames(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_FRAME", "", 0);
+		buildFrame(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "holes()", "UL_HOLE", "", 0);
+	A.holes(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_HOLE", "", 0);
+		buildHole(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "polygons()", "UL_POLYGON", "", 0);
+	A.polygons(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_POLYGON", "", 0);
+		buildPolygon(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "rectangles()", "UL_RECTANGLE", "", 0);
+	A.rectangles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_RECTANGLE", "", 0);
+		buildRectangle(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildElement(UL_ELEMENT A, int d) {
+	addTreeElement(d, "angle", "real", dtostr(A.angle), -1);
+	addTreeElement(d, "column", "string", (A.column), -1);
+	addTreeElement(d, "locked", "int", ltostr(A.locked), -1);
+	addTreeElement(d, "mirror", "int", ltostr(A.mirror), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "populate", "int", ltostr(A.populate), -1);
+	addTreeElement(d, "row", "string", (A.row), -1);
+	addTreeElement(d, "smashed", "int", ltostr(A.smashed), -1);
+	addTreeElement(d, "spin", "int", ltostr(A.spin), -1);
+	addTreeElement(d, "value", "string", (A.value), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	addTreeElement(d, "package", "UL_PACKAGE", "", 0);	
+	buildPackage(A.package, d+1);
+	
+	int i = 0;
+	
+	addTreeElement(d, "attributes()", "UL_ATTRIBUTE", "", 0);
+	A.attributes(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_ATTRIBUTE", "", 0);
+		buildAttribute(B, d+2);
+	};
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	
+	i = 0;
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	
+}
+
+void buildError(UL_ERROR A, int d) {
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(A.area, d+1);
+	addTreeElement(d, "area2", "UL_AREA", "", 0);	
+	buildArea(A.area2, d+1);
+	addTreeElement(d, "code", "int", ltostr(A.code), -1);
+	addTreeElement(d, "description", "string", (A.description), -1);
+	addTreeElement(d, "layer", "int", ltostr(A.layer), -1);
+	addTreeElement(d, "modulename", "string", (A.modulename), -1);
+	addTreeElement(d, "s1", "string", (A.s1), -1);
+	addTreeElement(d, "s2", "string", (A.s2), -1);
+	addTreeElement(d, "s3", "string", (A.s3), -1);
+	addTreeElement(d, "s4", "string", (A.s4), -1);
+	addTreeElement(d, "s5", "string", (A.s5), -1);
+	addTreeElement(d, "s6", "string", (A.s6), -1);
+	addTreeElement(d, "sheet", "int", ltostr(A.sheet), -1);
+	addTreeElement(d, "signature", "string", (A.signature), -1);
+	addTreeElement(d, "state", "int", ltostr(A.state), -1);
+	addTreeElement(d, "type", "int", ltostr(A.type), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	int i = 0;
+	addTreeElement(d, "contours()", "UL_WIRE", "", 0);
+	A.contours(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+	
+}
+
+void buildLayer(UL_LAYER A, int d) {
+	addTreeElement(d, "color", "int", ltostr(A.color), -1);
+	addTreeElement(d, "fill", "int", ltostr(A.fill), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "number", "int", ltostr(A.number), -1);
+	addTreeElement(d, "used", "int", ltostr(A.used), -1);
+	addTreeElement(d, "visible", "int", ltostr(A.visible), -1);
+}
+
+void buildPin(UL_PIN A, int d) {
+	addTreeElement(d, "angle", "real", dtostr(A.angle), -1);
+	addTreeElement(d, "contact", "UL_CONTACT", "", 0);	
+	buildContact(A.contact, d+1);
+	addTreeElement(d, "direction", "int", ltostr(A.direction), -1);
+	addTreeElement(d, "function", "int", ltostr(A.function), -1);
+	addTreeElement(d, "length", "int", ltostr(A.length), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "net", "string", (A.net), -1);
+	addTreeElement(d, "route", "int", ltostr(A.route), -1);
+	addTreeElement(d, "swaplevel", "int", ltostr(A.swaplevel), -1);
+	addTreeElement(d, "visible", "int", ltostr(A.visible), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+	
+	int i = 0;
+	addTreeElement(d, "circles()", "UL_CIRCLE", "", 0);
+	A.circles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CIRCLE", "", 0);
+		buildCircle(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "contacts()", "UL_CONTACT", "", 0);
+	A.contacts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CONTACT", "", 0);
+		buildContact(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildSymbol(UL_SYMBOL A, int d) {
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(A.area, d+1);
+	addTreeElement(d, "description", "string", A.description, -1);
+	addTreeElement(d, "headline", "string", A.headline, -1);
+	addTreeElement(d, "library", "string", A.library, -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	
+	int i = 0;
+	addTreeElement(d, "circles()", "UL_CIRCLE", "", 0);
+	A.circles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CIRCLE", "", 0);
+		buildCircle(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "dimensions()", "UL_DIMENSION", "", 0);
+	A.dimensions(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DIMENSION", "", 0);
+		buildDimension(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "frames()", "UL_FRAME", "", 0);
+	A.frames(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_FRAME", "", 0);
+		buildFrame(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "rectangles()", "UL_RECTANGLE", "", 0);
+	A.rectangles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_RECTANGLE", "", 0);
+		buildRectangle(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "pins()", "UL_PIN", "", 0);
+	A.pins(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_PIN", "", 0);
+		buildPin(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "polygons()", "UL_POLYGON", "", 0);
+	A.polygons(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_POLYGON", "", 0);
+		buildPolygon(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	A.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildGate(UL_GATE A, int d) {
+	addTreeElement(d, "addlevel", "int", ltostr(A.addlevel), -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "swaplevel", "int", ltostr(A.swaplevel), -1);
+	addTreeElement(d, "x", "int", ltostr(A.x), -1);
+	addTreeElement(d, "y", "int", ltostr(A.y), -1);
+}
+
+void buildDevice(UL_DEVICE A, int d) {
+	addTreeElement(d, "activetechnology", "string", (A.activetechnology), -1);
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(A.area, d+1);
+	addTreeElement(d, "description", "string", A.description, -1);
+	addTreeElement(d, "headline", "string", A.headline, -1);
+	addTreeElement(d, "library", "string", A.library, -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "package", "UL_PACKAGE", "", 0);	
+	buildPackage(A.package, d+1);
+	addTreeElement(d, "prefix", "string", (A.prefix), -1);
+	addTreeElement(d, "technologies", "string", (A.technologies), -1);
+	addTreeElement(d, "value", "string", (A.value), -1);
+	
+	int i = 0;
+	addTreeElement(d, "attributes()", "UL_ATTRIBUTE", "", 0);
+	A.attributes(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_ATTRIBUTE", "", 0);
+		buildAttribute(B, d+2);
+	};
+}
+
+void buildDeviceset(UL_DEVICESET A, int d) {
+	addTreeElement(d, "activedevice", "UL_DEVICE", "", 0);	
+	buildDevice(A.activedevice, d+1);
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(A.area, d+1);
+	addTreeElement(d, "description", "string", A.description, -1);
+	addTreeElement(d, "headline", "string", A.headline, -1);
+	addTreeElement(d, "library", "string", A.library, -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	addTreeElement(d, "prefix", "string", (A.prefix), -1);
+	addTreeElement(d, "value", "string", (A.value), -1);
+	
+	int i = 0;
+	addTreeElement(d, "devices()", "UL_DEVICE", "", 0);
+	A.devices(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DEVICE", "", 0);
+		buildDevice(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "gates()", "UL_GATE", "", 0);
+	A.gates(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_GATE", "", 0);
+		buildGate(B, d+2);
+	};
+}
+
+void buildContactref(UL_CONTACTREF A, int d) {
+	addTreeElement(d, "contact", "UL_CONTACT", "", 0);	
+	buildContact(A.contact, d+1);
+	addTreeElement(d, "element", "UL_ELEMENT", "", 0);	
+	buildElement(A.element, d+1);
+	addTreeElement(d, "route", "int", ltostr(A.route), -1);
+	addTreeElement(d, "routetag", "string", A.routetag, -1);
+}
+
+void buildSignal(UL_SIGNAL A, int d) {
+	addTreeElement(d, "airwireshidden", "int", ltostr(A.airwireshidden), -1);
+	addTreeElement(d, "class", "UL_CLASS", "", 0);	
+	buildClass(A.class, d+1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	
+	int i = 0;
+	addTreeElement(d, "contactrefs()", "UL_CONTACTREF", "", 0);
+	A.contactrefs(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CONTACTREF", "", 0);
+		buildContactref(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "polygons()", "UL_POLYGON", "", 0);
+	A.polygons(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_POLYGON", "", 0);
+		buildPolygon(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "vias()", "UL_VIA", "", 0);
+	A.vias(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_VIA", "", 0);
+		buildVia(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	A.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+}
+
+void buildLibrary(UL_LIBRARY A, int d) {
+	addTreeElement(d, "description", "string", A.description, -1);
+	addTreeElement(d, "grid", "UL_GRID", "", 0);	
+	buildGrid(A.grid, d+1);
+	addTreeElement(d, "headline", "string", A.headline, -1);
+	addTreeElement(d, "name", "string", (A.name), -1);
+	int i=0;
+	
+	i = 0;
+	addTreeElement(d, "devices()", "UL_DEVICE", "", 0);
+	A.devices(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DEVICE", "", 0);
+		buildDevice(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "devicesets()", "UL_DEVICESET", "", 0);
+	A.devicesets(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DEVICESET", "", 0);
+		buildDeviceset(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "layers()", "UL_LAYER", "", 0);
+	A.layers(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_LAYER", "", 0);
+		buildLayer(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "packages()", "UL_PACKAGE", "", 0);
+	A.packages(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_PACKAGE", "", 0);
+		buildPackage(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "symbols()", "UL_SYMBOL", "", 0);
+	A.symbols(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_SYMBOL", "", 0);
+		buildSymbol(B, d+2);
+	};	
+}
+
+void buildBoard(UL_BOARD B, int d) {
+	addTreeElement(d, "name", "string", B.name, -1);
+	addTreeElement(d, "description", "string", B.description, -1);
+	addTreeElement(d, "headline", "string", B.headline, -1);
+	addTreeElement(d, "checked", "int", ltostr(B.checked), -1);
+	addTreeElement(d, "alwaysvectorfont", "int", ltostr(B.alwaysvectorfont), -1);
+	addTreeElement(d, "verticaltext", "int", ltostr(B.verticaltext), -1);
+	
+	addTreeElement(d, "area", "UL_AREA", "", 0);	
+	buildArea(B.area, d+1);
+	addTreeElement(d, "grid", "UL_GRID", "", 0);	
+	buildGrid(B.grid, d+1);
+	addTreeElement(d, "attributes()", "UL_ATTRIBUTE", "", 0);
+	int i = 0;
+	B.attributes(A) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_ATTRIBUTE", "", 0);
+		buildAttribute(A, d+2);
+	};
+	
+	addTreeElement(d, "classes()", "UL_CLASS", "", 0);
+	i = 0;
+	B.classes(A) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_CLASS", "", 0);
+		buildClass(A, d+2);
+	};
+	
+	addTreeElement(d, "dimensions()", "UL_DIMENSION", "", 0);
+	i = 0;
+	B.dimensions(A) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_DIMENSION", "", 0);
+		buildDimension(A, d+2);
+	};
+	
+	addTreeElement(d, "elements()", "UL_ELEMENT", "", 0);
+	i = 0;
+	B.elements(A) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_ELEMENT", "", 0);
+		buildElement(A, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "errors()", "UL_ERROR", "", 0);
+	B.errors(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_ERROR", "", 0);
+		buildError(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "frames()", "UL_FRAME", "", 0);
+	B.frames(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_FRAME", "", 0);
+		buildFrame(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "holes()", "UL_HOLE", "", 0);
+	B.holes(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_HOLE", "", 0);
+		buildHole(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "layers()", "UL_LAYER", "", 0);
+	B.layers(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_LAYER", "", 0);
+		buildLayer(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "libraries()", "UL_LIBRARY", "", 0);
+	B.libraries(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_LIBRARY", "", 0);
+		buildLibrary(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "polygons()", "UL_POLYGON", "", 0);
+	B.polygons(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_POLYGON", "", 0);
+		buildPolygon(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "rectangles()", "UL_RECTANGLE", "", 0);
+	B.rectangles(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_RECTANGLE", "", 0);
+		buildRectangle(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "signals()", "UL_SIGNAL", "", 0);
+	B.signals(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_SIGNAL", "", 0);
+		buildSignal(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "texts()", "UL_TEXT", "", 0);
+	B.texts(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_TEXT", "", 0);
+		buildText(B, d+2);
+	};
+	
+	i = 0;
+	addTreeElement(d, "wires()", "UL_WIRE", "", 0);
+	B.wires(B) {
+		addTreeElement(d+1, "[" + ltostr(i++) + "]", "UL_WIRE", "", 0);
+		buildWire(B, d+2);
+	};
+	
+}
+
+if (board) board(B) {
+	addTreeElement(0, "board", "UL_BOARD", "", 1);
+	buildBoard(B,1);
+};
+
+void buildTree() {
+	int block = 0;
+	int lastDepth = 0;
+	int k;
+	int i;
+	int l = 0;
+
+	for (k=0;k<treeIndex;k++) {
+		if (treeDepth[k] <= lastDepth) {
+			block = 0;
+		}
+		
+		if (block == 0) {
+			string temp = "";
+			string sp ="";
+			string ex = " ";
+			for(i=0;i<treeDepth[k];i++) sp = sp + "    ";
+			if (treeObjectExpanded[k] == 0) {
+				block = 1;
+				ex = "+";
+			}
+			
+			if (treeObjectExpanded[k] == 1) {
+				ex = " -";
+			}
+			sprintf(temp,"%s%s%s\t%s\t%s",sp,ex,treeObjectName[k],treeObjectType[k],treeObjectValue[k]);
+			treeDataIndex[l] = k;
+			treeData[l++] = temp;
+			lastDepth = treeDepth[k];
+		}
+	}
+	if (l>treeDataSize) {
+		treeDataSize = l;
+	}
+	for (k=l;k<treeDataSize;k++) {
+		treeData[k] = "";
+		treeDataIndex[k] = -1;
+	}
+	
+	
+}
+int selected = 0;
+dlgDialog("Object Browser") {
+	
+	int s = 0;
+	int k;
+	int i;
+	buildTree();
+	dlgListView("Name\tType\tValue",treeData,selected,s) {
+		if (!dlgSelectionChanged()) {
+			if (treeDataIndex[selected]>=0) {
+				if (treeObjectExpanded[treeDataIndex[selected]] >= 0) {
+					if (treeObjectExpanded[treeDataIndex[selected]] == 1) {
+						treeObjectExpanded[treeDataIndex[selected]] = 0;
+					} else {
+						treeObjectExpanded[treeDataIndex[selected]] = 1;
+					}
+					buildTree();
+				}
+			}
+		}
+	};
+};

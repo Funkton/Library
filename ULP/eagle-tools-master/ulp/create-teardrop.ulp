@@ -1,0 +1,279 @@
+string outScript;
+real atan2(real x,real y){
+	if (x>0)
+		return atan(y/x);
+	if (x<0 && y>=0)
+		return atan(y/x)+PI;
+	if (x<0 && y<0)
+		return atan(y/x)-PI;
+	if (x==0 && y>0)
+		return PI/2.0;
+	if (x==0 && y<0)
+		return -PI/2.0;
+	if (x==0 && y==0)
+		return 0;
+}
+
+real norm(real x, real y){
+	return sqrt(x*x+y*y);
+}
+
+real mod(real x, real y){
+	int n = floor(x/y);
+	x=x-n*y;
+	return x;
+}
+
+void createJunction(real x, real y, real theta1, real theta2, real w1, real w2, real s1, string net){
+	real x1=x+s1*cos(theta1*PI/180.0);
+	real y1=y+s1*sin(theta1*PI/180.0);
+	real dtheta1 = mod(theta2-theta1,360);
+	real dtheta2 = mod(theta1-theta2,360);
+	real f1=1;
+	real f2=1;
+	if (dtheta1<dtheta2)
+		f1=-1;
+	if (theta1>theta2)
+		f2=-1;
+	real theta = mod(180.0-min(dtheta1,dtheta2),360);
+	real cos_th = cos(theta*PI/180.0);
+	real sin_th = sin(theta*PI/180.0);
+	real r = (w1/2.0*cos_th-w2/2.0+s1*sin_th)/(1-cos_th);
+	real s2 = (r+w1/2.0)*sin_th-s1*cos_th;
+	real x2=s2;
+	real y2=f1*(w2-w1)/2;
+	real xt=x2*cos(theta2*PI/180.0)-y2*sin(theta2*PI/180.0)+x;
+	y2=x2*sin(theta2*PI/180.0)+y2*cos(theta2*PI/180.0)+y;
+	x2=xt;
+	sprintf(outScript,"%s WIRE '%s' %fmm (%fmm %fmm) %+f (%fmm %fmm);\n",outScript,net,w1,
+			x1,y1,f1*theta,x2,y2);
+}
+
+
+void createSteppedWidth(real x, real y, real theta, real w1, real w2, real s, string net){
+	real dwidth=(w2-w1)/2.0;
+	real alpha_r = atan(dwidth/s);
+	real theta_r = 2*alpha_r;
+	real a=s/(2*sin(theta_r));
+	real x1=-s;
+	real y1=0;
+	real c1=theta_r*180/PI;
+	real x2=s*(a/(a+w1/2.0)-1);
+	real y2=dwidth*(a/(a+w1/2.0));
+	real c2=-c1;
+	real x3=0;
+	real y3=dwidth;
+	real c3=0;
+	real x4=x3;
+	real y4=-y3;
+	real c4 = -c1;
+	real x5=x2;
+	real y5=-y2;
+	real c5= c1;
+	
+	theta_r = theta*PI/180;
+	real cos_th = cos(theta_r);
+	real sin_th = sin(theta_r);
+	
+	real xt=x1*cos_th-y1*sin(theta_r)+x;
+	y1=x1*sin_th+y1*cos_th+y;
+	x1=xt;
+	xt=x2*cos_th-y2*sin_th+x;
+	y2=x2*sin_th+y2*cos_th+y;
+	x2=xt;
+	xt=x3*cos_th-y3*sin_th+x;
+	y3=x3*sin_th+y3*cos_th+y;
+	x3=xt;
+	xt=x4*cos_th-y4*sin_th+x;
+	y4=x4*sin_th+y4*cos_th+y;
+	x4=xt;
+	xt=x5*cos_th-y5*sin_th+x;
+	y5=x5*sin_th+y5*cos_th+y;
+	x5=xt;
+	
+	sprintf(outScript,"%s CHANGE THERMALS OFF; POLYGON '%s' %fmm (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm)%+f (%fmm %fmm)%+f (%fmm %fmm);\n",outScript,net,w1,
+			x1,y1,c1,x2,y2,c2,x3,y3,c3,x4,y4,c4,x5,y5,c5,x1,y1);
+}
+
+void createTeardrop(real x, real y, real theta, real dia, real d, real w, string net){
+	real r=dia/2-w/2;
+	if (r>0) {
+	real a = (d*d-r*r)/2.0/r;
+	real alpha = atan(d/a)*180.0/PI;
+	real theta_r = (theta)*PI/180.0;
+
+	real x1 = d;
+	real y1 = 0;
+	real c1 = -alpha;
+	
+	real x2 = r*d/(a+r); 
+	real y2 = r*a/(a+r);
+	real c2 = 180+2*alpha;
+	
+	real x3 = x2;
+	real y3 = -y2;
+	real c3 = -alpha;
+	
+	real cos_th = cos(theta_r);
+	real sin_th = sin(theta_r);
+	
+	real xt=x1*cos_th-y1*sin(theta_r)+x;
+	y1=x1*sin_th+y1*cos_th+y;
+	x1=xt;
+	xt=x2*cos_th-y2*sin_th+x;
+	y2=x2*sin_th+y2*cos_th+y;
+	x2=xt;
+	xt=x3*cos_th-y3*sin_th+x;
+	y3=x3*sin_th+y3*cos_th+y;
+	x3=xt;
+	
+	if (r>w/2)
+		sprintf(outScript,"%s CHANGE THERMALS OFF; POLYGON '%s' %fmm (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm);\n",outScript,net,w,
+			x1,y1,c1,x2,y2,c2,x3,y3,c3,x1,y1);
+	else
+		sprintf(outScript,"%s WIRE '%s' %fmm (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm) %+f (%fmm %fmm);\n",outScript,net,w,
+			x1,y1,c1,x2,y2,c2,x3,y3,c3,x1,y1);
+	}
+}
+
+real tdlength = strtod(cfgget("teardrop.length","1"));
+real tddia = strtod(cfgget("teardrop.diameter","0.9"));
+real tdslength = strtod(cfgget("teardrop.step_length","0.9"));
+real tdjlength = strtod(cfgget("teardrop.junction_length","0.9"));
+
+if (board)
+	board(B){
+		B.signals(S){
+			if (ingroup(S)){
+				int numPointsSelected=0;
+				int xref[];
+				int yref[];
+				int width[];
+				int layer[];
+				real length[];
+				real angle[];
+				S.wires(W){
+					if (ingroup(W)&1)
+						xref[numPointsSelected]=W.x1;
+						yref[numPointsSelected]=W.y1;
+						width[numPointsSelected]=W.width;
+						layer[numPointsSelected]=W.layer;
+						angle[numPointsSelected]=atan2(W.x1-W.x2,W.y1-W.y2);
+						length[numPointsSelected]=norm(W.x1-W.x2,W.y1-W.y2);
+						numPointsSelected++;
+					if (ingroup(W)&2)
+						xref[numPointsSelected]=W.x2;
+						yref[numPointsSelected]=W.y2;
+						width[numPointsSelected]=W.width;
+						layer[numPointsSelected]=W.layer;
+						angle[numPointsSelected]=atan2(W.x2-W.x1,W.y2-W.y1);
+						length[numPointsSelected]=norm(W.x2-W.x1,W.y2-W.y1);
+						numPointsSelected++;
+				}
+				S.contactrefs(C){
+					real xtest=C.contact.x;
+					real ytest=C.contact.y;
+					int dia;
+					
+					
+					for (int i=0;i<numPointsSelected;i++){
+						if ((xtest==xref[i]) && (ytest==yref[i])){
+							if (C.contact.pad)
+								dia = C.contact.pad.diameter[layer[i]];
+							if (C.contact.smd)
+								dia = min(C.contact.smd.dx[layer[i]],C.contact.smd.dy[layer[i]]);
+							sprintf(outScript,"%s LAYER %d;\n",outScript,layer[i]);
+							createTeardrop(u2mm(xref[i]), u2mm(yref[i]), angle[i]*180/PI+180, u2mm(int(dia*tddia)), u2mm(int(min(dia*tdlength,length[i]))),u2mm(width[i]),S.name);
+						}
+					}
+					
+				}
+				S.vias(V){
+					real xtest=V.x;
+					real ytest=V.y;
+					int dia;
+					for (int i=0;i<numPointsSelected;i++){
+						if ((xtest==xref[i]) && (ytest==yref[i])){
+							dia = V.diameter[layer[i]];
+							sprintf(outScript,"%s LAYER %d;\n",outScript,layer[i]);
+							createTeardrop(u2mm(xref[i]), u2mm(yref[i]), angle[i]*180/PI+180, u2mm(int(dia*tddia)), u2mm(int(min(dia*tdlength,length[i]))),u2mm(width[i]),S.name);
+						}
+					}
+				}
+				S.wires(W){
+					int xtest;
+					int ytest;
+					int xtest1=W.x1;
+					int ytest1=W.y1;
+					int xtest2=W.x2;
+					int ytest2=W.y2;
+					int wtest=W.width;
+					real angletest;
+					real anglemin;
+					real anglediff;
+					int widthmin;
+					int widthmax;
+					int layertest=W.layer;
+					
+					for (int i=0;i<numPointsSelected;i++){
+						if (layertest==layer[i]){
+							if ((xtest1==xref[i]) && (ytest1==yref[i])){
+								angletest=atan2(W.x1-W.x2,W.y1-W.y2);
+								xtest = xtest1;
+								ytest = ytest1;
+							}
+							else if ((xtest2==xref[i]) && (ytest2==yref[i])){
+								angletest=atan2(W.x2-W.x1,W.y2-W.y1);
+								xtest = xtest2;
+								ytest = ytest2;
+							} else continue;
+							
+							
+							anglediff=mod(angletest-angle[i],2*PI);
+							//sprintf(outScript,"%s ANGLE %f %f %f  %d %d;\n",outScript,angletest,angle[i],anglediff,layer[i],i);
+							if (anglediff==PI) {
+								if (wtest!=width[i]){
+									if (wtest>width[i]){
+										widthmax=wtest;
+										widthmin=width[i];
+										anglemin=angle[i];
+										}
+									else {
+										widthmax=width[i];
+										widthmin=wtest;
+										anglemin=angletest;
+									}
+									sprintf(outScript,"%s LAYER %d;\n",outScript,layer[i]);
+									createSteppedWidth(u2mm(xtest), u2mm(ytest), angletest*180/PI+180, u2mm(widthmin), u2mm(widthmax), u2mm(widthmax)*tdslength, S.name);
+								}
+							} else {
+								if (anglediff>0.01) {
+									if (wtest!=width[i]){
+										if (wtest>width[i]){
+											widthmax=wtest;
+											widthmin=width[i];
+											anglemin=angle[i];
+											}
+										else {
+											widthmax=width[i];
+											widthmin=wtest;
+											anglemin=angletest;
+										}
+										sprintf(outScript,"%s LAYER %d;\n",outScript,layer[i]);
+										createTeardrop(u2mm(xtest), u2mm(ytest), anglemin*180/PI+180, u2mm(widthmax), u2mm(widthmax)*tdslength ,u2mm(widthmin),S.name);
+									}
+								}
+							}
+						}
+						//createJunction(real x, real y, real theta1, real theta2, real w1, real w2, real s1, S.name){
+					}
+				}
+			}
+		}
+	}
+
+//if (dlgMessageBox(outScript, "&Yes", "&No") == 0) {
+	exit(outScript);
+//};
+exit(0); 
+

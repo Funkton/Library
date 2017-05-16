@@ -1,0 +1,233 @@
+//SOP/SOIC	Small Outline Package	SOP, SOIC ...
+//<p>This will allow you to generate SOP/SOIC packages</p><br><center><img width=256 src="ipc-wizard/soic-01.png"></center>
+
+#include "common.h"
+
+//Wizard Description
+wizardName = "Small Outline Package/IC (SOP/SOIC)";
+wizardDescription = "<img src=\"soic-02.png\">";
+wizardImage = "soic-01.png";
+
+string materialConditionStr[] = {"L","N","M"};
+string materialConditionLongStr[] = {"Least","Nominal","Most"};
+
+
+// UI Parameter Elements
+addParameterInt("n","Number of Pins", 0);
+addParameterReal("e", "Pitch (e)", 0);
+addParameterHeader("Overall Dimensions");
+	addParameterMinMax("A", "Height (A)", 0, 0);
+	addParameterMinMax("D", "Length (D)", 0, 0);
+	addParameterMinMax("E", "Width (E)", 0, 0);
+	addParameterMinMax("E1", "Body Width (E1)", 0, 0);
+	
+addParameterHeader("Pin Dimensions");
+	addParameterMinMax("b", "Pin Width (b)", 0, 0);
+	addParameterMinMax("L", "Pin Length (L)", 0, 0);
+
+addParameterExposedPad(0,0,0,0,0,100,0.5);
+	
+int debugRet = 0;
+
+runWizard();
+
+int k = 0;
+
+int materialCondition = getParameterListBox("materialCondition");
+
+real Dmin = getParameterMin("D");
+real Dmax = getParameterMax("D");
+
+real Emin = getParameterMin("E");
+real Emax = getParameterMax("E");
+
+real Amin = getParameterMin("A");
+real Amax = getParameterMax("A");
+
+real E1min = getParameterMin("E1");
+real E1max = getParameterMax("E1");
+
+real Lmin = getParameterMin("L");
+real Lmax = getParameterMax("L");
+
+real bmin = getParameterMin("b");
+real bmax = getParameterMax("b");
+
+real pitch = getParameterReal("e");
+real n = getParameterInt("n");
+
+string pitchCode = "PMAX";
+if (pitch <= 1.00) pitchCode = "P100";
+if (pitch <= 0.80) pitchCode = "P80";
+if (pitch <= 0.65) pitchCode = "P65";
+if (pitch <= 0.50) pitchCode = "P50";
+if (pitch <= 0.40) pitchCode = "P40";
+
+string index = pitchCode + materialConditionStr[materialCondition];
+
+
+
+string path = filedir(argv[0]);
+string tableContent[];
+fileread(tableContent, path + "/qfp.data");
+real Jt = strtod(lookup(tableContent, index, "Jtoe"));
+real Jh = strtod(lookup(tableContent, index, "Jheel"));
+real Js = strtod(lookup(tableContent, index, "Jside"));
+
+// Draw Pads
+real Zmax = calcZmax(Emin, Emax,Jt);
+real Gmin = calcGmin(Emin, Emax, Lmin, Lmax, Jh);
+real Xmax = calcXmax(bmin, bmax, Js);
+
+real padSizeRoundOff = getLibraryParameterValueReal("padSizeRoundOff");
+real padPlaceRoundOff = getLibraryParameterValueReal("padPlaceRoundOff");
+
+real dx = ipcCeil((Zmax-Gmin)/2.0, padSizeRoundOff);
+real dy = ipcCeil(Xmax,padSizeRoundOff);
+real dpos = ipcRound(Zmax/2.0-dx/2.0, padPlaceRoundOff);
+
+real offset = (pitch*(n/2-1))/2;
+int pinNumber = 1;
+string pinName;
+beginSmd(dx, dy);
+	orientation(-90);
+	for (k = 0; k < n/2; k++) {
+		sprintf(pinName, "%d", pinNumber);
+		name(pinName);
+		position(ipcRound(-offset+k*pitch,padPlaceRoundOff),-dpos);
+		pinNumber++;
+	}
+	orientation(90);
+	for (k = 0; k < n/2; k++) {
+		sprintf(pinName, "%d", pinNumber);
+		name(pinName);
+		position(ipcRound(offset-k*pitch,padPlaceRoundOff), dpos);
+		pinNumber++;
+	}
+
+end();
+
+sprintf(pinName, "%d", pinNumber);
+generateExposedPad(pinName, 0, 0);
+
+// Draw Legend
+real clearance = getLibraryParameterValueReal("legendClearance");
+real legendLineWidth = getLibraryParameterValueReal("legendLineWidth");
+real legendRoundOff = getLibraryParameterValueReal("legendRoundOff");
+
+real cX = ipcCeil(Dmax/2 + legendLineWidth/2, legendRoundOff);
+real cY = ipcCeil(E1max/2 + legendLineWidth/2, legendRoundOff);
+real p1X = ipcCeil((pitch*(n/2-1))/2 + Xmax/2 + clearance + legendLineWidth/2, legendRoundOff);
+real p1Y = 0;
+real p11Y = ipcFloor(Zmax/2-legendLineWidth/2, legendRoundOff);
+
+beginLegendOutline(LAYER_TPLACE);
+	position(-cX, p1Y);
+	position(-cX, cY);
+	position(-p1X, cY);
+end();
+
+beginLegendOutline(LAYER_TPLACE);
+	position(p1X, cY);
+	position(cX, cY);
+	position(cX, p1Y);
+end();
+
+beginLegendOutline(LAYER_TPLACE);
+	position(cX, -p1Y);
+	position(cX, -cY);
+	position(p1X, -cY);
+end();
+
+beginLegendOutline(LAYER_TPLACE);
+	position(-p1X, -p11Y);
+	position(-p1X, -cY);
+	position(-cX, -cY);
+	position(-cX, -p1Y);
+end();
+
+setLayer(LAYER_TNAMES);
+changeSize(getLibraryParameterValueReal("legendFontHeight"));
+changeRatio(getLibraryParameterValueReal("legendFontRatio"));
+changeAlign("CENTER");
+changeFont("VECTOR");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+// Draw Courtyard
+
+real courtyardExcess = strtod(lookup(tableContent, index, "CourtyardExcess"));
+real courtyardRoundOff = strtod(lookup(tableContent, index, "CourtyardRoundOff"));
+real courtyardLineWidth = getLibraryParameterValueReal("courtyardLineWidth");
+
+real cE = ipcCeil((Zmax + 2*courtyardExcess - courtyardLineWidth)/2, courtyardRoundOff);
+real cD = ipcCeil((Dmax + 2*courtyardExcess - courtyardLineWidth)/2, courtyardRoundOff);
+
+real cE1 = ipcCeil(max((E1max + 2*courtyardExcess - courtyardLineWidth)/2, cY + legendLineWidth/2 - courtyardLineWidth/2), courtyardRoundOff);
+real cD1 = ipcCeil((ipcRound(pitch*(n/2-1),padPlaceRoundOff) + dy + 2*courtyardExcess - courtyardLineWidth)/2, courtyardRoundOff);
+
+beginCourtyard(LAYER_TKEEPOUT);
+	position(-cD1,cE);
+	position(cD1,cE1);
+	position(cD,-cE1);
+	position(cD1,-cE);
+	position(-max(cD1, ipcCeil(p1X + legendLineWidth/2 - courtyardLineWidth/2, courtyardRoundOff)),-cE1);
+	position(-cD, cE1);
+	position(-cD1,cE);
+end();
+
+// Draw Component Outline
+cX = Dmax/2.0;
+cY = E1max/2.0;
+
+beginComponentOutline(LAYER_TDOCU);
+	position(-cX,cY);
+	position(cX,cY);
+	position(cX,-cY);
+	position(-cX,-cY);
+	position(-cX,cY);
+end();
+
+begin("RECT");
+	for (k=0; k < n/2; k++) {
+		position(((k-(n/2-1)/2.0)*pitch) - bmax/2, -(Emax/2 - Lmax));
+		position(((k-(n/2-1)/2.0)*pitch) + bmax/2, -Emax/2);
+		
+		
+		position(((k-(n/2-1)/2.0)*pitch) - bmax/2, Emax/2 - Lmax);
+		position(((k-(n/2-1)/2.0)*pitch) + bmax/2, Emax/2);
+	}
+
+	
+end();
+
+real componentLineWidth = getLibraryParameterValueReal("componentLineWidth");
+begin("CIRCLE");
+	lineWidth(componentLineWidth);
+	position(-cX + 0.2*min(cX,cY), -cY + 0.2*min(cX,cY));
+	position(-cX + 0.2*min(cX,cY), -cY + 0.2*min(cX,cY) + componentLineWidth/2);
+end();
+
+changeSize(getLibraryParameterValueReal("componentFontHeight"));
+changeAlign("CENTER");
+changeFont("PROPORTIONAL");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+
+string prefix = "SOIC";
+string prefixLong = "Small Outline Integrated Circuit";
+if (pitch <= 0.65) {
+	prefix = "SOP";
+	prefixLong = "Small Outline Package";
+};
+sprintf(packageDescription, "<b>%s (%d pins, %.2fmm pitch)</b> <i>%s Material Condition</i><br>Body (LxWxH): %.2fmm x %.2fmm x %.2fmm<br>Lead (L): %.2fmm<br>", prefixLong,int(n), pitch, materialConditionLongStr[materialCondition], Dmin+(Dmax-Dmin)/2, E1min+(E1max-E1min)/2, Amin+(Amax-Amin)/2, Lmin+(Lmax-Lmin)/2);
+sprintf(packageName, "%s%dP%d_%dX%dX%dL%dX%dT0X0%s_%dX%dX%dL%dX%d", prefix,
+	int(n), int(round(pitch*100)), int(round((Dmin+(Dmax-Dmin)/2)*100)), int(round((Emin+(Emax-Emin)/2)*100)), int(round((Amin+(Amax-Amin)/2)*100)), int(round((Lmin+(Lmax-Lmin)/2)*100)), int(round((bmin+(bmax-bmin)/2)*100)), materialConditionStr[materialCondition],
+	int(round((Dmax-Dmin)/2*100)), int(round((Emax-Emin)/2*100)), int(round((Amax-Amin)/2*100)), int(round((Lmax-Lmin)/2*100)), int(round((bmax-bmin)/2*100)));
+	
+exitWizard();

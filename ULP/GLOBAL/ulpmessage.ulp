@@ -1,0 +1,10 @@
+#usage "<b>Display a popup message</b>\n"
+       "<p>"
+       "Usage: RUN ulpmessage <i>text</i>"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+dlgMessageBox("<qt><nobr>" + argv[1] + "<br>" + argv[2] + "</nobr></qt>", "OK"); exit(0);
+

@@ -1,0 +1,101 @@
+#usage "en: Export device variants with attributes\n"
+           "Exports a device variant description in csv format. Optional argument is either the filename or the edit keyword\n"
+           "Usage: RUN export-dev-variants.ulp ['edit'|filename]\n"
+           "Author: behner@zess.uni-siegen.de"
+
+int attribute_n = 0;
+string attribute_key[];
+string attribute_value[];
+string file_name =  EAGLE_HOME+'/'+"temp.csv";
+string editcommand = "\"C:/Program Files (x86)/Microsoft Office/Office15/excel.exe\" /r";
+
+void setAttribute(string key, string value){
+	string key_u = strupr(key);
+	int index_key;
+	for (index_key = 0; index_key<attribute_n; index_key++){
+		if (attribute_key[index_key] == key_u){
+			attribute_value[index_key] = value;
+			break;
+		}
+	}
+	if (index_key == attribute_n){
+		attribute_key[attribute_n] = key_u;
+		attribute_value[attribute_n] = value;
+		attribute_n++;
+	}
+}
+
+void clearAttributes(){
+	for (int i = 0; i<attribute_n; i++){
+		attribute_value[i] = "";
+	}
+}
+
+string oldCodec = cfgget("EAGLE:Option.Codec");
+cfgset("EAGLE:Option.Codec", "UTF-8");
+if (deviceset)
+	if (argc>1)
+		if (argv[1] != "edit")
+			file_name = argv[1];
+		else
+			file_name =  EAGLE_HOME+'/'+"temp.csv";
+	else
+		file_name = dlgFileSave("Select the device Table", path_lbr[0], "*.csv");
+	if (file_name!=""){
+		deviceset(D) {
+			D.devices(DX){
+				string technology[];
+				int n = strsplit(technology, DX.technologies,' ');
+				for (int i = 0; i < n; i++){
+					DX.attributes(A,technology[i])
+						setAttribute(A.name,A.value);
+				};
+			};
+			output(file_name){
+				printf("VARIANT;TECHNOLOGY;PACKAGE;CONNECT;");
+				for (int i = 0; i<(attribute_n-1); i++){
+					printf("%s;",attribute_key[i]);
+				}
+				if (attribute_n>0)
+					printf("%s",attribute_key[attribute_n-1]);
+				printf("\n");
+				D.devices(DX){
+					string technologies[];
+					int n = strsplit(technologies, DX.technologies, ' ');
+					for (int i = 0; i < n; i++){
+						DX.attributes(A,technologies[i]){
+							setAttribute(A.name,A.value);}
+						string connectlist="";
+						string contactlist;
+						DX.gates(G){
+							G.symbol.pins(P){
+								contactlist="";
+								P.contacts(C){
+									sprintf(contactlist,"%s %s",contactlist,C.name);
+								}
+								sprintf(connectlist, "%s %s.%s '%s'",connectlist,G.name,P.name,strsub(contactlist,1)); 
+							}
+						}
+						printf("%s;%s;%s;%s;",DX.name,technologies[i],DX.package.name,strsub(connectlist,1));
+						for (int j = 0; j<(attribute_n-1); j++){
+							printf("%s;",attribute_value[j]);
+						}
+						if (attribute_n>0)
+							printf("%s",attribute_value[attribute_n-1]);
+						printf("\n");
+						clearAttributes();
+					};
+				};
+			};
+		};
+
+	if (argc>1)
+		if (argv[1] == "edit"){
+			string cmd;
+			sprintf(cmd,"%s \"%s\"",editcommand,file_name);
+			system(cmd);
+			cfgset("EAGLE:Option.Codec", oldCodec);
+			exit("RUN import-dev-variants temp");
+		}
+}
+cfgset("EAGLE:Option.Codec", oldCodec);

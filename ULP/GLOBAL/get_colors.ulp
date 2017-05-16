@@ -1,0 +1,30 @@
+#usage "<b><h1>Save layer colors to script</h1></b>\n"
+  "<p>"
+  "Writes a script to set the layer colors to what they are now."
+
+string fnam;                           //output file name
+string name;                           //layer name
+
+board (obj) {                          //open the board
+  fnam = "colors.scr";                 //set default output file name
+  fnam =                               //get output file name from user
+    dlgFileSave ("Enter the output file name", fnam, "");
+  if (strlen(fnam) == 0) {             //no output file given ?
+    exit (EXIT_FAILURE);
+    }
+//
+//   The complete output file name is in FNAM.
+//
+  output (fnam, "wt") {                //open the output file for text write
+    obj.layers (layer) {               //open the list of layers
+      if (layer.number <= 16)
+        {                              //copper plane layer that could change name
+          printf ("set color_layer %u %u;\n", layer.number, layer.color);
+          }
+        else {                         //not copper layer, use the layer name
+          printf ("set color_layer %s %u;\n", layer.name, layer.color);
+          }
+        ;
+      }                                //back for next layer
+    }                                  //close the output file
+  }                                    //close the data object with the layers

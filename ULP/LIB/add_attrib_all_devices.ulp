@@ -1,0 +1,122 @@
+/*==========================================================
+  add_attrib_all_devices
+  
+  This ULP adds attributes to all device variants and 
+  device technologies in the currently opened library.
+
+  Run it from command line in an open library editor
+  
+  Syntax:  run add_attrib_all_devices attrib_name attrib_type
+    
+     For attrib_type, use one of these:     delete
+                                            variable
+                                            constant
+  
+  Example:    run add_attrib_all_devices price variable
+  
+  Note that all attribute names are automatically converted
+  to upper case by Eagle.
+
+  This ULP loops through all devices/variants in the currently
+  open library and creates a SCR file called: 
+  
+        add_attrib_all_devices_script.scr
+  
+  ... in Eagle's scr folder with all the necessary commands to 
+  add the attribute to all technologies of every variant of 
+  every device in the library.  You can look at that file to 
+  see what's going on.  
+  
+  After the script file is created,  this ULP exits and causes
+  the newly created script file to run automatically.
+  
+  Note that the updated library is not automatically saved, 
+  giving you opportunity to review results and save it manually. 
+  
+  If you want to add a bunch of different attributes at the same 
+  time,  just create and run your own script file with multiple 
+  calls to this ULP,  the script file would look something like this:
+  
+        run add_attrib_all_devices.ulp MFG_PN_1 variable;
+        run add_attrib_all_devices.ulp MFG_PN_2 variable;
+        run add_attrib_all_devices.ulp MFG_PN_3 variable;
+        run add_attrib_all_devices.ulp NOTES variable;
+        run add_attrib_all_devices.ulp DESCRIPTION variable;
+        run add_attrib_all_devices.ulp TOLERANCE variable;
+        run add_attrib_all_devices.ulp TYPE variable;
+        run add_attrib_all_devices.ulp VOLTAGE variable;
+    
+  You can re-run this ULP or even a script file with multiple
+  call.  If you rerun the script file with no changes,  then 
+  the library will not be further modified.  But if you want 
+  to add new attributes, just add new lines to the script file
+  and re-run the whole thing,  only the new changes will be 
+  implemented into the library.
+  
+  This ULP is originally based on the ULP "add_attrib_lbr" written by
+  Maurice SAAB (thanks Maurice!),  but this ULP will not create
+  any new devices in the library as could happen with the original.
+  This one will simply add the requested attribute to every device,
+  variant, technology in the library.
+  
+  Author: Lance Carlson (Lance@CarlsonConceptsLLC.com)
+          16 Nov 2012
+          v1.0
+===========================================================*/
+
+string attrib_name=argv[1];
+string attrib_type=argv[2];
+
+string scr_path=path_scr[0]+"/";
+
+// Open the script file for output
+output(scr_path+"add_attrib_all_devices_script.scr") {
+
+    // Assign L to the currently opened library
+    library(L) {
+        
+        // Loop through all the devices in the library
+        L.devicesets(S) {
+
+            // For each device,  this will create the script command which opens it in the library editor
+            printf("\nEDIT %s.dev\n", S.name);
+
+            // Loop through all individual variants of the current device
+            // Complaint:  Why does the "devices" keyword acutally loop through variants?  Confusing!
+            S.devices(D) {
+
+                // Need to create the script command to select/activate each variant,  this is how...
+                if (D.package)
+                    printf("\n  PACKAGE %s\n", D.name);
+
+                // Now we figure out how many different technologies exist for the variant
+                string t[];                                                         // Create an array to hold the technnology names
+                int n = strsplit(t, D.technologies, ' ');                           // Put the technology names into the array
+                if (n > 0) {                                                        // If there's at least one technology...
+                    for (int i = 0; i < n; i++) {                                   // ... then loop through and 
+                        printf("    TECHNOLOGY %s\n", t[i]);                        // Create the script command to select the technology
+                        printf("      ATTRIB %s %s\n", attrib_name, attrib_type);   // Create the script command to add the attribute to this technology
+                    }
+                }
+                else {          // Else there are no defined technologies
+                                // NOTE:  This case probably isn't needed,  but leave it in for now
+                     D.attributes(A, D.technologies) {
+                        printf("      ATTRIB %s %s\n", attrib_name, attrib_type);
+                     }
+                }
+            }
+        }
+    }
+
+
+    // This will cause the updated library to be automatically saved at the end of the script
+    // It is recommended that you do not enable this statement.  But if you are brave,  feel
+    // free to do so! :)
+    //  printf("write;\n");                                 
+
+    // Exit the ulp and run the newly created script
+    exit("script add_attrib_all_devices_script.scr");   
+
+}
+
+

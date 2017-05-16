@@ -1,0 +1,185 @@
+﻿//EAGLE ULP "grid05.ulp"
+//(C) 2009-10-04 Andreas Weidner (+ Rowena Fermi)
+
+#usage "en: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Decrease grid size</h3>\n"
+    "This program halfens the size of the current grid. The alternative grid "
+    "is set to 1/4 of the resulting distance.<p>"
+    "<author>&copy; 2009-10-04 Andreas Weidner (+ Rowena Fermi)</author></td>"
+    "</tr></table><br><br>"
+    "<b>Usage:</b><dl>"
+    "<dt><tt>RUN grid05</tt></dt></dl><hr>"
+    "<b>Hints:</b><ol>"
+    "<li>Due to its finite precision, EAGLE cannot halfen all possible grid "
+    "sizes <b>exactly</b>. In these cases, a warning is displayed and the "
+    "user is asked whether to cancel the action or not.</li>"
+    "<li>The file <i>awtools.inc</i> is necessary for proper execution.</li>"
+    "</ol>",
+  "de: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Raster verkleinern</h3>\n"
+    "Dieses Programm halbiert den aktuellen Rasterabstand. Das alternative "
+    "Raster erhält 1/4 des neuen Abstands.<p>"
+    "<author>&copy; 2009-10-04 Andreas Weidner (+ Rowena Fermi)</author></td>"
+    "</tr></table><br><br>"
+    "<b>Aufruf:</b><dl>"
+    "<dt><tt>RUN grid05</tt></dt></dl><hr>"
+    "<b>Hinweise:</b><ol>"
+    "<li>Aufgrund seiner begrenzten Genauigkeit kann EAGLE nicht alle "
+    "möglichen Rasterabstände <b>exakt</b> halbieren. In diesen Fällen wird "
+    "eine Warnung angezeigt und der Benutzer gefragt, ob die Aktion "
+    "abgebrochen werden soll.</li>"
+    "<li>Zur korrekten Programmausführung wird die Datei <i>awtools.inc</i> "
+    "benötigt.</li></ol>"
+
+#include "awtools.inc"
+
+//Global variables
+UL_GRID Grid;         //The current grid settings
+real NewGrid;         //The new grid size in the grid unit
+string GridText;      //String representing the new grid size
+string OldUnitText;   //Current grid unit (NOT for use with the grid distance)
+string DistUnitText;  //Unit in which the grid distance is defined
+real NewAltGrid;      //The new alternative grid size in the grid unit
+string AltGridText;   //String representing the new alternative grid size
+string Command;       //The command to be executed as script
+int Finest=0;         //1, if the finest grid will be set
+int AltFinest=0;      //1, if the finest alternative grid will be set
+int NoChange=0;       //1, if the grid is already finest
+
+//Get the current grid settings from the active window
+if (board)
+  board(B)
+    Grid=B.grid;
+if (schematic)
+  schematic(S)
+    Grid=S.grid;
+if (library)
+  library(L)
+    Grid=L.grid;
+
+//Calculate the new grid sizes
+NewGrid=Grid.distance/2;
+NewAltGrid=Grid.distance/8;
+if (Grid.unit==GRID_UNIT_MIC)
+  OldUnitText="mic";
+else if (Grid.unit==GRID_UNIT_MM)
+  OldUnitText="mm";
+else if (Grid.unit==GRID_UNIT_MIL)
+  OldUnitText="mil";
+else
+  OldUnitText="inch";
+
+//Check for possible problems: EAGLE shows the grid size with a finite number
+//of digits depending on the current unit. Therefore, convert the number into
+//a string with three more digits than EAGLE uses. If these additional digits
+//are zero, then it is later assumed that no roundoff errors will occur. When
+//the grid size gets too small, use the minimal value (this is NOT done via
+//GRID FINEST, because after doing this the grid size returns 0.1, whether or
+//not the grid unit differs from mic. That's an EAGLE problem)
+if (Grid.unitdist==GRID_UNIT_MIC) {
+  DistUnitText="mic";
+  sprintf(GridText,"%.7f",NewGrid);
+  sprintf(AltGridText,"%.7f",NewAltGrid);
+  if (Grid.distance<=0.1)
+    NoChange=1;
+  if (NewGrid<0.1) {
+    NewGrid=0.1;
+    Finest=1;
+    }
+  if (NewAltGrid<0.1) {
+    NewAltGrid=0.1;
+    AltFinest=1;
+    }
+  }
+else if (Grid.unitdist==GRID_UNIT_MM) {
+  DistUnitText="mm";
+  sprintf(GridText,"%.10f",NewGrid);
+  sprintf(AltGridText,"%.10f",NewAltGrid);
+  if (Grid.distance<=0.0001)
+    NoChange=1;
+  if (NewGrid<0.0001) {
+    NewGrid=0.0001;
+    Finest=1;
+    }
+  if (NewAltGrid<0.0001) {
+    NewAltGrid=0.0001;
+    AltFinest=1;
+    }
+  }
+else if (Grid.unitdist==GRID_UNIT_MIL) {
+  DistUnitText="mil";
+  sprintf(GridText,"%.9f",NewGrid);
+  sprintf(AltGridText,"%.9f",NewAltGrid);
+  if (Grid.distance<=0.00393701)
+    NoChange=1;
+  if (NewGrid<0.00393701) {
+    NewGrid=0.00393701;
+    Finest=1;
+    }
+  if (NewAltGrid<0.00393701) {
+    NewAltGrid=0.00393701;
+    AltFinest=1;
+    }
+  }
+else {
+  DistUnitText="inch";
+  sprintf(GridText,"%.12f",NewGrid);
+  sprintf(AltGridText,"%.12f",NewAltGrid);
+  if (Grid.distance<=0.00000393701)
+    NoChange=1;
+  if (NewGrid<0.00000393701) {
+    NewGrid=0.00000393701;
+    Finest=1;
+    }
+  if (NewAltGrid<0.00000393701) {
+    NewAltGrid=0.00000393701;
+    AltFinest=1;
+    }
+  }
+GridText=strsub(GridText,strlen(GridText)-3);
+AltGridText=strsub(AltGridText,strlen(AltGridText)-3);
+
+//Display warnings, if needed
+if (NoChange!=0) {
+  AWWarning("Warning: <b>Grid too small</b><br>&nbsp; - The grid distance "+
+    "cannot be decreased further","Warnung: <b>Raster zu klein</b><br>&nbsp; "+
+    "- Das Raster kann nicht weiter verkleinert werden");
+  exit(0);
+  }
+else if ((Finest!=0) || (AltFinest!=0) || (GridText!="000") ||
+    (AltGridText!="000")) {
+  Command="!<html><nobr>"+AWLocalise("Warning: <b>Grid roundoff error</b>",
+    "Warnung: <b>Raster-Rundungsfehler</b>");
+  if (Finest!=0)
+    Command+="<br>&nbsp; - "+AWLocalise("Standard grid will be set to "+
+      "smallest possible value","Standardraster wird auf kleinstmöglichen "+
+      "Wert gesetzt");
+  else if (GridText!="000")
+    Command+="<br>&nbsp; - "+AWLocalise("Standard grid will only <b>roughly"+
+      "</b> be halfed","Standardraster wird nur <b>ungefähr</b> halbiert");
+  if (AltFinest!=0)
+    Command+="<br>&nbsp; - "+AWLocalise("Alternative grid will be set to "+
+      "smallest possible value","Alternatives Raster wird auf "+
+      "kleinstmöglichen Wert gesetzt");
+  else if (AltGridText!="000")
+    Command+="<br>&nbsp; - "+AWLocalise("Alternative grid will only <b>"+
+      "roughly</b> be set to 1/4 of standard grid","Alternatives Raster wird "+
+      "nur auf <b>ungefähr</b> 1/4 des Standardrasters gesetzt");
+  if (dlgMessageBox(Command,"OK",AWLocalise("Cancel","Abbrechen"))!=0)
+    exit(0);
+  }
+
+if (Finest)
+  GridText="Finest";
+else
+  sprintf(GridText,"%.10f",NewGrid);
+if (AltFinest)
+  AltGridText="Finest";
+else
+  sprintf(AltGridText,"%.10f",NewAltGrid);
+
+//Exit the program and run the proper script commands
+sprintf(Command,"GRID %s %s On;\n"+
+  "GRID ALT %s %s;\n"+
+  "GRID %s",DistUnitText,GridText,DistUnitText,AltGridText,OldUnitText);
+exit(Command);

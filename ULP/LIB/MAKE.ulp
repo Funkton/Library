@@ -1,0 +1,3833 @@
+#usage "<qt><nobr><b>Make Symbol, Device, Package or use Package in LBR</b>\n"
+       "<p>"
+       "Generates Symbol and Device from a text file containing a list of pin names.<br>"
+       "This version can use <b>BSDL</b> (<i>Boundary Scan Description Language</i>) files to create a Package for BGA<br>"
+       "or use a set of parameters to generate a Package.<br>"
+       "<p>"
+       "<author>Author: ed@anuff.com / librarian@cadsoft.de</author></nobr></qt>"
+
+#require 5.7001
+
+/*
+ * Copyright (c) 2004 Ed Anuff <ed@anuff.com>. All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+*/
+
+// Rev: 1  (Eagle 4.12r04) - 2004-08-13 alf@cadsoft.de
+//         *****************************************************************
+// Rev: 2  (Eagle 4.13)    - 2004-14-09
+//         special sorting for Pad names with 2-Alpha-Character
+//         *** Xilix BSM-Files without ";" in line *************************
+//         Xilinx = "linkage bit_vector ("     and  ": inout bit --  "
+//         BSDL   = "linkage bit_vector; ("    and  ": inout bit; --  "
+//         *****************************************************************
+// Rev: 3  (Eagle 4.13)    - 2004-11-23
+//         corrected parse line with "port"
+//         *** Xilinx BSM-Files
+//         "port ("        - without spaces
+//         *** Intel .bsdl-Files
+//         "   port ("     - with spaces
+//         corrected Function: [Replace] character string
+//         *****************************************************************
+// Rev: 4  (Eagle 4.13)    - 2005-01-10
+//         port: trim left spaces from string
+//         pars_map() corrected counter
+//         *****************************************************************
+// Rev: 5  (Eagle 4.13)    - 2005-01-27
+//         AnalogDevice uses Tabulator not Space characters and
+//         some times places no space before use direction
+//         *****************************************************************
+// Rev: 6  (Eagle 4.13)    - 2005-03-23
+//         Device and Package description font bold/italic
+//         *****************************************************************
+// Rev: 7  (Eagle 4.14)    - 2005-06-06
+//         Accept comment "--" in line
+//         *****************************************************************
+// Rev: 8  (Eagle 4.15)    - 2005-06-28
+//         Corrected grid and Package outlines
+//         allways set grid to 1.0 mm (default)
+//         *****************************************************************
+// Rev: 9  (Eagle 4.15)    - 2005-08-02
+//         change TAB with SPACE "\t" --> " "
+//         Improved search end of "port" list for Xilinx-BSDL-Files
+//         *****************************************************************
+// Rev: 10 (Eagle 4.15)    - 2005-08-19
+//         Menu to generate quad and dual pin packages
+//         correct port-end-parse with ");" and for AnalogDevice == "));"
+//         *****************************************************************
+// Rev: 11 (Eagle 4.15)    - 2005-10-18
+//         new parse end of port, counts open-close Bracked
+//         BSDL can use multiple packages, now can select one, if more than one defined
+//         Also generate Symbol only
+//         Generate Package variant
+//         Scan "BSDL" in text to set BSDL-Parse-Option if any file extension
+//         *****************************************************************
+// Rev: 12 (Eagle 4.15)    - 2005-12-01
+//         If !file use lbrname for path/script
+//         Correct package_name handling
+//         Change bit-map if select quad or dual package
+//         Use also thrue hole PADs for Packages
+//         *****************************************************************
+// Rev: 13 (Eagle 4.16r1)  - 2006-06-01
+//         round coordinates to 0.1 inch in symbol
+//         Menu BGA: [] Accept copy local parameter to global parameter
+//         *****************************************************************
+// Rev: 14 (Eagle 4.16r1)   - 2006-06-09
+//         Menu BGA: add Cream-Mask Parameter
+//         *****************************************************************
+// Rev: 15 (Eagle 4.16r1)  - 2006-07-06
+//         more at 1 Pin-Pad definition in Xilinx-BSDL Files, at
+//         constant CP56 : PIN_MAP_STRING :=
+//         "TCK : K10, TDI : J10, TDO : A6, TMS : K9, " &
+//         *****************************************************************
+// Rev: 16 (Eagle 14.16r1) - 2006-10-19
+//         Plus menu entry: delete Pad-Prefix in BSDL-List
+//         Example: Xilinx - xcs20_PQ208.bsd
+//         Check if exist Pad names
+//         *****************************************************************
+// Rev: 17 (Eagle 14.16r1) - 2006-11-09
+//         Delete Lines with Textstring extendet to EXACT / INCLUDE
+//         *****************************************************************
+// Rev: 18 (Eagle 14.16r1) - 2006-12-05
+//         Pad-Names to upper case
+//         on linkage, check by pin-name (VDD, VCC, VSS, VDD) if the pin really power-pin
+//         Set direction on all pins of a group of pins in a text-block
+//         Generate a new symbol!
+//         If more es 160 pins used, placed the pins as stripes by max (64) pins.
+//         This make no large symbol if too much pins in device.
+//         *****************************************************************
+// Rev: 19 (Eagle 4.16r2)  - 2007-01-10
+//         Start argument "edit-no-description" to switch of red marker in desciption;
+//         *****************************************************************
+// Rev: 20 (Eagle 4.16r2)    - 2007-10-15
+//         Button: SortPin (List)
+//         *****************************************************************
+// Rev: 21 (Eagle 4.16r2)  - 2008-04-02
+//         Button: Delete Column in Text field
+//         Button: Delete double pad number in pin-pad-direction list if copy
+//         text from a document like pdf ...
+//         *****************************************************************
+// Rev: 22 (Eagle 5.0)   - 2008-05-20
+//                         [Save text as] [Load Text] in Text-Menu
+// Rev: 23 (Eagle 5.0)   - 2008-06-16 Texas BSDL files are use UPPER-CASE for "PORT"
+// Rev: 24 (Eagle 5.0)   - 2008-06-19 no check for PIN-coordinates if not symbol generated
+// Rev: 25 (Eagle 5.0)   - 2008-07-03 numbering pins, set Pin-Direction
+//         *****************************************************************
+// Rev: 26 (Eagle 5.3)   - 2008-11-07 Text-Options [Rename PAD]
+//         Check pin list with pad names if package generated with option Package
+//         Generate Device-Descriptin also by Text-Option
+//         New changeable parameter GRID for Package generation,
+//         if measurements in data sheet in inch, mil, mm.
+//         remember last bsdl-file path
+//
+// Rev: 27 (Eagle 5.3)   - 2008-12-03
+//         Option for Padname use as in list, or generate by counter
+//         *****************************************************************
+// Rev: 28 (Eagle 5.4)   - 2009-02-18
+//         check if list sorted by pad name, to generate correct symbol
+//         by ascending pad namnes.
+//         - correct edit option delte x th. line
+//         *****************************************************************
+// Rev: 29 (Eagle 5.4.3) - 2009-03-09
+//         no pad sorting if used bsdl file to generate symbol
+//
+// Rev: 30 (Eagle 5.6.1) - 2009-10-12
+//         check if exist package definition in bsdl file
+//
+// Rev: 31 (Eagle 5.6.1) - 2009-10-16
+//         generate only BGAs without file
+//
+// Rev: 32 (Eagle 5.6.1) - 2009-11-12
+//         change character ';' ',' to '_' in parse function
+//
+// Rev: 33 (Eagle 5.6.2) - 2009-11-24
+//         Split text and merge 1. helf text-lines with 2nd half text-lines
+//
+// Rev: 34 (Eagle 5.7.2) - 2010-02-15
+//         Change wire width 10 mil on symbol outline
+//
+// Rev: 35 (Eagle 5.9.3) - 2010-05-25
+//         Change PIN legth SHORT
+//         Check if text parsed for generate symbol
+//
+// Rev: 36 (Eagle 5.9.3) - 2010-12-02
+//         Info Text-Optoins ** use word separator also for delete column
+//
+// Rev. 37 (Eagle 5.11.1)  2011-03-07
+//         Option ganerate pad names for generate only package (not BGA)
+//
+// Rev. 38 (Eagle 5.11.1)  2011-04-01
+//         shrink menus for smaler Display (MacBook Pro user) now 823 to 667 pixel
+//         ULP Scripts Panel too large for MacBook Pro
+//         Help is now a Dialog with textview
+//         Check package name if generate a package
+//         New Rename PIN in tab List Options
+//         New help for list tab
+//
+// Rev. 39 (Eagle 5.11.1)  2011-05-23
+//         Check continuous pad number in function check_pad_sorting()
+//         change to uppercase in function
+//
+// Rev. 40 (Eagle 5.11.2)  2011-09-20
+//         Check directions of eagle bevor create symbol
+//         Save package config, save BGA config
+//
+// Rev. 41 (Eagle 5.90.0)  2011-09-20
+//         Check on empty pin list used make symbol
+//         Check on empty pad list used make package
+//
+// Rev. 42 (Eagle 5.11.2)  2011-11-03 alf@cadsoft.de
+//         No symbol (name) check, if only generated package
+//         Edit Package-Name also in Package Tab
+//
+// Rev. 43 (Eagle 6.0.1) 2011-12-15 alf@cadsoft.de
+//         Corrected check max/min coordinate with INT_MAX to check
+//         coordinates of pads and pins.
+//
+// Rev. 44 (Eagle 6.5.0) 2013-12-02 Button to open manual as pdf
+//
+
+string Revision = "Rev. 44";
+
+string HelpDE = "<qt><nobr>Dieses ULP unterstützt die Generierung von Symbolen, Devices und Packages.<br>" +
+              "Eine <b>BSDL</b>-Datei (<i>Boundary Scan Description Language</i> .bsdl) wird automatisch geparsed.<p>" +
+              "<b>Pin-Direction:</b><br>"
+              "Der Bezeichner '<i>linkage</i>' wird für No-Connects (NC), Power (VCC), oder Ground (GND) benutzt, wobei anhand der BSDL-Daten<br>"
+              "nicht unterschieden werden kann ob es sich um einen NC oder PWR Pin handelt.<br>"+
+              "In einigen Fällen kann es vorkommen, daß dadurch Signal-Pins die Direction PWR erhalten, die man manuell im Symbol-Editor ändern muß.<br>"+
+              "Bei Text-Dateien wird über die Anzahl der Trennzeichen der <font color=blue><i>word separator</i></font> ermittelt und voreingestellt.<p>" +
+              "Um Text-Dateien (<font color=brown face=times>Tabellen</font>) zu bearbeiten, gibt es folgende Möglichkeiten:" +
+              "<ul>" +
+              "<li><b>Split</b> with <font color=blue><i>word separator</i></font>:  Damit wird im Text an der Stelle an der sich ein <i>nicht</i> druckbares Zeichen befindet ein NewLine eingefügt." +
+              "<li>Split with <b>Character</b>:  An der Stelle im Text an der sich dieses <i>druckbare</i> Zeichen befindet, wird ein NewLine eingefügt." +
+              "<li><b>Merge</b>: Es werden, entsprechend dem angegebenen Wert, so viele Zeilen zu einer Zeile zusammengefügt." +
+              "<li><b>Merge 1/2 Text</b>: Die Zeilen der zweiten Texthälfte wird an die Zeilen der ertsen Texthälfte angefügt." +
+              "Als Trennzeichen zwischen den Wörtern wird der gewählte <font color=blue><i>word separator</i></font> benutzt." +
+              "<li><b>Replace</b> character string .. with .. : Zeichenketten im Text, die exakt der angegebenen Definition entsprechen, werden ausgetauscht." +
+              "<li><b>Delete</b> lines with text:  Zeilen die exakt dem angegebenen Text entsprechen, wenn das Flag Exact gesetzt ist,<br>"
+              "oder Zeilen die den angegebenen Text enthalten, wenn das Flag Include gesetzt ist, werden entfernt." +
+              "<li><b>Delete</b> every x th line [x], Start at line [n] - Löscht jede X-te Zeile ab der n-ten Zeile im Text." +
+              "<li><b>Delete</b> empty lines:  Zeilen, die leer sind bzw. nur nicht druckbare Zeichen enthalten, werden entfernt."+
+              "<li><b>&lt;&lt;-- Copy</b> kopiert die <font color=brown face=times>Tabelle</font> wieder in den Text(-Editor)." +
+              "<li><b>Sort Pad</b> sortiert die Liste nach Pad-Namen." +
+              "<li><b>Sort Pin</b> sortiert die Liste nach Pin-Namen." +
+              "<li><b>Parse --&gt;&gt;</b> übersetzt den Text (Tabelle) in die Pin-Pad-Direction-Tabelle." +
+              " Als Trennzeichen zwischen den Wörtern wird der gewählte <font color=blue><i>word separator</i></font> benutzt." +
+              "</ul>" +
+              "Durch Anwenden der einzelnen Möglichkeiten kann ein beliebiger Text zu einer brauchbaren Tabelle umgestaltet werden.<br>" +
+              "Es ist auch möglich einen Text aus der Zwischenablage (Clipboard) einzufügen (Ctrg+V)." +
+              "<p>" +
+              "Bei Text-Dateien kann ein Package aus der vorhandenen Use-Liste der geladenen LBR gewählt, oder über Package automatisch generiert werden.<br>" +
+              "Bei BSDL-Dateien (.bsdl) kann ebenfalls ein Package automatisch generiert werden.<br>" +
+              "Es wird überprüft ob im benutzten Package genügend Pads vorhanden sind um jeden Symbol-Pin zu verbinden." +
+              "<p>" +
+              "<b>BGA</b>-Package generieren (BSDL): Es wird davon ausgegangen, daß das Gehäuse symmetrisch aufgebaut ist.<br>" +
+              " - Package Width: Die Gehäuseaussenmaße (Kunststoffkörper).<br>" +
+              " - PAD Grid: Der Abstand zwischen den SMD-Pads.<br>" +
+              " - PAD Diameter: Der Durchmesser der SMD-Pads.<br>" +
+              " - Stop Mask: Ein positiver Wert erzeugt eine Stopmaske um den angegebenen Wert größer als das Pad, ein negativer Wert erzeugt<br>" +
+              "eine Maske um den Betrag kleiner als das Pad.<br>" +
+              "Package generieren: Durch Angabe der Parameter in der Karte Package können zweireihige oder vierseitige Packages generiert werden.<br>" +
+              "Der Start-Parameter <b>edit-no-description</b> verhindert daß in der Description des Device der Hinweis " +
+              " <font color=\"red\">edit this description</font> eingetragen wird.<p>" +
+              "<author>Author: librarian@cadsoft.de</author>";
+              "</nobr></qt>";
+
+string HelpEN = "<qt><nobr>This ULP supports the generation of Symbols, Devices, and Packages.<br>" +
+              "A <b>BSDL</b> (<i>Boundary Scan Description Language</i>) file will be parsed automatically<br>" +
+              "PIN-Direction: In addition to in, out, and inout, a pin can be identified as type linkage.<br>"+
+              "This is used for no-connects (NC), power (VCC), or ground (GND).<br>"+
+              "The number of separators in the text file determins and presets the <font color=blue><i>word separator</i></font>.<p>" +
+              "There are the following possibilities to edit text files (<font color=brown face=times>spreadsheets</font>):" +
+              "<ul>" +
+              "<li> <b>Split</b> with <font color=blue><i>word separator</i></font>:  Insert NewLine at the position of a <i>non-printable</i> character." +
+              "<li> Split with <b>Character</b>:  Insert NewLine in the text at the position of the given <i>printable</i> character." +
+              "<li> <b>Merge</b>:  Joins the given number of lines to one common line.<br>" +
+              "The given <font color=blue><i>word separator</i></font> is used as separator between words." +
+              "<li> <b>Replace</b> character string with:  For replacing the given string." +
+              "<li> <b>Delete</b> lines with text:  For deleting lines that contain exactly the given text." +
+              "<li> <b>Delete</b> every x th line [x], Start at line [n]: Deletes every x th line, beginning with line number n." +
+              "<li> <b> Delete</b> empty lines:  For deleting lines that do not contain characters or contain non-printable characters only." +
+              "<li> <b>&lt;&lt;-- Copy</b></b>:  Copies the <font color=brown face=times>spreadsheet</font> into the text editor again. The given <font color=blue><i>word separator</i></font> will be used between words." +
+              "<li><b>Sort Pad</b> The list will be sorted by pad names." +
+              "<li><b>Sort Pin</b> The list will be sorted by pin names." +
+              "<li> <b>Parse --&gt;&gt;</b>:  Transfers the text (spreadsheet) into the Pin-Pad-Direction spreadsheet." +
+              "</ul>" +
+              "These tools allow to make a usable spreadsheet from any text." +
+              "It is also possible to insert text from the operating sytem's clipboard.<br>" +
+              "If you are working with text files you have to choose an already existing package from the currently loaded library or use Package.<br>" +
+              "It is also possible to generate a new package from a BSDL file (*.bsdl).<br>" +
+              "First the ULP will check if there are sufficient pads for the pins of the symbol." +
+              "<p>" +
+              "Generate a package (BSDL files only): The package is assumed to be designed symmetrically.<br>" +
+              " - Package width: The dimension of the (plastic) case .<br>" +
+              " - PAD grid: The distance between the smds.<br>" +
+              " - PAD diameter: The diameter of the smds." +
+              " <p>" +
+              "<author>Author: librarian@cadsoft.de</author>";
+              "</nobr></qt>";
+
+              // 2011-04-01
+string HelpLiDE = "<nobr>List Optoins<p>" +
+                  "<ul>" +
+                  "<li><b>Swap PIN-PAD</b>: tauscht in der Liste die Pins-Pads-Spalte." +
+                  "<li><b>Swap PAD-DIR</b>: tauscht in der Liste die Pads-Direction-Spalte." +
+                  "<li><b>Direction Change</b>: Ändert die Direction der Liste nach Angaben." +
+                  "<li><b>Direction Set</b>: Setzt alle Direction-Einträge auf den gewählten Wert." +
+                  "<li><b>Direction Delete</b>: Löscht alle Diretion-Einträge in der Liste." +
+                  "<li>Clear leading zeros in <b>BGA-Pad</b>: L&ouml;scht alle führenden Nullen die evtl. bei BGA-Pads aus der BSDL-Datei übernommen worden sind." +
+                  "<li><b>Delete</b> double pad number: L&ouml;scht alle doppelt vorkommenden Zeilen mit gleicher Padnummer.<br>" +
+                  "Das kann vorkommen, wenn aus Text, PDF oder sonstigen Seiten, Tabellen kopiert werden." +
+                  "<li><b>Rename PIN</b>: Alle Teile der Pinnamen in denen die Suchzeichenkette <i>[Replace] character string</i> aus der Karteikarte Text Options vorkommen,<br>" +
+                  "werden mit der Zeichenkette <i>with</i> ersetzt." +
+                  "<li><b>Rename PAD</b>: Alle Teile der Padnamen in denen die Suchzeichenkette <i>[Replace] character string</i> aus der Karteikarte Text Options vorkommen,<br>" +
+                  "werden mit der Zeichenkette <i>with</i> ersetzt." +
+                  "<li><b>Numbering</b> pads f&uuml;r pins: Die Spalte Pads wird neu durchnummeriert.<br>" +
+                  "</ul>" +
+                  "<author>Author: librarian@cadsoft.de</author>" +
+                  "</nobr></qt>";
+
+string HelpLiEN = "<nobr>List Option<p>" +
+                  "<ul>" +
+                  "<li> <b>Swap Pin-Pad</b> Exchanges the pin and pad coloumn." +
+                  "<li> <b>Swap Pin-Pad</b> Exchanges the pad and direction coloumn." +
+                  "<li><b>Direction Change</b>: Cahnge Direction of list at your input." +
+                  "<li><b>Direction Set</b>: Setzt all Direction entry of selected value." +
+                  "<li><b>Direction Delete</b>: Delete all Diretion entry of list." +
+                  "<li>Clear leading zeros in <b>BGA-Pad</b>: Delete all leading zeros of BGA-Pad names (possibly include from BSDL file." +
+                  "<li><b>Delete</b> double pad number: Löscht alle doppelt vorkommenden Zeilen mit gleicher Padnummer.<br>" +
+                  "Das kann vorkommen, wenn aus Text, PDF oder sonstigen Seiten, Tabellen kopiert werden." +
+                  "<li><b>Rename PIN</b>: Search character in pin name and replace <i>[Replace] character string</i> at  <i>with</i> of register card \"Text Options\".<br>" +
+                  "<li><b>Rename PAD</b>: Search character in pad name and replace <i>[Replace] character string</i> at  <i>with</i> of register card \"Text Options\".<br>" +
+                  "<li><b>Numbering</b> renumbering column Pads.<br>" +
+                  "</ul>" +
+                  "<author>Author: librarian@cadsoft.de</author>" +
+                  "</nobr></qt>";
+
+
+string Help;
+string HelpList;
+if (language() == "de") {
+  Help = HelpDE;
+  HelpList = HelpLiDE;
+}
+else {
+  Help = HelpEN;
+  HelpList = HelpLiEN;
+}
+
+
+int    TextHigh  = 220;      // high of the text and list window
+int    TextWidth = 450;      // width of the text window
+int    ListWidth = 250;      // width of the list window (Pins Pads Direc.)
+int    TextStatusHigh = 18;  // distance of Text an Tap filed to display text status
+
+string editMode = " <font color=\"red\">edit this description</font>";
+string infile, Source_file = "DESCRIPTION '';\n";
+string symbol_file, symbol_name;
+string device_file, device_name;
+string packagefile;
+string package_name;
+string pac_variant_name = "";
+string packages[];
+int    n_packages = 0;
+int    package_selected = 0;
+real   package_wire_width = 0.1016;    // to create a new package from BSDL file
+real   pac_width     = 17.0;           // to create a quad package from BSDL file
+real   textsize      = 1.27;
+real   grid_val      = 1.0;   // for BallGridArea packages
+real   SMD_diameter  = 0.5;   // for BallGridArea packages
+real   MaskRestring  = 0.0;   // for BallGridArea packages
+real   CreamDiameter = 0.0;   // for BallGridArea packages 2006-06-09
+string genpac_grid   = "MM";  // 2008-11-07 default grid to generate package, can change in menu to mil, inch, mic.
+
+int    smd_pad = 0;         // use SMD or PAD for generate Package 2005-12-01
+//     PAD_SHAPE_SQUARE, PAD_SHAPE_ROUND, PAD_SHAPE_OCTAGON, PAD_SHAPE_LONG, PAD_SHAPE_OFFSET
+string PadShape[] = { "SQUARE", "ROUND", "OCTAGON" };
+int    pad_shape = PAD_SHAPE_ROUND;
+string packinfomess = "<img src=\"images/make_package_meass_smdinfo.bmp\">";
+
+// new Menu Paramter to auto generate
+int    pad_layout;
+int    Pad_Count = 1;   // the pads of package
+int    cnt_side  = 0;   // calculated pads on one side of package
+real   xA_pac = 14.0;   // width of the metall pins
+real   yA_pac = 14.0;   // width of the metall pins for quad package
+real   xD_pac = 12.0;   // width of the plastic package in x
+real   yD_pac = 12.0;   // width of the plastic package in y
+real   basic_pad_grid = 0.65;  // the Basic grid Pad to Pad
+real   pad_width      = 0.35;  // the width of solder pin
+real   pad_stand_out  = 0.5;   // stand out the pad over the metall pin
+real   ypad_length    = 0.4;   // the pad width
+real   xpad_length    = 0.9;   // the pad length
+real   mark_length    = 0.6;   // length of corner edge to mark pad 1
+real   roundness_restring = 0;    // the SMD roundness for QFP/LCC/DualInline
+string round_restring = "Roundness %";
+int    packageparameter_accept;   // if all parameter Ok for QFP/LCC/DualInline
+int    BGAparameter_accept;       // if BGA parameter accept for generate package
+string paccmd;                 // the script to generate qfp/lcc/Dual-Inline
+
+int    pin_map_cnt = 0;        // count the maps in the file
+string pin_map_name;           // the name of actual pin map
+
+
+char   w_separator[] = { ' ' ,           '\b',              '\f',
+                         '\n',           '\r',              '\t',
+                         '\v',           0 };
+
+string separator[]   = { "SPACE",        "Backspace",       "Form Feed",
+                         "New Line",     "Carriage Return", "Horizontal tab",
+                         "Vertical tab", "" };
+
+int     select_separ   = 0;
+char    Word_separator = w_separator[select_separ];
+string  String_separator;
+
+string  Vector_name[];
+int     sVector[], eVector[];
+int     cnt_vector;
+string  up_down;
+
+string  text;
+string  lines[];
+int     n_lines;
+
+numeric string pin_names[];
+int     n_pin_names = 0;
+numeric string pad_names[];
+int     n_pad_names = 0;
+int     use_pad_names = 0;
+enum    { useNONE, useBGA, usePACwithPrefix }  // for use Padnames to generate Device
+string  pad_prefix;
+string  old_pad_prefix;
+string  checkPadname = "";
+
+
+numeric string pins_pads_direc[];
+numeric string pins[];
+numeric string pads[];
+string  Pin_Direc[];
+int     suffix[];
+int     suffix_cnt, suffix_point;
+int     suffix_s, suffix_e;
+
+int    n_pins = 0;
+int    n_pads = 0;
+
+int    maxPinCnt = 100;
+int    maxStripeCnt = 64;         // maximum of pins on a stripe in symbol
+string pinCntInfo = " ";          // Info if more as maxPinCnt pins used in one Symbol 2006-12-05
+
+
+// extend this list to set pin direction on power by linkage 2006-12-05
+string PowerName[] = {
+                      "GND",
+                      "VCC",
+                      "VDD",
+                      "VSS",
+                      "VEE",
+                      "+5V",
+                      "-5V",
+                      ""  // the last must be empty ""
+                     } ;
+
+enum { k_single, k_dual, k_dual2, k_quad , k_stripe };
+int    pin_layout = k_dual;
+
+
+int    is_bsdl = 0;
+int    pars_mode;
+
+int    breacked_status = 0;
+enum   { mode_null, mode_port, mode_map };
+
+string bsdl_map_pin;    // the actual map pin name
+                        // more as one pins can named as the same
+
+string bsdl_pin_name[];
+string bsdl_Pin_Dir[];
+int    cnt_bsdl_port;
+string parsed_pins = " ";
+string bsdl_package_name;
+int    make_Package;     // generate Package by generated script
+
+
+char   port_separator    = ':';
+char   PIN_MAP_separator = ':';
+
+string tinfo = " ";
+string MakePacInfo = " ";
+int    select = 0;
+int    sorting = 0;                   // view list
+
+int    index[];
+string used_pad_number[];            // 2008-11-07
+enum   { e_symbol, bga_pac, e_pac }; // editor type to check max value of grid
+
+string rememberBSDLpath;  // 2008-11-07
+string rememberLastPathFile = "~remember-make-bsdl~.mem";
+
+                          // 2009-10-16
+string bga_pad_name[] = { "A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R", "T", "U", "V", "W", "Y", "" };
+int    cntBGApadX = 44;
+int    cntBGApadY = 44;
+int    only_generate_bga = 0;
+int    only_generate_pac = 0; // to generate only a qfp/plcc ... package
+
+string Pin_Dir[] = {
+                     "NC",
+                     "IN",
+                     "OUT",
+                     "IO",  // 2011-09-20 V6 use IO
+                     "OC",
+                     "PWR",
+                     "PAS",
+                     "HIZ",
+                     "SUP"
+                   };
+
+string Existdir = "<table>" +  // 2011-05-23
+                  "<tr><td><b>Existing</b></td><td> <td></tr>" +
+                  "<tr><td><b>Directions</b>:</td><td> <td></tr>" +
+                  "<tr><td>NC</td><td>Not Connected (not used)</td></tr>" +
+                  "<tr><td>IN</td><td>Input</td></tr>" +
+                  "<tr><td>OUT</td><td>Output</td></tr>" +
+                  "<tr><td>IO</td><td>In/Out programmable</td></tr>" +  // 2011-09-20 V6 use IO
+                  "<tr><td>OC</td><td>Open Collector</td></tr>" +
+                  "<tr><td>HIZ</td><td>Tristate</td></tr>" +
+                  "<tr><td>SUP</td><td>Supply pin (without package)</td></tr>" +
+                  "<tr><td>PAS</td><td>Passive</td></tr>" +
+                  "<tr><td>PWR</td><td>Power pin of device</td></tr>"
+                  "</table>";
+
+
+real   m_pac_width    = pac_width;  // 2006-06-01 -- 2011-09-20
+real   m_grid_val     = grid_val;
+real   m_SMD_diameter = SMD_diameter;
+real   m_MaskRestring = MaskRestring;
+real   m_CreamDiameter = CreamDiameter;
+
+string packinfo = "<img src=\"images/make_package_meass_pacinfo.bmp\">";
+
+
+string ExecutableAcrobatReader = cfgget("ULP:AcrobatReader_ulp");
+string PdfDocLink;
+
+/* ***************************************
+  ##########    Functions    ###########
+ *************************************** */
+// change Eagle slash in path names to backslash for windows
+string getDOSname(string s) {
+  string sx[];
+  int n = strsplit(sx, s, '/');
+  return strjoin(sx, '\\');
+}
+
+void getexecutable(void) {
+  string execute = dlgFileOpen("Wähle PDF-Anzeige-Programm", "", "*.exe");
+  if (execute) {
+    ExecutableAcrobatReader = execute;
+    cfgset("ULP:AcrobatReader_ulp", execute); // setze die Optiopn in der eaglerc.usr
+    return;
+  }
+  else exit(-1);
+}
+
+void system_call(string loadpdffile) {  // 2013-12-02 DOS comand execute
+  if (!ExecutableAcrobatReader) getexecutable();
+  string syscommand;
+  // Das executable und der Dateiname müssen in " " eingeschlossen werden, wegen Spaces im Pfad-Dateinamen!
+  // "CMD.EXE /C START " ist nötig, da sonst auf das Beenden des Acrobat-Reader gewartet wird.
+  sprintf(syscommand, "CMD.EXE /C START \"%s\" \"%s\"", getDOSname(ExecutableAcrobatReader), getDOSname(loadpdffile));
+  system(syscommand);  // externes Programm starten
+  return;
+}
+
+/* ************************************ */
+int check_pin_direction(string pindir) {  // 2011-09-20
+  int pn = 0;
+  do {
+    if (pindir == Pin_Dir[pn]) return 0;
+    pn++;
+  } while (Pin_Dir[pn]);
+  return -1;
+}
+
+
+string check_pin_dir(void) {  // 2011-09-20
+  for (int n = 0; n < n_pins; n++) {
+    if (!Pin_Direc[n]) return "empty pin direction!";
+    if (check_pin_direction(Pin_Direc[n])) return Pin_Direc[n];
+  }
+  return "";
+}
+
+
+// 2008-11-07 check if exist package, but do not generate
+int check_exist_pac(string pacname) {
+  int exist = 0;
+  library(L) {
+    L.packages(PAC) {
+      if (PAC.name == pacname) return 1;
+    }
+  }
+  return 0;
+}
+
+
+int check_Coordinate(string name, real x, real y, string grid_unit, int edit_type) { // 2008-11-07 new, grid unit, editor type
+  string s;
+  real maxminxy;
+  // 2008-11-07 check max x-y by used grid
+  if (grid_unit == "MM") maxminxy = u2mm(INT_MAX);          // 2011-12-15 the internal maximum
+  else if (grid_unit == "INCH") maxminxy = u2inch(INT_MAX);
+  else if (grid_unit == "MIL") maxminxy = u2mil(INT_MAX);
+  else if (grid_unit == "MIC") maxminxy = u2mic(INT_MAX);
+  else {
+    if (edit_type == bga_pac) dlgMessageBox("Check grid parameter in BGA menu!", "OK");
+    else if (edit_type == e_pac) dlgMessageBox("Check grid parameter in Package menu!", "OK");
+    return -1;
+  }
+  if (x > maxminxy || x < -maxminxy ) {
+    sprintf(s, "<nobr>Too much pins to generate symbol in X<br>Coordinate (%.4f) %s out of range %.4f %s<p>", x, grid_unit, maxminxy, grid_unit);
+  }
+  if (y > maxminxy || y < -maxminxy) {
+    sprintf(s, "<nobr>Too much pins to generate symbol in Y<br>Coordinate (%.4f) %s out of range %.4f %s<p>", y, grid_unit, maxminxy, grid_unit);
+  }
+  if (s) {
+    if (edit_type == e_symbol) s += "Check <b>Symbol Pin Layout:</b> Single | Dual | Quad before exiting this ULP</nobr>";
+    else if (edit_type == bga_pac) s += "Check pad names in BSDL file<br>" + infile + "<br> and/or measures in BGA menu.";
+    else if (edit_type == e_pac) s += "Check pad names <br>" + infile + "<br> and/or measures in Packlage menu.";
+    dlgMessageBox(s, "Ok");
+    return -1;
+  }
+  return 0;
+}
+
+
+string replaceString(string source, string find, string replace) {
+  string result = source;
+  int i = strstr(source, find);
+  string head;
+  string tail;
+
+  if (i > -1) {
+    if(i == 0) {
+      head = "";
+      tail = strsub(source, i + strlen(find));
+    }
+    else {
+      head = strsub(source, 0, i);
+      tail = strsub(source, i + strlen(find));
+    }
+    result = head + replace + tail;
+  }
+  return result;
+}
+
+
+string replaceCharacter(string source, char find, char replace) {
+  string result = source;
+  int i = strchr(source, find);
+  string head;
+  string tail;
+
+  if (i > -1) {
+    if(i == 0) {
+      head = "";
+      tail = strsub(source, i + 1);
+    }
+    else {
+      head = strsub(source, 0, i);
+      tail = strsub(source, i + 1);
+    }
+    sprintf(result, "%s%c%s", head, replace, tail);
+  }
+  return result;
+}
+
+
+
+// cut spaces on left and on right of string 2005-10-05
+string trimString(string source) {
+  if(!source) return source;
+  string result;
+  int i, head = 0;
+  for (i = 0; source[i]; i++) {
+    if (!isspace(source[i])) {
+      head = i;
+      break;
+    }
+  }
+  int send = strlen(source);
+  int len = send;
+  if (len) {
+    for (i = len-1; i >= 0; i--) {
+      if (!isspace(source[i])) {
+        send = i+1;
+        break;
+      }
+    }
+  }
+  return strsub(source, head, send-head);
+}
+
+
+string cleanWhitespace(string line) {
+  string oldtext = "";
+  do {
+    oldtext = line;
+    line = replaceString(line, "\t", " ");
+    line = replaceString(line, "  ", " ");
+  } while (line != oldtext);
+  return trimString(line);
+}
+
+
+string spaceCharacter(string l, char c) {
+  string oldtext = "";
+  do {
+    oldtext = l;
+    l = replaceCharacter(l, c, ' ');
+  } while (l != oldtext);
+  return l;
+}
+
+
+string clear_line(string l) {
+  if(!l) return l;
+
+  int comment = strstr(l, "--");               // comment
+  if (comment > 0) l = strsub(l, 0, comment);  // strip  comment 02.06.2005
+
+  for (int n = 0; n < strlen(l); n++) {
+    if (l[n] == '\"' || l[n] == '(' || l[n] == ')' || l[n] == '&' ) {
+      l[n] = ' ';
+    }
+    else if ( l[n] == ';')  l[n] = ',';        // *** replace ';' with ',' for last MAP_LINE
+  }
+  l = trimString(l);
+  return l;
+}
+
+
+string cleanName(string name) {
+  name = cleanWhitespace(name);
+  name = replaceString(name, " ", "_");
+  name = replaceString(name, ".", "_");
+  name = replaceString(name, "(", "_");
+  name = replaceString(name, ")", "_");
+  name = replaceString(name, "\\", "-");
+  // 2009-11-12 alf@cadsoft.de
+  name = replaceString(name, ",", "_");
+  name = replaceString(name, ";", "_");
+  return name;
+}
+
+
+void replaceWord(string search, string replace) {
+  string s;
+  tinfo = " ";
+  dlgRedisplay();
+  if (search == replace) {
+    dlgMessageBox("!Search string equal Replace string", "Cancel");
+    return;
+  }
+  int found, newfound;
+  int ct = 0;
+  do {
+    newfound = strstr(text, search, found);
+    if (newfound >= 0) {
+      sprintf(s, "(%d)", newfound);
+      status(s);
+      text = strsub(text, 0, newfound) + replace + strsub(text, newfound+strlen(search) );
+      found = newfound + strlen(replace);
+      ct++;
+    }
+    else break;
+  } while (text);
+
+  status(" ");
+  sprintf(tinfo, "<nobr>%d words replaced</nobr>", ct);
+  dlgRedisplay();
+  return;
+}
+
+
+void gen_viewlist(int cnt) {
+  status ("generate list");             // 2008-11-07 display working
+  for (int i = 0; i < cnt; i++) {
+    sprintf( pins_pads_direc[i], "%s\t%s\t%s", pin_names[i], pad_names[i], Pin_Direc[i]);
+  }
+  pins_pads_direc[i] = "";  // 2008-04-02
+  return;
+}
+
+
+string clear_textline(string line, char c) {
+  int pos;
+  do {
+     pos = strchr(line, c);
+     if (pos >= 0) line[pos] = '_';  // 2009-11-12
+  } while (pos >= 0);
+  return line;
+}
+
+
+void filter_pin_pad( int use_pad_names) {
+  for (int d = 0; d <= n_pins; d++) {
+    pins_pads_direc[d] = "";
+    pin_names[d] = "";
+    pad_names[d] = "";
+    pins[d] = "";
+    pads[d] = "";
+    Pin_Direc[d] = "";
+    suffix[d] = 0;
+  }
+  n_pins = 0;
+  for (int i = 0; i < n_lines; i++) {
+    lines[i] = clear_textline(lines[i], ';');
+    string pin_name = cleanName(lines[i]);
+    string pad_name = "";
+    int n;
+    string items[];
+    n = strsplit(items, lines[i], Word_separator);
+    if (n > 0) {
+      pin_name = cleanName(items[0]);
+      if (use_pad_names = useBGA) {     // ## useNONE, useBGA, usePACwithPrefix, isePACwithoutPrefix ##
+        pad_name = cleanName(items[1]);
+      }
+
+      if (strlen(pin_name) > 0) {
+        pins[n_pins] = pin_name;
+        if (use_pad_names) pads[n_pads++] = pad_name;
+
+        if (n > 2) Pin_Direc[n_pins] = items[2];  // 2008-04-02
+        pin_names[n_pins] = pin_name;
+        pad_names[n_pins] = pad_name;
+        n_pins++;
+      }
+    }
+  }
+  pins[n_pins] = "";
+  pads[n_pins] = "";
+  pin_names[n_pins] = "";
+  pad_names[n_pins] = "";
+  pins_pads_direc[n_pins] = "";
+  Pin_Direc[n_pins] = "";
+  Pin_Direc[n_pins] = "";
+  suffix[n_pins] = 0;
+  gen_viewlist(n_pins);
+  return;
+}
+
+
+void filter_text( int use_pad_names) {
+  n_lines = strsplit(lines, text, '\n');
+  filter_pin_pad( use_pad_names);
+  sprintf( parsed_pins, "%d pins parsed", n_pins); // 2008-11-07
+  Pad_Count = n_pins;                              // set pin counter for package option on text
+  return;
+}
+
+
+// ** scratch line after position n **
+string scratch(string p, char c, int n) {
+  int pos = strchr(p, c, n);
+  if (pos > 0) return strsub(p, 0, pos);
+  else return p;
+}
+
+
+/* ******************************************************
+  Analog-Device use "linkage" also for signal pins!!
+  Example:
+  CLKIN: linkage  bit;
+  XTAL: linkage  bit;
+  VROUT: linkage  bit_vector(0 to 1));
+  *******************************************************
+
+  http://www.actel.com/documents/BSDLformat.pdf
+  In addition to in, out, and inout, a pin can be identified as type linkage.
+  This is used for no-connects (NC), power (VCC), or ground (GND).
+  ******************************************************** */
+
+string Pin_Direction( string bsdldir) {
+  string pin_dir;
+  bsdldir = scratch( bsdldir, ' ', 1);             // for Xilinx BSM-Files 14.09.2004
+  bsdldir = scratch( bsdldir, ';', 1);
+
+  if      (bsdldir == "inout")   pin_dir = "IO";  // 2011-09-20 V6 use IO
+  else if (bsdldir == "out")     pin_dir = "OUT";
+  else if (bsdldir == "in")      pin_dir = "IN";
+  else if (bsdldir == "linkage") pin_dir = "PWR";
+  else if (bsdldir == "buffer")  pin_dir = "HIZ";
+  else {
+    bsdldir = scratch( bsdldir, '(', 0);
+  }
+  if (bsdldir == "linkage bit_vector") pin_dir = "PWR";
+     // ** 09.09.2004 place a ';' in Xilinx BSD-Files **
+     // ** to separate " linkage bit_vector" !        **
+  return pin_dir;
+}
+
+
+string get_dir( string name) {                   // ** direction of pin **
+  for (int i = 0; i < cnt_bsdl_port; i++) {
+    if (bsdl_pin_name[i] == name) {
+      return bsdl_Pin_Dir[i];
+      break;
+    }
+  }
+  return "";
+}
+
+
+string getVector(string v) {                     // ** count up or down **
+  string Vname, vs[];
+  int pos;
+  pos = strsplit(vs, v, ':');
+  pos = strsplit(vs, vs[0], ' ');
+  for (int n = pos; pos; n--) {
+    if (vs[n]) break;
+  }
+  if (vs[n][0] == '(') vs[n] = strsub(vs[n], 1);
+  return vs[n];
+}
+
+
+void parse_bit_vector(string l) {
+  /* EXAMPLE **************************************************
+   XILINX-BSM-File
+         VCCAUX: linkage bit_vector; (1 to 16);
+         VCCINT: linkage bit_vector; (1 to 16);
+
+   INTEL-BSDL-File
+     port (pci_ad         : inout bit_vector(31 downto 0);
+           pci_cbe_n      : inout bit_vector(3 downto 0);
+   **                                        ^        ^   **
+   ** counter direction up = to / down = downto.          **
+  ********************************************************** */
+
+  int pos = strstr(l, "bit_vector", 0);
+  if (pos > 0) {
+    Vector_name[cnt_vector] = getVector(l);
+    status(Vector_name[cnt_vector]);   // 2008-11-07 display working
+    string s, v, vs[];
+    s = strsub(l, pos);
+    int n = strsplit(vs, s, '(' );     // cut up to (
+    s = vs[1];
+    n = strsplit(vs, s, ')' );         // cut )
+    s = vs[0];
+    n = strsplit(vs, s, ' ' );
+    sVector[cnt_vector] = strtol(vs[0]);
+    eVector[cnt_vector] = strtol(vs[2]);
+    up_down = vs[1];
+    cnt_vector++;
+  }
+  return;
+}
+
+
+// search & count breackeds for parse end 05.10.2005
+void brackeds(string l) {
+  string br[];
+  int open_breacked = strsplit(br, l, '(');
+  int close_breacked = strsplit(br, l, ')');
+  breacked_status += (open_breacked - close_breacked);
+  return;
+}
+
+
+// ** BSDL parser **
+void pars_port(string l) {
+  status("parse port");
+  brackeds(l);
+  if (!breacked_status) {           // end of port list 2005-10-05
+      pars_mode = mode_null;
+  }
+  string k[];
+  // if more as 1 port in line, it's a group of ports in line!  2006-12-05
+  int    cntk = strsplit(k, l, ',');
+  for (int nk = 0; nk < cntk; nk++) {
+    string p[];
+    int n = strsplit(p, k[nk], port_separator);           // ':'
+    if (n > 1) {
+      bsdl_pin_name[cnt_bsdl_port] = trimString(p[0]);
+      bsdl_Pin_Dir[cnt_bsdl_port]  = Pin_Direction(trimString(p[1]));
+      if (bsdl_Pin_Dir[cnt_bsdl_port] == "PWR") {         // check if realy a power pin by name 2006-12-05
+        int cntpwr = 0, np = 0;
+        do {
+          cntpwr += strstr(bsdl_pin_name[cnt_bsdl_port], PowerName[np])+1;  // to check more names, extend the line PowerName[]...
+          if (cntpwr) break;
+          np++;
+        } while (PowerName[np]);
+        if (!cntpwr) bsdl_Pin_Dir[cnt_bsdl_port] = "PAS";              // no powerpin 2006-12-05
+      }
+      parse_bit_vector(l);
+      cnt_bsdl_port++;
+    }
+  }
+  return;
+}
+
+
+int get_suffix(string vector) {
+  int n;
+  for (n = cnt_vector; n >= 0; n--) {
+    if (vector == Vector_name[n])  break;
+  }
+  return n;
+}
+
+
+void pars_map(string l) {
+  status("parse maping");
+
+  if (strstr(l, ";") >= 0 ) {         // semikolon marks end of map list
+    pars_mode = mode_null;            // set parse mode
+  }
+  l = clear_line(l);                  // replace '"' and '(' and ')' with space, and replace ';' with ','
+  l = cleanWhitespace(l);
+
+  string lq[];
+  int nlq = strsplit(lq, l, ',');     // 2006-07-06  more as 1 Pin-Pad-Definition in Xilinx-BSDL files
+                                      //   Example : xc2c32a_cp56.bsd
+                                      //   constant CP56 : PIN_MAP_STRING :=
+                                      //   "TCK : K10, TDI : J10, TDO : A6, TMS : K9, " &
+  for (int nq = 0; nq <= nlq; nq++) {
+    l = lq[nq];
+    string p[];
+    string pad_map;
+    int n = strsplit(p, l, PIN_MAP_separator);     // ':'
+
+    if (n > 1) {                                   // pin name
+      string ps[];
+      int nn = strsplit(ps, trimString(p[0]), ' ');
+      bsdl_map_pin = ps[0];                        // a new pin name
+      pad_map = p[1];                              // pad name(s)
+      status(pad_map);                       // 2008-11-07 display working
+      suffix_point = get_suffix(bsdl_map_pin);
+      if (suffix_point < 0) {
+        suffix_cnt = -1;                           // set counter negativ -1
+      }
+      else {
+        suffix_s = sVector[suffix_point];
+        suffix_e = eVector[suffix_point];
+        suffix_cnt = suffix_s;
+      }
+    }
+    else {                   // only pad names
+      pad_map = p[0];
+    }
+    pad_map = spaceCharacter(pad_map, ',');
+    pad_map = cleanWhitespace(pad_map);
+    n = strsplit(p, pad_map, ' ');
+    for (int i = 0; i <= n; i++) {
+      if (p[i]) {                 // ** 2005-01-10
+                                  // line can start with ", ..."
+                                  // line can end with ...,"
+        pins[n_pins] = bsdl_map_pin;
+        pads[n_pins] = strupr(trimString(p[i]));  // upper case ** 2006-12-05
+        suffix[n_pins] = suffix_cnt;
+        if (suffix_cnt >= 0) {
+          if (up_down == "to") suffix_cnt++;
+          else if (up_down == "downto") suffix_cnt--;
+        }
+        n_pins++;
+      }
+    }
+    pins[n_pins] = "";  // clear +1
+    pads[n_pins] = "";
+    pin_names[n_pins] = "";
+    pad_names[n_pins] = "";
+    suffix[n_pins] = 0;
+  }
+  return;
+}
+
+
+string get_devName(string l) {
+  l = cleanWhitespace(l);
+  string s[];
+  int n = strsplit(s, l, ' ');
+  if (n > 1) return strupr(s[1]);
+  return "--";
+}
+
+
+string get_pacName(string l) {
+  string s[];
+  int n = strsplit(s, l, '"');
+  if (n > 1) return strupr(s[1]);
+  return "";
+}
+
+
+string  get_pin_map_name(string l) {
+  l = cleanWhitespace(l);
+  string s[];
+  int n = strsplit(s, l, ' ');
+  n = strsplit(s, s[1], ':');
+  return s[0];
+}
+
+
+/* EXAMPLE ************************************************
+entity IXP4XX is
+   generic(PHYSICAL_PIN_MAP : string:= "BGA");
+   port (pci_ad         : inout bit_vector(31 downto 0);
+         pci_cbe_n      : inout bit_vector(3 downto 0);
+         pci_par        : inout bit;
+         pci_frame_n    : inout bit;
+   ....
+   ...
+   ..
+    constant BGA:PIN_MAP_STRING :=
+     "pci_ad         :  (D3, C2, J6, B1, A1, C1, D1, G3,"&
+     "                   E1, J4, G1, F1, K5, H2, K3, H1,"&
+     "                   N5, P2, P3, P5, N1, R1, R3, U1,"&
+     "                   U4, T1, V1, R5, V3, T4, W1, U3),"&
+     "pci_cbe_n      :  (H4, K1, M1, P1),"&
+     "pci_par        :  M2,"&
+******************************************************** */
+void filter_bsdl(void) {
+  n_lines = strsplit(lines, text, '\n');
+  int n;
+  /** counter and strings reset **/
+  suffix_cnt = 0;
+  pars_mode = mode_null;
+  cnt_bsdl_port = 0;
+  pin_map_cnt = 0;        // use multiple PIN_MAP_STRING: in BSDL
+  n_pins = 0;
+  package_name = "";
+  package_selected = 0;
+
+
+  for ( n = 0; n < n_lines; n++) {
+    string line = lines[n];
+
+    if (strstr(line, "--") == 0);   // comment
+
+    else {
+      switch(pars_mode) {
+        case mode_port: /*** parse port lines pin-names and function ***/
+                        pars_port(trimString(line));  // 2005-01-10 trim spaces on left side of string
+                        break;
+
+        case mode_map:  /*** parse pad-name ***/
+                        pars_map(line);
+                        break;
+
+        default      :  int pos = strstr(strlwr(line), "port"); // 2008-06-16 Texas BSDL files are UPPER-CASE for "PORT"
+                        if (pos >= 0) {
+                          brackeds(line);
+                          pars_mode = mode_port;
+                          pos = strstr(line, "(", pos);
+                          string p = strsub(line, pos+1);
+                          pars_port(trimString(p));
+                        }
+
+                        else if (strstr(line, "constant") >= 0 && strstr(line, "PIN_MAP_STRING") > 8) {
+                          if (!pin_map_cnt) {
+                            package_name = strupr(get_pin_map_name(line));
+                            pin_map_cnt++;
+                            pars_mode = mode_map;
+                            package_selected = 0;
+                          }
+                          else {
+                            string next_pin_map = get_pin_map_name(line);
+                            pin_map_cnt++;
+                            if (dlgMessageBox("<nobr>found next MAP list <b>" + next_pin_map + "</b> (Package), last Map list <b>" + package_name + "</b> (Package)<p>Use MAP?</nobr>", next_pin_map, package_name) != 0) ;
+                            else {
+                              package_name = strupr(next_pin_map);
+                              pars_mode = mode_map;
+                              suffix_cnt = 0;         // reset counter an arrays 06.10.2005
+                              n_pins = 0;             // reset pin list counter
+                            }
+                          }
+                        }
+
+                        if (strstr(line, "entity") == 0) {
+                          device_name = get_devName(line);    // 23.11.2004
+                        }
+
+                        if (strstr(line, "generic") >= 0) {
+                          package_name = strupr(get_pacName(line));   // 23.11.2004
+                          package_selected = 0;
+                        }
+                        break;
+      }
+    }
+  }
+  status ("generate direction");                // 2008-11-07 display working
+  for ( n = 0; n < n_pins; n++) {
+    Pin_Direc[n] = get_dir( pins[n]);
+    if (suffix[n] >= 0) {
+      if (Pin_Direc[n] == "PWR") {
+        sprintf( pin_names[n], "%s@%d", pins[n], suffix[n]);
+      }
+      else {
+        sprintf( pin_names[n], "%s%d", pins[n], suffix[n]);
+      }
+      pins[n] = pin_names[n];
+    }
+    else pin_names[n] = pins[n];
+    pad_names[n] = pads[n];
+  }
+  // ** in a text block, only the last line define the direction **
+  // ** fill down the pindirection in list 2006-12-05 **
+  for ( n = n_pins - 1; n; n--) {
+    if (!Pin_Direc[n-1] && Pin_Direc[n]) Pin_Direc[n-1] = Pin_Direc[n];
+  }
+  pins_pads_direc[n_pins] = "";         // make shure the last in the list is empty!
+  pin_names[n_pins] = "";
+  pad_names[n_pins] = "";
+  Pad_Count = n_pins;                   // 2008-11-07 set pad counter
+  sprintf( parsed_pins, "%d pins parsed", n_pins);
+  dlgRedisplay();
+  if (n_pins > 160) {     // 2008-11-07
+    sprintf(pinCntInfo, "<font color=\"red\">Too many pins for a small symbol.</font> Tip: Generate symbol with stripes of ma<u>x</u> pins in line."); // 2006-12-05
+    pin_layout = k_stripe;
+  }
+  else if (n_pins > maxPinCnt) {
+    sprintf(pinCntInfo, "<font color=\"red\">Too many pins for a small symbol.</font> Generate symbol with four sides.");
+    pin_layout = k_quad;   // 2008-11-07
+  }
+  sprintf( bsdl_package_name, "<nobr>Used package in BSDL file: <font color=blue>%s</font></nobr>", package_name );
+  gen_viewlist(n_pins);
+  return;
+}
+
+
+void check_separator(void) {
+  string tx[];
+  int scnt = 0;
+  int n = -1;
+  do {
+    n++;
+    int i = strsplit(tx, text, w_separator[n]);
+    if (scnt < i) {
+      scnt = i;
+      select_separ = n;
+      Word_separator = w_separator[select_separ];
+      sprintf(String_separator, "%c", Word_separator);
+    }
+  } while(w_separator[n]);
+  return;
+}
+
+
+// is in Text "BSDL" then mark Text as BSDL 2005-10-18
+int scan_isbsdl(void) {
+  int bsdl = 0;
+  bsdl = strstr(text, "BSDL");
+  if (bsdl > 0) return 1;
+  return 0;
+}
+
+
+void readText( string file) {
+  string base_file = filename(file);
+  string base_name = cleanName(strsub(filename(file), 0, strrchr(base_file, '.')));
+  symbol_name = base_name;
+  device_name = base_name;
+
+  // reset all counters
+  for (int d = 0; d <= n_pins; d++) {
+    pins_pads_direc[d] = "";
+    pin_names[d] = "";
+    pad_names[d] = "";
+    pins[d] = "";
+    pads[d] = "";
+    Pin_Direc[d] = "";
+    suffix[d] = 0;
+  }
+  n_pins = 0;
+  n_pads = 0;
+  n_pin_names = 0;
+  n_pad_names = 0;
+  package_name = "";
+
+  int n = fileread(text, file);
+  status("parse ...");   // 2008-11-07 display, im working
+  is_bsdl = scan_isbsdl();
+  string f = strlwr(fileext(file));
+  if (f == ".bsm" || f == ".bsd" || f == ".bsdl" || is_bsdl) {
+    // ** clear tabulator in text **
+    tinfo = "<nobr><font color=\"blue\">Parsing BSDL file, please wait!</font></nobr>";
+    parsed_pins = "<nobr><font color=\"darkgreen\">Please wait!</font></nobr>";
+    dlgRedisplay();
+    int i;
+    do {
+      i = strchr(text, '\t');
+      if(i > 0) {
+        text[i] = ' ';
+      }
+    } while (i > 0);
+
+    use_pad_names = useBGA;
+    pad_prefix = "";
+    filter_bsdl();         // file parse
+    is_bsdl = 1;
+  }
+  if (!is_bsdl) check_separator();
+  sprintf(tinfo, "<nobr>[text length %d character]</nobr>", strlen(text) );
+  dlgRedisplay();
+  return;
+}
+
+
+string split_row_column(string p, int type) {
+  int n;
+  for (n = 0; n < strlen(p); n++) {
+    if (p[n] > '@');
+    else break;
+  }
+  if (type) return strsub(p, n);
+  return strsub(p, 0, n);
+}
+
+string merge_half_text_lines(string t) {  // 2009-11-24
+/*
+Example:
+1
+2
+3
+4
+5
+6
+1DIR
+1B1
+1B2
+GND
+1B3
+1B4
+
+--- merge to ---
+
+1 1DIR
+2 1B1
+3 1B2
+4 GND
+5 1B3
+6 1B4
+*/
+  string newtext;
+  string l[];
+  int cnt = strsplit(l, t, '\n');
+  if (cnt & 1) {
+    string m;
+    sprintf(m, "Count of lines are odd number (%d), only a even number of lines can merge.", cnt);
+    dlgMessageBox(m, "OK");
+    return t;
+  }
+  cnt = cnt / 2;
+  if (cnt >= 1) {
+    for (int n = 0; n < cnt; n++) {
+      newtext += l[n] + String_separator + l[cnt+n] + "\n";
+    }
+    sprintf(tinfo, "Text to %d lines merged.", cnt);
+  }
+  else {
+    dlgMessageBox("Less than two lines.", "OK");
+    return t;
+  }
+  return newtext;
+}
+
+
+// *** BGAs can use 2 Alpha-Character for Pad-Name ***
+void padsort(void) {
+  int n;
+  for (n = 0; n < n_pins; n++) {
+    if(isalpha(pad_names[n][1])) {
+      pad_names[n] = "~" + pad_names[n];
+    }
+  }
+  sort(n_pins, index, pad_names);
+  for (n = 0; n < n_pins; n++) {
+    if(pad_names[n][0] == '~') {
+      pad_names[n] = strsub(pad_names[n], 1);
+    }
+  }
+}
+
+
+void makePackage(string file) {
+  real maxcolumn;
+  packagefile = filesetext(file, "~package.scr");
+  output(packagefile, "wtD") {
+    if(packageparameter_accept) printf("%s", paccmd); /** generate QFP/LCC/DUAL-Line **/
+    else if (BGAparameter_accept) {                   /** generate BGA **/
+      printf("EDIT %s.PAC;\n", package_name);
+      printf("GRID %s %.4f ON;\n", genpac_grid, grid_val/2); // 2008-11-07 set actual grid to generate package
+      printf("SET WIRE_BEND 2;\n");
+      printf("CHANGE ROUNDNESS 100;\n");
+      printf("CHANGE LAYER 1;\n");
+      printf("CHANGE SMD %.4f %.4f;\n", SMD_diameter, SMD_diameter);
+      padsort();
+      int    cntrow, column, cntcolumn;               // Zeile/Spalte
+      string row_name, last_name;
+
+      for (int n = n_pins-1; n >= 0; n--) {
+        row_name = split_row_column(pad_names[index[n]], 0);
+        column =  strtol(split_row_column(pad_names[index[n]], 1));
+        if(maxcolumn < column) maxcolumn = column;
+        if (last_name != row_name) {
+          cntrow++;
+          last_name = row_name;
+        }
+        if (check_Coordinate(pad_names[index[n]], grid_val*column, grid_val*cntrow, genpac_grid, bga_pac)) exit(0); // 2008-11-07 grid from bga
+        printf("CHANGE LAYER 1;\n");
+        printf("SMD NOSTOP NOCREAM '%s' (%.4f %.4f);\n", pad_names[index[n]], grid_val*column, grid_val*cntrow );
+        printf("CHANGE LAYER 29;\n");     // tStop
+        printf("CIRCLE 0 (%.4f %.4f) (%.4f %.4f);\n", grid_val*column, grid_val*cntrow, grid_val*column + SMD_diameter/2+MaskRestring, grid_val*cntrow);
+        if (CreamDiameter) {
+          printf("CHANGE LAYER 31;\n");   // tCream
+          printf("CIRCLE 0 (%.4f %.4f) (%.4f %.4f);\n", grid_val*column, grid_val*cntrow, grid_val*column + CreamDiameter/2, grid_val*cntrow);
+        }
+      }
+      printf("GROUP (%.4f %.4f) (%.4f %.4f) (%.4f %.4f) (%.4f %.4f) (>%.4f %.4f);\n",
+                    -1.0 * grid_val, -1.0 * grid_val,
+                    grid_val * (maxcolumn+1), -1.0 * grid_val,
+                    grid_val * (maxcolumn+1), grid_val * (cntrow+1),
+                    -1.0 * grid_val,       grid_val * (cntrow+1),
+                    -1.0 * grid_val,       -1.0 * grid_val );
+
+      real centerx, centery;
+      centerx = (grid_val * (maxcolumn+1)) / 2;
+      centery = (grid_val * (cntrow+1)) / 2;
+      printf("MOVE (>%.4f %.4f) (0 0);\n", centerx, centery);
+
+      printf("SET WIRE_BEND 0;\n");
+      printf("CHANGE LAYER 21;\n");
+      printf("WIRE .2032 (%.4f %.4f) (%.4f %.4f) (%.4f %.4f);\n",
+              -pac_width /2 + package_wire_width, -pac_width /2 + package_wire_width,
+               pac_width /2 - package_wire_width,  pac_width /2 - package_wire_width,
+              -pac_width /2 + package_wire_width, -pac_width /2 + package_wire_width);
+      // *** mark edge on pin 1 ***
+      printf("SET WIRE_BEND 2;\n");
+      printf("WIRE .2032 (%.4f %.4f) (%.4f %.4f);\n",
+              -pac_width /2 + package_wire_width, pac_width /2 - grid_val,
+              -pac_width /2 + grid_val, pac_width /2 - package_wire_width);
+
+      printf("CHANGE SIZE %.2f;\n", textsize);
+      printf("CHANGE LAYER 25;\n");
+      printf("TEXT >NAME (%.4f %.4f);\n",
+              -pac_width/2,  pac_width/2 + textsize*0.5);
+
+      printf("CHANGE LAYER 27;\n");
+      printf("TEXT >VALUE (%.4f %.4f);\n",
+              -pac_width/2, -pac_width/2 - textsize*1.5);
+      printf("%s\n", Source_file);
+    }
+  }
+  return;
+}
+
+
+int device_exist(string dev_name) {
+  library(L) {
+    L.devicesets(DEV) {
+      if (DEV.name == dev_name) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+
+string makeSymbol_Device(string Libfile, int pin_layout, string pac_name, int use_pad_names, string pad_prefix) {
+  symbol_file = filesetext(Libfile, "~symbol.scr");
+  device_file = filesetext(Libfile, "~device.scr");
+  string partlib = "EDIT " + symbol_name + ".sym;\nGRID INCH 0.1 1;\n";
+  partlib += "CHANGE LENGTH SHORT;\n";    // 2010-05-25 new PIN legth
+  partlib += "CHANGE DIRECTION PAS;\n";   // ** default direction
+
+  string devicelib = "EDIT " + device_name + ".dev;\n";
+  devicelib += "GRID INCH 0.1 1 ON;\n";
+  devicelib += "PACKAGE " + pac_name + " '" + pac_variant_name + "';\n";
+  devicelib += "Technology  '';\n";
+  if (device_exist(device_name)) return "Device " + device_name + "exist!\nPlease use a different name for tis device."; // 2008-11-07 check existing devices and return error
+  else {
+    // 2008-11-07 generate always description
+    sprintf(Source_file, "DESCRIPTION '<b>%s</b>%s<p>\\n\\\nAuto generated by <i>%s %s</i><br>\\n\\\nSource: %s';\n",
+                         filesetext(filename(infile), ""), editMode, filename(argv[0]), Revision, filename(infile) );
+    devicelib += Source_file;
+    devicelib += "Prefix 'IC';\n";
+    devicelib += "Value Off;\n";
+    devicelib += "ADD " + symbol_name + " 'G$1' 0 NEXT (0 0);\n";
+  }
+  int i;
+  int index[];
+  string last_pin;
+  suffix_cnt = 0;
+  sort( n_pins, index, pins);
+  for (i = 0; i < n_pins; i++) {
+    if (last_pin != pins[index[i]]) {
+      last_pin = pins[index[i]];
+      suffix_cnt = 0;
+    }
+    else {
+      suffix_cnt++;
+    }
+    suffix[index[i]] = suffix_cnt;
+  }
+  real x = 0;
+  real y = 0;
+  real dx = 0;
+  real dy = -.1;
+  int terminal_i = 1;
+  int s2 = 0;
+  int s3 = 0;
+  int s4 = 0;
+  int rot = 0;
+  real spacer = .8;
+
+  if (pin_layout == k_stripe) {
+    s2 = (n_pins / maxStripeCnt) / 2;
+    s3 = maxStripeCnt / 2;
+    x  = -1.0 * s2 + -0.2;
+    y  =  0.1 * s3;
+    dx = 0.0;
+    dy = -0.1;
+  }
+  else if (pin_layout == k_quad) {
+    y = (.1 * n_pins / 4) + spacer;
+    s2 = (n_pins / 4) + 1;
+    s3 = (2 * n_pins / 4) + 1;
+    s4 = (3 * n_pins / 4) + 1;
+  }
+  else if (pin_layout == k_dual) {
+    y = .1 * n_pins / 2;
+    s2 = (n_pins / 2) + 1;
+  }
+  else if (pin_layout == k_dual2) {
+    y = .1 * n_pins / 2;
+  }
+  else {
+    y = .1 * n_pins;
+  }
+
+  for (i = 0; i < n_pins; i++) {
+    int pin_num = i + 1;
+    if (suffix[i]) {
+      sprintf( pin_names[i], "%s@%d", pins[i], suffix[i]);
+      pins[i] = pin_names[i];
+    }
+    string pin_name = pin_names[i];
+    string pad_name = "";
+
+    if (use_pad_names) {
+      if (use_pad_names == useBGA) pad_name = pad_names[i];                 // use Padname as is for BGA
+      else if (use_pad_names == usePACwithPrefix) pad_name = pad_names[i];  // use Padname for existing Package with Prefix
+      devicelib += "CONNECT 'G$1." + pin_name + "' '" + pad_name + "';\n";
+    }
+    else {
+      string pin_num_str;
+      sprintf(pin_num_str, "%u", pin_num);   // genberate padname by number
+      devicelib += "CONNECT 'G$1." + pin_name + "' '" + pad_prefix + pin_num_str + "';\n";
+    }
+
+    if (check_Coordinate(pin_name, x, y, "INCH", e_symbol)) {
+      string ck;
+      sprintf(ck, "Pin %s, coordinate out of range (%.4f %.4f)", pin_name, x, y);
+      return ck;
+    }
+
+    string x_str;
+    string y_str;
+    sprintf(x_str, "%.4f", round(x * 10) / 10);       // set to 0.1 Inch Grid  2006-06-01
+    sprintf(y_str, "%.4f", round(y * 10) / 10);
+
+    partlib += "PIN '" + pin_name + "' " + Pin_Direc[i] + " (" + x_str + " " + y_str + ");\n";
+    if (rot > 0) partlib += "ROTATE (" + x_str + " " + y_str + ");\n";
+    if (rot > 1) partlib += "ROTATE (" + x_str + " " + y_str + ");\n";
+    if (rot > 2) partlib += "ROTATE (" + x_str + " " + y_str + ");\n";
+
+    x += dx;
+    y += dy;
+    terminal_i ++;
+
+    if (pin_layout == k_stripe) {
+      if (terminal_i > maxStripeCnt) {  // 2008-12-03 correct counts
+        terminal_i = 1;
+        s2--;
+        x  = -1.0 * s2 + -0.1;  // PIN leght SHORT 2010-05-25, -0.2 for legth MIDDLE
+        y  =  0.1 * s3;
+      }
+    }
+    else if (pin_layout == k_quad) {
+      if (terminal_i == s2) {
+        dy = 0;
+        dx = .1;
+        x = spacer + .1;
+        y = 0;
+        rot = 1;
+      }
+      else if (terminal_i == s3) {
+        dy = .1;
+        dx = 0;
+        x += spacer;
+        y = spacer + .1;
+        rot = 2;
+      }
+      else if (terminal_i == s4) {
+        dy = 0;
+        dx = -.1;
+        y += spacer;
+        x -= spacer + .1;
+        rot = 3;
+      }
+    }
+    else if (pin_layout == k_dual) {
+      if (terminal_i == s2) {
+        dy = .1;
+        dx = 0;
+        x = spacer * 3;
+        y = .1;
+        rot = 2;
+      }
+    }
+    else if (pin_layout == k_dual2) {
+      int terminal_row = (terminal_i - 1) / 2;
+      y = (.1 * n_pins / 2) - .1 * terminal_row;
+      if ((terminal_i % 2) == 1) {
+        x = 0;
+        rot = 0;
+      }
+      else {
+        x = spacer * 3;
+        rot = 2;
+      }
+    }
+  }
+
+  real left = .1;    //  0.2 for PIN legth MIDDLE 2010-05-25
+  real bottom = 0;
+  real top = (.1 * n_pins) + .1;
+  real right = spacer * 1.5;
+
+  if (pin_layout == k_stripe) {
+    ; // no frame for this symbol
+  }
+  else if (pin_layout == k_quad) {
+    left   = 0.1;       // 0.2 for PIN legth MIDDLE 2010-05-25
+    bottom = 0.1;       // 0.2 for PIN legth MIDDLE
+    top    = (spacer * 2) + (.1 * n_pins / 4) - 0.0;   // -0.1 for Pin legth MIDDLE
+    right  = (spacer * 2) + (.1 * n_pins / 4) - 0.0;   // -0.1 for Pin legth MIDDLE
+  }
+  else if ((pin_layout == k_dual) || (pin_layout == k_dual2)) {
+    top = (.1 * n_pins / 2) + .1;
+    right = (spacer * 3) - .1;  //  0.2 for PIN legth MIDDLE 2010-05-25
+  }
+
+  real cx = ((right - left) / 2) + left - .1;   // 0.2 for PIN legth MIDDLE 2010-05-25
+  real cy = ((top - bottom) / 2) + bottom;
+
+  if (pin_layout == k_single) {
+    cx = right - .4;
+  }
+
+  string left_str;
+  string bottom_str;
+  string top_str;
+  string right_str;
+  string movexy05 = "";
+  string name_x;
+  string name_y;
+  string value_x;
+  string value_y;
+
+  if (pin_layout == k_stripe) {           // place >NAME and >VALUE in stripe symbol
+    s2 = (n_pins / maxStripeCnt) / 2;
+    s3 = maxStripeCnt / 2;
+    x  = -1.0 * s2;
+    y  =  0.1 * s3;
+
+    sprintf(name_x, "%.4f",     x - 0.2);
+    sprintf(name_y, "%.4f",     y + .2);
+    sprintf(value_x, "%.4f",    x - 0.2);
+    sprintf(value_y, "%.4f",    y + .1);
+  }
+  else {        // set to 0.1 Inch Grid  2006-06-01
+    sprintf(left_str, "%.4f",   round(left * 10) / 10);
+    sprintf(bottom_str, "%.4f", round(bottom * 10) / 10);
+    sprintf(top_str, "%.4f",    round(top * 10) / 10);
+    sprintf(right_str, "%.4f",  round(right * 10) / 10);
+    // ** move Origin to center **
+    sprintf(movexy05, "GROUP (-29.9 -29.9) (29.9 -29.9) (29.9 29.9) (-29.9 29.9) (>-29.9 -29.9);\nMOVE (>%.4f %.4f) (0 0);\n",
+                       round(((left + right) / 2) * 10) / 10,
+                       round(((bottom + top) / 2) * 10) / 10);
+    sprintf(name_x, "%.4f",     round(cx * 10) / 10);
+    sprintf(name_y, "%.4f",     round(cy * 10) / 10 + .05);
+    sprintf(value_x, "%.4f",    round(cx * 10) / 10);
+    sprintf(value_y, "%.4f",    round(cy * 10) / 10 - .1);
+    //  place no frame on stripe symbol
+    partlib += "LAYER 94;\n";
+    // change wire width 10mil 2010-02-15
+    partlib += "WIRE 10mil (" + left_str + " " + bottom_str + ") (" + right_str + " " + bottom_str + ") (" + right_str + " " + top_str + ") (" + left_str + " " + top_str + ") (" + left_str + " " + bottom_str + ");\n";
+  }
+  partlib += "CHANGE SIZE .07;\n";
+  partlib += "LAYER 95;\n";
+  partlib += "TEXT \'>NAME\' (" + name_x + " " + name_y + ");\n";
+  partlib += "LAYER 96;\n";
+  partlib += "TEXT \'>VALUE\' (" + value_x + " " + value_y + ");\n";
+  partlib += "LAYER 94;\n";
+  partlib +=  movexy05;
+  partlib += "WINDOW FIT;\n";
+
+  output(symbol_file, "wtD") {
+    printf("%s", partlib);
+  }
+
+  output(device_file, "wtD") {
+    printf("%s", devicelib);
+  }
+  return "";
+}
+
+
+string viewPadname(string t, string pacname) { // 2008-11-07 return 0 or error, Cancel = check padname
+  int sel;
+  if (t) {
+    dlgDialog("Make Device Package") {
+      dlgLabel("Pads not found in parsed list.");
+      dlgHBoxLayout {
+        dlgVBoxLayout {
+          dlgLabel(pacname + ".PAC");
+          dlgTextView(t);
+        }
+        dlgVBoxLayout {
+          dlgLabel("Parsed from text");
+          dlgListView("Pads", pad_names, sel);
+        }
+      }
+      if (packageparameter_accept) {
+      dlgLabel(" Checke Pad-Name if Prefix used.");
+      dlgLabel(" Possibly delete PAD Prefix in BSDL-Pad Name.");
+      dlgLabel(" Use Text Options [Rename PAD] to rename.");
+      }
+      dlgHBoxLayout {
+        dlgPushButton("+OK") { dlgAccept(); if (t) t = "Check pad name(s) in package " + pacname; }
+        dlgPushButton("-Cancel") { dlgReject(); return "Check pad name(s) in package " + pacname; }
+        dlgSpacing(20);
+        dlgLabel(" Package is a BGA ");
+        dlgPushButton("Accept")  { dlgAccept(); t = ""; }
+        dlgStretch(1);
+      }
+    };
+  }
+  return t;
+}
+
+
+string check_Padname(string name) {
+  for (int i = 0; i < n_pins; i++) {
+    if (name == pad_names[i]) {
+      name = "";
+      break;
+    }
+  }
+  if (name) name += "\n";
+  return name;
+}
+
+
+string getPackagePadCount(string pac_name) {
+  checkPadname = "";
+  int pcount = 0;
+  string s;
+  sprintf(s, " NOT found");
+  library(L) {
+    L.packages(PAC) {
+      if (PAC.name == pac_name) {
+        status("count pads " + pac_name);
+        PAC.contacts(C) {
+          checkPadname += check_Padname(C.name);
+          used_pad_number[pcount] = C.name; // 2008-11-07
+          pcount++;
+        }
+        sprintf(s, "%d Contacts", pcount);
+        break;
+      }
+    }
+  }
+  return s;
+}
+
+
+// 2008-11-07 if make package with bsdl.
+// Check used all pad-names in list with on generated Package.
+// Vergleiche padnamen des bsdl file mit generierten padnamen aus package.
+// Alle Pad-Namen in der Liste müssen im Package vorkommen.
+//
+string check_pin_pad_list(int n, int p) {
+  status("check pads in used package");
+  string ti = tinfo;
+  tinfo = "Please wait, check pad names!";
+  dlgRedisplay();
+  string tp;
+  int x = 0;
+  for (x = 0; x < n; x++) {
+    int notfound = 1;
+    for (int i = 0; i < p; i++) {
+      if (used_pad_number[i] == pad_names[x]) {
+        notfound = 0;
+        break;
+      }
+    }
+    if (notfound) tp += pad_names[x]+"\n";
+  }
+  tinfo = ti;
+  dlgRedisplay();
+  if (tp) return "Pads not found in Package\nCheck pad name in parsed list by 'Text Options'!\n"+tp;
+  return tp;
+}
+
+
+int check_exist_sym(string symname) {
+  int exist = 0;
+  library(L) {
+    L.symbols(SYM) {
+      if (SYM.name == symname) return 1;
+    }
+  }
+  return 0;
+}
+
+
+int getSymbolPinCount(string sym_name) {
+  int scount = -1;
+  library(L) {
+    L.symbols(SYM) {
+      if (SYM.name == sym_name) {
+        SYM.pins(P) scount++;
+        scount++;
+        break;
+      }
+    }
+  }
+  return scount;
+}
+
+
+string getPackagePadPrefix(string pac_name) {
+  library(L) {
+    L.packages(PAC) {
+      if (PAC.name == pac_name) {
+        PAC.contacts(C) {
+          string pad_name = C.name;
+          int i = strstr(pad_name, "1");
+          if (i != -1) {
+            string prefix = strsub(pad_name, 0, i);
+            return prefix;
+          }
+        }
+      }
+    }
+  }
+  return "P$";
+}
+
+
+// ** collect Packages **
+void  coll_packages(void) {
+  packages[0] = " ";
+  n_packages = 1;
+  library(L) {
+    L.packages(PAC) {
+      packages[n_packages++] = PAC.name;
+    }
+  }
+  return;
+}
+
+
+// ***** change n.ts character to new character *****
+void change_char_text(char text_char, char to_char, int counter) {
+  int cc;
+  int cnt = 0;
+  for ( int n = 0; n < strlen(text); n ++) {
+    if (text[n] == text_char) {
+      if (cnt == counter) {
+        text[n] = to_char;
+        cc++;
+        cnt = 0;
+      }
+      else if (counter) cnt++;
+    }
+  }
+  sprintf(tinfo, "<nobr>%d characters changed.</nobr>", cc);
+  return;
+}
+
+
+string check_space(string s) {
+  int a;
+  for (int i = 0; i < strlen(s); i++) {
+    a = (isgraph(s[i]));
+    if (a) break;
+  }
+  if (a) return s;
+  else return "";
+}
+
+
+
+void delete_x_line(int start, int x) {
+  if (x < 2) {
+    dlgMessageBox("!The value of the counter must be greater 1", "Ok");
+    tinfo = "<nobr>It is absurd to delete all lines! Check the value of x. line</nobr>";
+    return;
+  }
+  if (start > 1) start--;  // 2009-02-18 counts from zero
+  string xt[];
+  int cntst = strsplit(xt, text, '\n');
+  text = "";
+  int cdel = 0;
+  for (int s = start; s < cntst; s+=x) {
+      xt[s] = "";
+  }
+  for (int n = 0; n < cntst; n++) {
+    if (xt[n]) text += xt[n] + "\n";
+    else cdel++;
+  }
+  text[strlen(text)-1] = 0;
+  if (x > 2)  sprintf(tinfo, "<nobr>%d  %d. lines deleted</nobr>", cdel, x);
+  else sprintf(tinfo, "<nobr>%d  second lines deleted</nobr>", cdel);
+  return;
+}
+
+
+void delete_empty_lines(void) {
+  if(!text) {
+    tinfo = "<nobr>List is empty!</nobr>";
+    return;
+  }
+  string st[];
+  int cntst = strsplit(st, text, '\n');
+  text = "";
+  int cc = 0;
+  for (int n = 0; n < cntst; n++) {
+    st[n] = check_space(st[n]);
+    if (st[n]) text += st[n] + "\n";
+    else cc++;
+  }
+  text[strlen(text)-1] = 0;
+  sprintf(tinfo, "<nobr>%d empty lines deleted</nobr>", cc);
+  return;
+}
+
+
+void delete_column(int del_column) {  // 2008-04-02
+  int cntdelcol = 0;
+  if (!text) {
+    tinfo = "<nobr>List is empty!</nobr>";
+    return;
+  }
+  if (!del_column) {
+    tinfo = "<nobr>First set the number of column to delete!</nobr>";
+    return;
+  }
+  string lines[];
+  string columns[];
+  int cntl = strsplit(lines, text, '\n');
+  text = "";
+  for (int n = 0; n < cntl; n++) {
+    int cntc = strsplit(columns, lines[n], Word_separator);
+    if (cntc > del_column) cntdelcol++;
+    columns[del_column -1] = "";
+    lines[n] = "";
+    for (int c = 0; c < cntc; c++) {
+      lines[n] += columns[c];
+      if (c < cntc -1 && columns[c]) lines[n] += " ";
+    }
+    text += lines[n] += "\n";
+  }
+  tinfo = "";  // 2011-05-23
+  if (cntdelcol) {
+    sprintf(tinfo, "<nobr>%d column deleted</nobr>", cntdelcol);
+  }
+  return;
+}
+
+
+void sorting_pad(int cnt) {
+  numeric string sort_pad[], sort_pin[], sort_dir[];
+  int index[], i;
+  for (i = 0; i < cnt; i++) {
+    pins[i] = pads[i];
+    sort_pin[i] = pin_names[i];
+    sort_pad[i] = pad_names[i];
+    sort_dir[i] = Pin_Direc[i];
+  }
+  sort(cnt, index, sort_pad, sort_pin);
+  for (i = 0; i < cnt; i++) {
+    pin_names[i] = sort_pin[index[i]];
+    pad_names[i] = sort_pad[index[i]];
+    Pin_Direc[i] = sort_dir[index[i]];
+    pins[i] = pin_names[i];
+    pads[i] = pin_names[i];
+  }
+  return;
+}
+
+
+void sorting_pin(int cnt) {
+  numeric string sort_pad[], sort_pin[], sort_dir[];
+  int index[], i;
+  for (i = 0; i < cnt; i++) {
+    pins[i] = pads[i];
+    sort_pin[i] = pin_names[i];
+    sort_pad[i] = pad_names[i];
+    sort_dir[i] = Pin_Direc[i];
+  }
+  sort(cnt, index, sort_pin, sort_pad);
+  for (i = 0; i < cnt; i++) {
+    pin_names[i] = sort_pin[index[i]];
+    pad_names[i] = sort_pad[index[i]];
+    Pin_Direc[i] = sort_dir[index[i]];
+    pins[i] = pin_names[i];
+    pads[i] = pin_names[i];
+  }
+  return;
+}
+
+
+string check_pad_sorting(int cnt, int mkpac) { // 2009-02-18
+  int sortflagPAD = 0;
+  string RESULT = "";
+  if (!mkpac && use_pad_names == useBGA) sortflagPAD = 1; // option for use existing BGA 2009-03-09
+
+  else if (!mkpac && package_name) {
+    for (int n1 = 1; n1 <= cnt; n1++) {
+      int found = 0;
+      for (int n = 0; n < cnt; n++) {
+        if (strtol(pad_names[n]) == n1) {
+          found = 1;
+          break;
+        }
+      }
+      if (!found) {
+        sortflagPAD++;
+        string h;
+        sprintf(h, "Missing Pad number %d !", n1);  // 2011-05-23
+        if (dlgMessageBox(h, "OK", "Cancel") != 0)  return h;
+      }
+    }
+    if (sortflagPAD) {
+      dlgDialog("Make PAC/SYM/DEV") {
+        dlgLabel("To generate a correct symbol by count pad name, the list must sorted by pad number!");
+        dlgLabel("Check if Pin/Pad/Direction list sorted by PADs?");
+        dlgHBoxLayout {
+          dlgPushButton("Yes/Ignore") { dlgAccept(); RESULT = ""; }
+          dlgPushButton("Sort") {
+            sorting_pad(cnt);
+            gen_viewlist(cnt);
+            dlgAccept();
+            RESULT = "Check PAD list";
+          }
+          dlgPushButton("Cancel") { dlgReject(); RESULT = "CANCEL"; }
+        }
+      };
+    }
+  }
+  return RESULT;
+}
+
+
+string clear_z(string s) {   // delete leading zero
+  parsed_pins = s;
+  if (isalpha(s[0]) && isalpha(s[1]) && s[2] == '0') s = strsub(s, 0, 2) + strsub(s, 3);
+  else if (isalpha(s[0]) && s[1] == '0')             s = strsub(s, 0, 1) + strsub(s, 2);
+  else if (s[0] == '0')                              s = strsub(s, 1);
+  return s;
+}
+
+
+void clear_leading_z(int cnt) {
+  for (int i = 0; i < cnt; i++) {
+    pad_names[i] = clear_z(pad_names[i]);
+  }
+  gen_viewlist(cnt);
+  parsed_pins = "<nobr>Finsh clear leading zeros</nobr>";
+  return;
+}
+
+
+int del_double_pad(int cnt) { // 2008-04-02  delete double pad names if parsed from text
+  sorting_pad(cnt);
+  string npad = "";
+  string npin_names[];
+  string npad_names[];
+  string nPin_Direc[];
+
+  int newcnt = 0;
+  for (int i = 0; i < cnt; i++) {
+    if (npad == pad_names[i]) {
+      ; // is double
+    }
+    else {
+      npad = pad_names[i];
+      npin_names[newcnt] = pin_names[i];
+      npad_names[newcnt] = pad_names[i];
+      nPin_Direc[newcnt] = Pin_Direc[i];
+      newcnt++;
+    }
+  }
+  sprintf(parsed_pins, "<nobr>Finsh delete double (%d) pad name, new count %d</nobr>", cnt-newcnt, newcnt);
+  for (int n = 0; n < newcnt; n++) {
+      pin_names[n] = npin_names[n];
+      pad_names[n] = npad_names[n];
+      Pin_Direc[n] = nPin_Direc[n];
+  }
+  cnt = newcnt;
+  gen_viewlist(cnt);
+  return cnt;
+}
+
+
+// 2008-11-07 rename pad in parsed list
+void rename_pad(int cnt, string search, string replace) {
+  int cntrenamed = 0;
+  if (!search) {
+    dlgMessageBox("First define search string!<br>See Text Option:<br>[ <u>R</u>eplace ] character strin<u>g</u> ..... <u>w</u>ith ....", "OK");
+    return;
+  }
+  if (search == replace) {
+    dlgMessageBox("Search string = Replace string, please change!<br>See option:<br>[ <u>R</u>eplace ] character strin<u>g</u> .... <u>w</u>ith .....", "OK");
+    return;
+  }
+  for ( int n = 0; n < cnt; n++) {
+    int pos = strstr(pad_names[n], search);
+    if (pos >= 0) {
+      pad_names[n] = strsub(pad_names[n], 0, pos) + replace + strsub(pad_names[n], pos+strlen(search) );
+      cntrenamed++;
+    }
+  }
+  gen_viewlist(cnt);
+  sprintf(parsed_pins, "%d pads renamed", cntrenamed);
+  return;
+}
+
+
+// 2011-04-01 rename pin in parsed list
+void rename_pin(int cnt, string search, string replace) {
+  int cntrenamed = 0;
+  if (!search) {
+    dlgMessageBox("First define search string!<br>See Text Option:<br>[ <u>R</u>eplace ] character strin<u>g</u> ..... <u>w</u>ith ....", "OK");
+    return;
+  }
+  if (search == replace) {
+    dlgMessageBox("Search string = Replace string, please change!<br>See option:<br>[ <u>R</u>eplace ] character strin<u>g</u> .... <u>w</u>ith .....", "OK");
+    return;
+  }
+  for ( int n = 0; n < cnt; n++) {
+    int pos = strstr(pin_names[n], search);
+    if (pos >= 0) {
+      pin_names[n] = strsub(pin_names[n], 0, pos) + replace + strsub(pin_names[n], pos+strlen(search) );
+      cntrenamed++;
+    }
+  }
+  gen_viewlist(cnt);
+  sprintf(parsed_pins, "%d pins renamed", cntrenamed);
+  return;
+}
+
+
+// 2008-07-03
+void number_pads(int cnt) {
+  if (is_bsdl) {            // 2011-04-01
+    dlgMessageBox("Do not numbering pads if used a BSDL file", "OK");
+    return;
+  }
+  for ( int n = 0; n < cnt; n++) {
+    sprintf(pad_names[n], "%d", n+1);
+  }
+  gen_viewlist(cnt);
+  return;
+}
+
+
+// 2008-07-03
+void set_Pin_Direction(int cnt) {
+  int setdir = 0;
+  dlgDialog("Set PIN-Directon") {
+    dlgHBoxLayout {
+      dlgGroup("Direction") {
+        dlgRadioButton("NC", setdir);
+        dlgRadioButton("IN", setdir);
+        dlgRadioButton("OUT", setdir);
+        dlgRadioButton("IO", setdir); // 2011-09-20 V6 use IO
+        dlgRadioButton("OC", setdir);
+        dlgRadioButton("PWR", setdir);
+        dlgRadioButton("PAS", setdir);
+        dlgRadioButton("HIZ", setdir);
+        dlgRadioButton("SUP", setdir);
+      }
+      dlgStretch(1);
+    }
+    dlgHBoxLayout {
+      dlgPushButton("OK") dlgAccept();
+      dlgPushButton("-Cancel") { dlgReject(); return; }
+      dlgStretch(1);
+    }
+  };
+  for ( int n = 0; n < cnt; n++) {
+    sprintf(Pin_Direc[n], "%s", Pin_Dir[setdir]);
+  }
+  gen_viewlist(cnt);
+  return;
+}
+
+
+string ch_dir(string dir) {
+  string s[];
+  strsplit(s, dir, '\t');
+  if (!s[1]) s[1] = s[0];
+  int psel = -1;
+  dlgDialog("New Direction") {
+    dlgHBoxLayout {
+      dlgLabel(s[0]);
+       dlgLabel(" &new ");
+       dlgListView("Dir.", Pin_Dir, psel) { s[1] = Pin_Dir[psel]; dlgAccept(); } // 2011-05-23
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") dlgAccept();
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(1);
+    }
+  };
+  return s[0]+"\t"+s[1];
+}
+
+
+// ** change direction of pin in parsed list ** 2008-04-02
+void change_dir(int cnt) {
+  string ndir[];
+  int    cntdirection = 0;
+  int found = 0;
+  for (int n = 0; n < cnt; n++) {
+    found = 0;
+    for (int i = 0; i < cntdirection; i++) {
+      if (ndir[i] == Pin_Direc[n]) {
+        found = 1;
+        break;
+      }
+    }
+    if (!found) {
+      ndir[cntdirection] = Pin_Direc[n];
+      cntdirection++;
+    }
+  }
+  string info;
+  sprintf(info, "found %d directions", cntdirection);
+  int sel;
+  for (int i = 0; i < cntdirection; i++) {
+    ndir[i] += "\t" + ndir[i];
+  }
+  int Result = dlgDialog("Change Direction") {
+    dlgHBoxLayout {
+      dlgVBoxLayout {
+        dlgLabel(info);
+        dlgListView("Direction\tnew", ndir, sel) ndir[sel] = strupr(ch_dir(ndir[sel])); // 2011-05-23
+      }
+      dlgLabel(Existdir); // 2011-05-23
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") dlgAccept();
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(1);
+    }
+  };
+  if (!Result) return;
+  for (n = 0; n < cnt; n++) {
+    string s[];
+    for (int i = 0; i < cntdirection; i++) {
+      strsplit(s, ndir[i], '\t');
+      if (Pin_Direc[n] == s[0]) {
+        Pin_Direc[n] = s[1];
+        break;
+      }
+    }
+  }
+  gen_viewlist(cnt);
+  return;
+}
+
+
+// *** generate package for NOT BGA ***
+void gen_package(string PacName) {
+  real mpad_stand_out = pad_stand_out;       // 2005-12-01 save parameter for display
+  real mypad_length   = ypad_length;
+  real mxpad_length   = xpad_length;
+  real center_offset;
+  int middle = cnt_side % 2;
+  if (middle) {
+    center_offset = cnt_side / 2 * basic_pad_grid;
+  }
+  else {
+    center_offset = cnt_side / 2 * basic_pad_grid - basic_pad_grid / 2;
+  }
+  real pin_length = (xA_pac - xD_pac) / 2;
+
+  string h;
+  real k;    // koordinate for Pad line
+  real xcoord, ycoord;
+  string SMDdirection;
+  string pad_rect;
+  int padnumber = 1;
+  sprintf(h, "#2010-09-24\nEDIT %s.PAC;\n", PacName);    // 2005-11-03
+  paccmd += h;
+  sprintf(h, "GRID %s %.4f ON;\n", genpac_grid, grid_val/2); // 2008-11-07 set actual grid to generate package
+  paccmd += h;
+  sprintf(h, "SET WIRE_BEND 2;\n");
+  paccmd += h;
+  sprintf(h, "CHANGE ROUNDNESS %.0f;\n", roundness_restring);
+  paccmd += h;
+  sprintf(h, "CHANGE LAYER 1;\n");
+  paccmd += h;
+
+
+  // ** make SMD or PAD ** 2005-12-01
+  if (smd_pad) {
+    pad_stand_out = 0;        // no offset from mechanical-pin to pad-drill
+    ypad_length = 0;
+    sprintf(h, "CHANGE DRILL %.4f;\n", xpad_length);  // PAD drill diameter
+    paccmd += h;
+    sprintf(h, "CHANGE SHAPE %s;\n", PadShape[pad_shape]);
+    paccmd += h;
+    sprintf(h, "CHANGE DIAMETER %.4f;\n", xpad_length + roundness_restring);
+    paccmd += h;
+    xpad_length = 0;         // 2005-12-01
+  }
+  else {
+    sprintf(h, "CHANGE SMD %.4f %.4f;\n", SMD_diameter, SMD_diameter);
+    paccmd += h;
+  }
+
+  switch (pad_layout) {      // check Package PAD placement
+    case 0 : // ### quad package with Pin 1 on TOP of LEFT side (corner) ###
+             for (int q = 0; q < 4; q++) {
+               for (int n = 0; n < cnt_side; n++) {
+                 k = n * basic_pad_grid - center_offset;
+                 switch(q) {
+                   case 0 :  // 1. quadrant 1.-Pad TOP of LEFT side
+                            sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                            ycoord = k * -1;
+                            xcoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                            pin_length = (xA_pac - xD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       -xA_pac/2, ycoord - pad_width/2,
+                                       -xA_pac/2 + pin_length, ycoord + pad_width/2
+                                   );
+                            break;
+
+                   case 1 : // 2. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", ypad_length, xpad_length);
+                            xcoord = k;
+                            ycoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                            pin_length = (yA_pac - yD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xcoord - pad_width/2, -yA_pac/2,
+                                       xcoord + pad_width/2, -yA_pac/2 + pin_length
+                                   );
+                            break;
+
+                   case 2 : // 3. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                            xcoord = xA_pac / 2 + pad_stand_out - xpad_length/2;
+                            ycoord = k;
+                            pin_length = (xA_pac - xD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xA_pac/2, ycoord - pad_width/2,
+                                       xA_pac/2 - pin_length, ycoord + pad_width/2
+                                   );
+                            break;
+
+                   case 3 : // 4. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", ypad_length, xpad_length);
+                            xcoord = k * -1;
+                            ycoord = xA_pac / 2 + pad_stand_out - xpad_length/2;
+                            pin_length = (yA_pac - yD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xcoord - pad_width/2, yA_pac/2,
+                                       xcoord + pad_width/2, yA_pac/2 - pin_length
+                                   );
+                            break;
+
+                 }
+
+                 if (smd_pad) { // 2005-12-01
+                   sprintf(h, "PAD '%d' (%.4f %.4f);\n", padnumber, xcoord, ycoord);
+                 }
+                 else {
+                   sprintf(h, "SMD %s '%d' (%.4f %.4f);\n", SMDdirection, padnumber, xcoord, ycoord);
+                 }
+                 paccmd += h;
+                 paccmd += pad_rect;
+                 sprintf(used_pad_number[padnumber], "%d", padnumber); // 2008-11-07 for check package pad names
+                 padnumber++;
+               }
+             }
+             sprintf(h, "LAYER 21;\nWIRE .2032 (%.4f %.4f) (%.4f %.4f);\n",
+                            -xD_pac/2 + package_wire_width,
+                             yD_pac/2 - mark_length,
+                            -xD_pac/2 + mark_length,
+                             yD_pac/2 - package_wire_width
+                    );
+             paccmd += h;
+             break;
+
+    case 1 : // ### quad package with Pin 1 on MIDDLE of LEFT side ###
+             for (int qm = 0; qm < 5; qm++) {
+               for (int n = 0; n < cnt_side; n++) {
+                 k = n * basic_pad_grid - center_offset;
+                 switch(qm) {
+                   case 0 : // 1. quadrant 1.-Pad MIDDLE of LEFT side
+                            if (n >= cnt_side/2 - 0.5) {
+                              sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                              xcoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                              ycoord = k * -1;
+                              pin_length = (xA_pac - xD_pac) / 2;
+                              sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                          -xA_pac/2,              ycoord - pad_width/2,
+                                          -xA_pac/2 + pin_length, ycoord + pad_width/2
+                                     );
+                            }
+                            else SMDdirection = ""; // ** clear, do not genearate line **
+                            break;
+
+                   case 1 : // 2. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", ypad_length, xpad_length);
+                            xcoord = k;
+                            ycoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                            pin_length = (yA_pac - yD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xcoord - pad_width/2, -yA_pac/2,
+                                       xcoord + pad_width/2, -yA_pac/2 + pin_length
+                                   );
+                            break;
+
+                   case 2 : // 3. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                            xcoord = xA_pac / 2 + pad_stand_out - xpad_length/2;
+                            ycoord = k;
+                            pin_length = (xA_pac - xD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xA_pac/2,              ycoord - pad_width/2,
+                                       xA_pac/2 - pin_length, ycoord + pad_width/2
+                                   );
+                            break;
+
+                   case 3 : // 4. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", ypad_length, xpad_length);
+                            xcoord = k * -1;
+                            ycoord = yA_pac / 2 + pad_stand_out - xpad_length/2;
+                            pin_length = (yA_pac - yD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xcoord - pad_width/2, yA_pac/2,
+                                       xcoord + pad_width/2, yA_pac/2 - pin_length
+                                   );
+                            break;
+
+                   case 4 : // 1. quadrant pad right side to middle
+                            if (n < cnt_side/2 - 0.5) {
+                              sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                              ycoord = k * -1;
+                              xcoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                              pin_length = (xA_pac - xD_pac) / 2;
+                              sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                          -yA_pac/2,              ycoord - pad_width/2,
+                                          -yA_pac/2 + pin_length, ycoord + pad_width/2
+                                     );
+                            }
+                            else SMDdirection = ""; // ** clear, do not genearate line **
+                            break;
+                 }
+                 if (SMDdirection) {
+                   if (smd_pad) { // 2005-12-01
+                     sprintf(h, "PAD '%d' (%.4f %.4f);\n", padnumber, xcoord, ycoord);
+                   }
+                   else {
+                     sprintf(h, "SMD %s '%d' (%.4f %.4f);\n", SMDdirection, padnumber, xcoord, ycoord);
+                   }
+                   paccmd += h;
+                   paccmd += pad_rect;
+                   sprintf(used_pad_number[padnumber], "%d", padnumber); // 2008-11-07 for check package pad names
+                   padnumber++;
+                 }
+               }
+             }
+             sprintf(h, "LAYER 21;\nCIRCLE .2032 (%.4f 0) (%.4f 0);\n",
+                            -xD_pac/2 + xpad_length + mark_length/2,
+                            -xD_pac/2 + xpad_length + mark_length
+                    );
+             paccmd += h;
+             break;
+
+    case 2 : // dual in line package
+             for (int qd = 0; qd < 2; qd++) {
+               for (int n = 0; n < cnt_side; n++) {
+                 k = n * basic_pad_grid - center_offset;
+                 switch(qd) {
+                   case 0 : // 1. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                            ycoord = k * -1;
+                            xcoord = -xA_pac / 2 - pad_stand_out + xpad_length/2;
+                            pin_length = (xA_pac - xD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       -xA_pac/2, ycoord - pad_width/2,
+                                       -xA_pac/2 + pin_length, ycoord + pad_width/2
+                                   );
+                            break;
+
+                   case 1 : // 2. quadrant
+                            sprintf(SMDdirection, " %.4f %.4f ", xpad_length, ypad_length);
+                            xcoord = xA_pac / 2 + pad_stand_out - xpad_length/2;
+                            ycoord = k;
+                            pin_length = (xA_pac - xD_pac) / 2;
+                            sprintf(pad_rect, "LAYER 51;\nRECT (%.4f %.4f) (%.4f %.4f);\n",
+                                       xA_pac/2, ycoord - pad_width/2,
+                                       xA_pac/2 - pin_length, ycoord + pad_width/2
+                                   );
+                            break;
+                 }
+                 if (smd_pad) { // 2005-12-01
+                   sprintf(h, "PAD '%d' (%.4f %.4f);\n", padnumber, xcoord, ycoord);
+                 }
+                 else {
+                   sprintf(h, "SMD %s '%d' (%.4f %.4f);\n", SMDdirection, padnumber, xcoord, ycoord);
+                 }
+                 paccmd += h;
+                 paccmd += pad_rect;
+                 sprintf(used_pad_number[padnumber], "%d", padnumber); // 2008-11-07 for check package pad names
+                 padnumber++;
+               }
+             }
+             sprintf(h, "LAYER 21;\nARC CCW .2032 (%.4f %.4f) (%.4f %.4f) (%.4f %.4f);\n",
+                            -mark_length,
+                             yD_pac/2 - package_wire_width,
+                             mark_length,
+                             yD_pac/2 - package_wire_width,
+                             mark_length,
+                             yD_pac/2 - package_wire_width
+                    );
+             paccmd += h;
+             break;
+  }
+
+  sprintf(h, "SET WIRE_BEND 0;\n");
+  paccmd += h;
+  sprintf(h, "CHANGE LAYER 21;\n");
+  paccmd += h;
+  sprintf(h, "WIRE .2032 (%.4f %.4f) (%.4f %.4f) (%.4f %.4f);\n",
+              -xD_pac /2 + package_wire_width,
+              -yD_pac /2 + package_wire_width,
+               xD_pac /2 - package_wire_width,
+               yD_pac /2 - package_wire_width,
+              -xD_pac /2 + package_wire_width,
+              -yD_pac /2 + package_wire_width
+         );
+  paccmd += h;
+  // mark edge on pin 1
+  sprintf(h, "SET WIRE_BEND 2;\n");
+  paccmd += h;
+  sprintf(h, "CHANGE SIZE %.2f;\n", textsize);
+  paccmd += h;
+  sprintf(h, "CHANGE LAYER 25;\n");
+  paccmd += h;
+  sprintf(h, "TEXT >NAME (%.4f %.4f);\n",
+              -xA_pac/2,  yA_pac/2 + textsize*0.5);
+  paccmd += h;
+  sprintf(h, "CHANGE LAYER 27;\n");
+  paccmd += h;
+  sprintf(h, "TEXT >VALUE (%.4f %.4f);\n",
+              -xA_pac/2, -yA_pac/2 - textsize*1.5);
+  paccmd += h;
+  sprintf(h, "DESCRIPTION '<b>%s</b><p>\\n\\\nAuto generated by <i>%s %s</i><br>\\n';\n",
+                             PacName, filename(argv[0]), Revision );
+  paccmd += h;
+
+  pad_stand_out = mpad_stand_out;     // 2005-12-01
+  ypad_length   = mypad_length;
+  xpad_length   = mxpad_length;
+  return;
+}
+
+
+void display_error(string er) { // 2008-11-07 display error text/messages
+  dlgDialog(filename(argv[0])) {
+    dlgHBoxLayout dlgSpacing(300);
+    dlgLabel("Errors");
+    dlgHBoxLayout {
+      dlgVBoxLayout dlgSpacing(500);
+      dlgTextView(er);
+    }
+    dlgHBoxLayout {
+      dlgPushButton("Back") dlgAccept();
+      dlgPushButton("Cancel") { dlgReject(); exit(-2); }
+      dlgStretch(1);
+    }
+  };
+}
+
+
+int checkSymbolName(string Sname) { // 2009-11-24
+  library(L) L.symbols(S) {
+    if (S.name == Sname) {
+       return 1;
+    }
+  }
+  return 0;
+}
+
+
+int checkPackageName(string Pname) { // 2009-11-24
+  library(L) L.packages(P) {
+    if (P.name == Pname) {
+       return 1;
+    }
+  }
+  return 0;
+}
+
+
+int checkDeviceName(string DSname) { // 2009-11-24
+  library(L) L.devicesets(DS) {
+    if (DS.name == DSname) {
+       return 1;
+    }
+  }
+  return 0;
+}
+
+
+// Generate BGA-Pad-List to generate only GBA package 2009-10-16
+void genBGAlist(int x, int y) {
+  int existnpadname = 0;
+  do {
+    existnpadname++;
+  } while(bga_pad_name[existnpadname]);
+  string bga1 = "";
+  string bga2 = bga_pad_name[0];
+  string s;
+  int n = 0;
+  for (int ny = 0; ny < y; ny++) {
+    for (int nx = 0; nx < x; nx++) {
+      if (ny >= existnpadname) {
+        int firstcolumn = ny / existnpadname;
+        if (firstcolumn) {
+          bga2 = bga_pad_name[ny - firstcolumn*(existnpadname)];
+          bga1 = bga_pad_name[firstcolumn-1];
+        }
+        else bga2 = bga_pad_name[ny];
+      }
+      else bga2 = bga_pad_name[ny];
+      sprintf(pins_pads_direc[n], " \t%s%s%d\t ", bga1, bga2, nx+1);
+      sprintf(pad_names[n],"%s%s%d", bga1, bga2, nx+1);
+      n++;
+    }
+  }
+  pins_pads_direc[n] = ""; // clear last line in array
+  n_pins = x*y;    // pins "parsed"!
+  sprintf(parsed_pins, "%d BGA pads generated", n_pins);
+  return;
+}
+
+
+void genBGA_PadList(void) {   // 2009-10-16
+  dlgDialog("Generate BGA pad list") {
+    if (!is_bsdl) {
+      dlgLabel("Generate PAD list without a BSDL file to autogenerate a BGA package.");
+      dlgHBoxLayout {
+        dlgGridLayout {
+          dlgCell(0,0) dlgLabel("pad lines ");
+          dlgCell(0,1) dlgIntEdit(cntBGApadY, 1 , 500);
+          dlgCell(1,0) dlgLabel("pads in row ");
+          dlgCell(1,1) dlgIntEdit(cntBGApadX, 1 ,500);
+        }
+        dlgStretch(1);
+      }
+      dlgHBoxLayout {
+        dlgPushButton("+OK") { dlgAccept(); only_generate_bga = 1; genBGAlist(cntBGApadX, cntBGApadY); }
+        dlgPushButton("-CANCEL") dlgReject();
+        dlgStretch(1);
+      }
+    }
+    else {
+      dlgLabel("Can not use this option, while bsdl file is loaded!");
+      dlgHBoxLayout {
+        dlgPushButton("OK") dlgAccept();
+        dlgStretch(1);
+      }
+    }
+  };
+  return;
+}
+
+
+// Generate Pad-List to generate only package 2011-03-07
+void genPADlist(int x) {
+  string s;
+  for (int n = 0; n < x; n++) {
+    sprintf(pins_pads_direc[n], " \t%d\t ", n+1);
+    sprintf(pad_names[n],"%d", n+1);
+  }
+  pins_pads_direc[n] = ""; // clear last line in array
+  n_pins = x;    // pins "parsed"!
+  sprintf(parsed_pins, "%d PAD generated", n_pins);
+  Pad_Count = x;
+  return;
+}
+
+
+
+int genPAC_PadList(int cntPAD) {   // 2011-03-07
+  int cnt = cntPAD;                // 2011-04-01
+  dlgDialog("Generate PAC pad list") {
+    if (!is_bsdl) {
+      dlgLabel("Generate PAD list without a BSDL file to autogenerate a package.");
+      dlgHBoxLayout {
+        dlgGridLayout {
+          dlgCell(0,0) dlgLabel("Pad count ");        // 2011-04-01
+          dlgCell(0,1) dlgIntEdit(cnt, 1 , 1500);
+        }
+        dlgStretch(1);
+      }
+      dlgHBoxLayout {
+        dlgPushButton("+OK") { dlgAccept(); only_generate_pac = 1; genPADlist(cnt); cntPAD = cnt;} // 2011-04-01
+        dlgPushButton("-CANCEL") dlgReject();
+        dlgStretch(1);
+      }
+    }
+    else {
+      dlgLabel("Can not use this option, while bsdl file is loaded!");
+      dlgHBoxLayout {
+        dlgPushButton("+OK") dlgAccept();
+        dlgStretch(1);
+      }
+    }
+  };
+  return cntPAD;
+}
+
+void infohelp(string i) { // 2011-04-01
+  dlgDialog("Help") {
+    dlgHBoxLayout dlgSpacing(800);
+    dlgHBoxLayout {
+      dlgVBoxLayout dlgSpacing(500);
+      dlgTextView(i);
+    }
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(1);
+    }
+  };
+  return;
+}
+
+
+void saveBGAconfig(void) { // 2011-09-20
+  string bgacfg = filesetext(argv[0], "@bga.cfg");
+  output(bgacfg, "wt") {
+    printf("%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%s",
+            m_pac_width,
+            m_grid_val,
+            m_SMD_diameter,
+            m_MaskRestring,
+            m_CreamDiameter,
+            genpac_grid
+          );
+  }
+  return;
+}
+
+void loadBGAconfig(void) { // 2011-09-20
+  string bgacfg = filesetext(argv[0], "@bga.cfg");
+  string files[];
+  int bgacfgexist = fileglob(files, bgacfg);
+  if (!bgacfgexist) {
+    dlgMessageBox("!First save BGA config.", "OK");
+    return;
+  }
+  string bgalines[];
+  int bgalcnt = fileread(bgalines, bgacfg);
+  m_pac_width     = strtod(bgalines[0]);
+  m_grid_val      = strtod(bgalines[1]);
+  m_SMD_diameter  = strtod(bgalines[2]);
+  m_MaskRestring  = strtod(bgalines[3]);
+  m_CreamDiameter = strtod(bgalines[4]);
+  genpac_grid     = bgalines[5];
+  return;
+}
+
+
+void savePACconfig(void) { // 2011-09-20
+  string paccfg = filesetext(argv[0], "@pac.cfg");
+  output(paccfg, "wt") {
+    printf("%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%.4f\n%s\n%d\n%s\n%d\n%d",
+            xA_pac,
+            yA_pac,
+            xD_pac,
+            yD_pac,
+            mark_length,
+            pad_width,
+            basic_pad_grid,
+            pad_stand_out,
+            xpad_length,
+            ypad_length,
+            roundness_restring,
+            genpac_grid,
+            pad_layout,
+            round_restring,
+            pad_shape,
+            smd_pad
+          );
+  }
+  return;
+}
+
+void loadPACconfig(void) { // 2011-09-20
+  string paccfg = filesetext(argv[0], "@pac.cfg");
+  string files[];
+  int paccfgexist = fileglob(files, paccfg);
+  if (!paccfgexist) {
+    dlgMessageBox("!First save PAC config", "OK");
+    return;
+  }
+  string paclines[];
+  int paclcnt = fileread(paclines, paccfg);
+  xA_pac = strtod(paclines[0]);
+  yA_pac = strtod(paclines[1]);
+  xD_pac = strtod(paclines[2]);
+  yD_pac = strtod(paclines[3]);
+  mark_length = strtod(paclines[4]);
+  pad_width = strtod(paclines[5]);
+  basic_pad_grid = strtod(paclines[6]);
+  pad_stand_out = strtod(paclines[7]);
+  xpad_length = strtod(paclines[8]);
+  ypad_length = strtod(paclines[9]);
+  roundness_restring = strtod(paclines[10]);
+  genpac_grid = paclines[11];
+  pad_layout = strtol(paclines[12]);
+  round_restring = paclines[13];
+  pad_shape = strtol(paclines[14]);
+  smd_pad = strtol(paclines[15]);
+
+  switch(pad_layout) {
+    case 0  : packinfo = "<img src=\"images/make_package_meass_pacinfo.bmp\">";
+              break;
+    case 1  : packinfo = "<img src=\"images/make_package_meass_pacinfo.bmp\">";
+              break;
+    case 2  : packinfo = "<img src=\"images/make_package_meass_pacinfo2.bmp\">";
+              break;
+  }
+  switch(smd_pad) {
+    case 0  : packinfomess = "<img src=\"images/make_package_meass_smdinfo.bmp\">";
+              round_restring = "Roundness %";
+              break;
+    case 1  : round_restring = "Restring";
+              switch(pad_shape) {
+                case PAD_SHAPE_SQUARE  : packinfomess = "<img src=\"images/make_package_meass_padinfo-sqr.bmp\">";
+                                         break;
+                case PAD_SHAPE_ROUND   : packinfomess = "<img src=\"images/make_package_meass_padinfo-round.bmp\">";
+                                         break;
+                case PAD_SHAPE_OCTAGON : packinfomess = "<img src=\"images/make_package_meass_padinfo-oct.bmp\">";
+                                         break;
+              }
+              break;
+  }
+  return;
+}
+
+
+/*********************** main *************************/
+if (library) {
+  string rf[]; // 2008-11-07 check exist remember file
+  int nrf = fileglob(rf, filedir(argv[0])+rememberLastPathFile);
+  if (nrf) nrf = fileread(rememberBSDLpath, rf[0]);
+
+  if (argv[1] == "edit-no-description") editMode = "";
+
+  int    make_Symbol;
+  int    make_Device;
+
+  int    exact_include = 0;
+  string del_line;
+  int    delColumn = 1;
+  string st[];
+  int    separator_counter = 2;
+  string c_separator;
+  int    start_line, x_line;
+  int    cc;
+  tinfo = " ";
+  int do_copy = 1;
+  string search, replace;
+  coll_packages();
+  package_name = "";    // default
+
+  string PadCount;
+  sprintf(String_separator, "%c", Word_separator);
+  string cmd;
+
+  int result = dlgDialog("Make Symbol / Device / Package ") {
+    dlgHBoxLayout {
+      dlgLabel("&File:");
+      dlgStringEdit(infile);
+      dlgPushButton("&Browse") {
+        infile = dlgFileOpen("Select a File", rememberBSDLpath, "*.bsdl *.bsd *.bsm *.txt");
+        if (infile) {    // 23.03.2005
+          // 2008-11-07 write last path in file to remember for next start
+          output(filedir(argv[0])+rememberLastPathFile, "wt") printf("%s", filedir(infile));
+          readText(infile);
+          status(" "); // 2008-11-07 // clear display working
+          if (is_bsdl) {
+            make_Symbol = 1;
+            make_Device = 1;
+            make_Package = 1;
+            if (check_exist_pac(package_name)) make_Package = 0; // 2009-10-12 reset flag
+            m_pac_width = pac_width;
+            m_grid_val = grid_val;
+            m_SMD_diameter  = SMD_diameter;
+            m_MaskRestring  = MaskRestring;
+            m_CreamDiameter = CreamDiameter;
+          }
+        }
+      }
+    }
+    dlgHBoxLayout {
+      dlgVBoxLayout dlgSpacing(TextHigh);  // 2011-04-01
+      dlgVBoxLayout {
+        dlgHBoxLayout dlgSpacing(TextWidth);
+        dlgHBoxLayout {
+          dlgLabel("Text");
+          dlgStretch(1);
+          dlgLabel(bsdl_package_name, 1);
+        }
+        dlgTextEdit(text);
+      }
+      dlgVBoxLayout {
+        dlgSpacing(25);  //
+        dlgPushButton(" &<<-- Copy") {
+          if (is_bsdl) {
+            do_copy = 0;
+            if (dlgMessageBox("!BSDL file loaded. Are you sure you want to copy listing to text?", "Ok", "Cancel") == 0) do_copy = 1;
+          }
+          if (do_copy) {
+            text = "";
+            for (int i = 0; i < n_pins; i++) {
+              if (i) text += "\n";
+              text += pin_names[i] + String_separator + pad_names[i];
+              if (Pin_Direc[i]) text += String_separator + Pin_Direc[i];
+            }
+            //infile = "";   // delete filename while text is copy from list // 2008-11-07 use for DESCRIPTION
+            is_bsdl = 0;
+            delete_empty_lines();
+            tinfo = "Text is a copy of pin/pad list.";
+            dlgRedisplay();
+          }
+        }
+        dlgStretch(1);
+        dlgPushButton("S&ort PAD") {
+          parsed_pins = "sorted by pad";
+          sorting_pad(n_pins);
+          gen_viewlist(n_pins);
+        }
+        dlgStretch(1);
+        dlgPushButton("So&rt PIN") {
+          parsed_pins = "sorted by pin";
+          sorting_pin(n_pins);
+          gen_viewlist(n_pins);
+        }
+        dlgStretch(1);
+        dlgPushButton("Parse -->&>") {
+          parsed_pins = "parsing text, please wait...";
+          dlgRedisplay();
+          if (!is_bsdl) filter_text(use_pad_names);
+          else dlgMessageBox(";Only text files can be parsed. BSDL files will be parsed automatically!", "Ok");
+        }
+      }
+      dlgVBoxLayout {
+        dlgHBoxLayout dlgSpacing(ListWidth);
+        dlgListView( "Pins\tPads\tDirect.",  pins_pads_direc, select, sorting);
+      }
+      dlgStretch(1);
+    }
+    dlgHBoxLayout {
+      dlgVBoxLayout { dlgSpacing(TextStatusHigh); }
+      dlgLabel(tinfo, 1);
+      dlgStretch(1);
+      dlgLabel(parsed_pins, 1);
+      dlgSpacing(8);
+    }
+
+    dlgTabWidget {
+      dlgTabPage("Ma&ke") { // #######################################
+        dlgHBoxLayout {
+          dlgSpacing(4);
+          dlgVBoxLayout {
+            // hier das symbol pin layout
+            dlgSpacing(4);
+            dlgGroup("Symbol Pin Layout") {
+              dlgGridLayout {
+                dlgCell(0,  1) dlgLabel("<img src=\"images/make_symbol_single.bmp\">");
+                dlgCell(1,  1) dlgRadioButton("Sing&le", pin_layout) pinCntInfo = " ";
+                dlgCell(0,  2) dlgLabel("<img src=\"images/make_symbol_dual1.bmp\">");
+                dlgCell(1,  2) dlgRadioButton("Dual &1", pin_layout) pinCntInfo = " ";
+                dlgCell(0,  3) dlgLabel("<img src=\"images/make_symbol_dual2.bmp\">");
+                dlgCell(1,  3) dlgRadioButton("Dual &2", pin_layout) pinCntInfo = " ";
+                dlgCell(0,  4) dlgLabel("<img src=\"images/make_symbol_quad.bmp\">");
+                dlgCell(1,  4) dlgRadioButton("&Quad", pin_layout) pinCntInfo = " ";
+                dlgCell(0,  5) dlgLabel("<img src=\"images/make_symbol_stripe.bmp\">");
+                dlgCell(1,  5) dlgRadioButton("Str&ipe", pin_layout) pinCntInfo = "<qt><nobr>Tip: Use <b>split-device-symbol.ulp</b> to generate a Device with multiple small symbols! Read HELP."; // 2006-12-05
+                dlgCell(0,  6) dlgVBoxLayout {
+                                 dlgStretch(1);
+                                 dlgLabel("Ma&x. Pins\nper Stripe");
+                                 dlgHBoxLayout {
+                                   dlgIntEdit(maxStripeCnt);
+                                   dlgStretch(1);
+                                 }
+                               }
+              }
+              dlgStretch(1);
+              dlgLabel(pinCntInfo, 1);
+              dlgStretch(1);
+            }
+            dlgSpacing(4);
+            dlgHBoxLayout {
+              dlgGridLayout {
+                dlgCell(1,0)  dlgCheckBox("&Symbol", make_Symbol) {  // 2009-11-24
+                                if (make_Symbol) {
+                                  if (!n_pins) {
+                                    dlgMessageBox("!First define a pin list.", "OK");
+                                    make_Symbol = 0;
+                                  }
+                                  else {
+                                    if(!symbol_name) {  // 2011-09-20
+                                      dlgMessageBox("! Define a Symbol name", "OK");
+                                      make_Symbol = 0;
+                                    }
+                                    else if (checkSymbolName(strupr(symbol_name))) {  // 2009-11-24
+                                      make_Symbol = 0;
+                                      dlgMessageBox("Symbol " + symbol_name + " exist.\nChange symbol name!", "OK");
+                                    }
+                                    string dirfault = check_pin_dir();  // 2011-09-20
+                                    if (dirfault) {
+                                      make_Symbol = 0;
+                                      dlgMessageBox("Fault pin direction '" + dirfault + "'\nChange to card List Options and check PIN-Direction with Direction [change]!", "OK");
+                                    }
+                                  }
+                                }
+                              }
+                dlgCell(1,1)  dlgLabel("&Name ");
+                dlgCell(1,2)  { dlgStringEdit(symbol_name); dlgLabel(".SYM"); }
+
+                dlgCell(1,4)  dlgLabel("|");
+
+                dlgCell(1,5)  dlgCheckBox("Pa&ckage ", make_Package) { // 2009-11-24
+                                if (make_Package) {  // 2011-09-20
+                                  if (!n_pads) {
+                                    dlgMessageBox("!First define pad list.", "OK");
+                                    make_Package = 0;
+                                  }
+                                  else {
+                                    if(!package_name) {
+                                      dlgMessageBox("! Define a Package name", "OK");
+                                      make_Package = 0;
+                                    }
+                                    else if (checkPackageName(strupr(package_name))) {  // 2009-11-24
+                                      make_Package = 0;
+                                      dlgMessageBox("Package " + package_name + " exist.\nChange package name!", "OK");
+                                    }
+                                  }
+                                }
+                              }
+                dlgCell(1,6)  dlgLabel("Na&me ");
+                dlgCell(1,7)  { dlgStringEdit(package_name); dlgLabel(".PAC"); }
+
+                dlgCell(2,4)  dlgLabel("|");
+
+                dlgCell(2,6)  dlgLabel("&Variant ");
+                dlgCell(2,7)  dlgStringEdit(pac_variant_name);
+
+                dlgCell(2,0)  dlgCheckBox("&Device", make_Device)
+                              if(make_Device) {
+                                if (!device_name) {
+                                  dlgMessageBox("! Define a Device name", "OK");
+                                  make_Device = 0;
+                                }
+                                else if (checkDeviceName(strupr(device_name))) {  // 2009-11-24
+                                  make_Device = 0;
+                                  dlgMessageBox("Device " +device_name + " exist.\nChange device name!", "OK");
+                                }
+                              }
+                dlgCell(2,1)  dlgLabel("Nam&e ");
+                dlgCell(2,2)  { dlgStringEdit(device_name); dlgLabel(".DEV"); }
+              }
+              dlgStretch(1); // rechts eben [] Symbol []Package [] Device
+            }
+            dlgStretch(1); // unter [] Symbol []Package [] Device
+          }
+          dlgStretch(1);
+        }
+        dlgStretch(1);
+        dlgHBoxLayout { dlgSpacing(4); dlgLabel(MakePacInfo, 1); }   // info what package parameter in use
+
+        dlgStretch(1);
+        dlgHBoxLayout {
+          dlgSpacing(4);
+          dlgPushButton("Ok") {
+            string error = "";
+            string Libfile;
+            if (!Libfile) {
+              library(L) Libfile = L.name;
+            }
+            if (make_Symbol) { // 2008-11-07
+              if (!n_pins) {  // 2010-05-25 check lines parsed?
+                 error = "No lines paresd!";
+              }
+              error = check_pad_sorting(n_pins, make_Package); // // 2009-02-18 check if pads sorted ascending
+              // error = "Cancelt by check pad number!";
+              if (check_exist_sym(strupr(symbol_name))) {
+                error = "Check symbol name, symbol exist!";
+              }
+              if (!error) error = makeSymbol_Device(Libfile, pin_layout, package_name, use_pad_names, pad_prefix);
+              if (!error) {
+                int sympincount = getSymbolPinCount(strupr(symbol_name));
+                if (sympincount >= 0) { // ** symbol exist, do not change or add pins **
+                  string s; sprintf(s, "Symbol %s has %d pins", symbol_name, sympincount);
+                  error = "Symbol " + symbol_name + " exists, use another name for this new symbol!";
+                  // make_Symbol = 0;  // 2008-11-07 reset/set this option by hand
+                }
+              }
+            }
+            else {
+              if (only_generate_bga || only_generate_pac) {  // 2009-10-19 / 2011-03-07
+                ; // accept
+              }
+              else {
+                if (check_exist_pac(strupr(package_name))) error = "Check package, package exist!"; // 2011-11-03
+              }
+            }
+            if (make_Package) {  // do not generate package while exist 2008-11-07
+              if (check_exist_pac(package_name)) make_Package = 0; // reset flag
+            }
+            else PadCount = "";
+            if (make_Device && !error) {
+              if (!make_Package && package_name) ;
+              else if (make_Package && BGAparameter_accept || make_Package && packageparameter_accept) ; // 2005-12-01
+              else {
+                package_selected = 0;
+                error = "<nobr>Accept <u>P</u>ackage parameter to generate a Package,<br>" +
+                        "or accept BG<u>A</u> parameter,<br>or <u>U</u>se an existing Package.</nobr>";
+                PadCount = " ";
+              }
+            }
+            if (!error) {
+              if ((package_name && !make_Package) && (make_Device && !make_Package)) {
+                // 2008-11-07 if use a existing package,
+                // first check padnames in used package
+
+                if (!check_exist_pac(strupr(package_name))) error = "Package not exit " + package_name;
+                else PadCount = getPackagePadCount(package_name);  // generate pad list from used package, used_pad_number[]
+                if (!error) error += check_pin_pad_list(n_pins, strtol(PadCount)); // 2008-11-07
+              }
+
+              if (make_Package) {
+                if (BGAparameter_accept || packageparameter_accept) ;
+                else {
+                  error = "Accept BGA or Package parameter.";
+                }
+                if (BGAparameter_accept && !n_pins) {
+                  error = "No BSDL file has parsed.";
+                }
+                if (package_name) {
+                  m_pac_width   = pac_width;
+                  m_grid_val    = grid_val;
+                  m_SMD_diameter  = SMD_diameter;
+                  m_MaskRestring  = MaskRestring;
+                  m_CreamDiameter = CreamDiameter;
+                }
+                else {
+                  error = "Define a Package name";
+                }
+              }
+            }
+            if (!error) {
+              pac_width  = m_pac_width;
+              grid_val   = m_grid_val;
+              SMD_diameter  = m_SMD_diameter;
+              MaskRestring  = m_MaskRestring;
+              CreamDiameter = m_CreamDiameter;
+              dlgAccept(); {
+                // *** make package after set parameter (grid & diameter) 2005-06-28 ***
+                if (make_Package) {
+                  pac_width   = m_pac_width;
+                  grid_val    = m_grid_val;
+                  SMD_diameter  = m_SMD_diameter;
+                  MaskRestring  = m_MaskRestring;
+                  CreamDiameter = m_CreamDiameter;
+                  if (!infile) { library(L) infile = L.name; }     // set default path for temporary script 2005-11-03
+                  makePackage(infile);
+                  cmd += "SCRIPT '" + packagefile + "';\nWIN FIT;\n";
+                }
+              }
+            }
+            else {
+              display_error(error); // 2008-11-07
+            }
+          }
+          dlgSpacing(8);
+          dlgPushButton("-Cancel") dlgReject();
+          dlgStretch(1);
+          if (strstr(OS_SIGNATURE, "Windows") == 0) {
+            dlgPushButton("Manual") {
+              sprintf(PdfDocLink, "%s/doc/make-symbol-device-package-bsdl-2011-en.pdf", EAGLE_DIR );
+              if (language() == "de") {
+                sprintf(PdfDocLink, "%s/doc/make-symbol-device-package-bsdl-2011-de.pdf", EAGLE_DIR);
+              }
+              system_call(PdfDocLink);
+            }
+          }
+          dlgLabel(Revision);
+        }
+      }
+
+      dlgTabPage("BG&A") { // #######################################
+        dlgHBoxLayout {
+          dlgSpacing(8);
+          dlgVBoxLayout {
+            dlgGroup("Generate Ball Grid Area") {
+              dlgGridLayout {
+                dlgCell(2,0) dlgLabel("Body &Width ");
+                dlgCell(2,1) dlgRealEdit(m_pac_width);
+
+                dlgCell(3,0) dlgLabel("PAD &Grid ");
+                dlgCell(3,1) dlgRealEdit(m_grid_val);
+
+                dlgCell(4,0) dlgLabel("PAD &Diameter ");
+                dlgCell(4,1) dlgRealEdit(m_SMD_diameter);
+
+                dlgCell(5,0) dlgLabel("&Stop Mask +/- ");
+                dlgCell(5,1) dlgRealEdit(m_MaskRestring);
+
+                dlgCell(6,0) dlgLabel("&Cream Mask Diam. ");
+                dlgCell(6,1) dlgRealEdit(m_CreamDiameter);
+                dlgCell(6,2) dlgLabel(" 0 = OFF");
+
+                dlgCell(7,0) dlgLabel("Drawing grid ");
+                dlgCell(7,1) dlgStringEdit(genpac_grid);
+              }
+            }
+          }
+          dlgLabel("<img src=\"images/make_bga_package.bmp\">");
+          dlgStretch(1);
+        }
+        dlgHBoxLayout { // 2011-90-20
+          dlgSpacing(20);
+          dlgPushButton("Save config") saveBGAconfig();
+          dlgPushButton("Load config") loadBGAconfig();
+          dlgStretch(1);
+        }
+        dlgStretch(1);
+        dlgHBoxLayout { // 2009-10-16
+          dlgLabel("Generate only BGA pad names, to generate BGA package without a BSDL- or a TEXT-file ");
+          dlgPushButton("Generate PAD list") genBGA_PadList();   // 2009-10.16
+          dlgStretch(1);
+        }
+        dlgStretch(1);
+        dlgHBoxLayout {
+          dlgSpacing(8);
+          dlgCheckBox("Accept para&meter ", BGAparameter_accept) {
+            genpac_grid = strupr(genpac_grid); // 2008-11-07  use always in upper case
+            pac_width     = m_pac_width;       // 2006-06-01
+            grid_val      = m_grid_val;
+            SMD_diameter  = m_SMD_diameter;
+            MaskRestring  = m_MaskRestring;
+            CreamDiameter = m_CreamDiameter;   // 2006-06-09
+            if (BGAparameter_accept) {
+              if (!n_pins) {
+                dlgMessageBox("No BSDL file has parsed.", "OK");
+                BGAparameter_accept = 0;
+              }
+              else {
+                use_pad_names = useBGA;
+                packageparameter_accept = 0;   // *** only one parameter can accept ***
+                if (!package_name) {           // 2011-04-01 check empty package name
+                  BGAparameter_accept = 0;     // reset accept
+                  dlgMessageBox("!No package name defined.\nSwitch to tab Make and define a package name.", "OK");
+                }
+                else {
+                  package_name = strupr(package_name);
+                  gen_package(package_name);   // 2005-08-02
+                  make_Package = 1;
+                  MakePacInfo = "Use BGA parameter to generate Package";
+                }
+              }
+            }
+            else {
+              MakePacInfo = " ";
+            }
+          }
+          dlgStretch(1);
+          dlgLabel(Revision);
+        }
+      }
+
+      dlgTabPage("&Package") { // #######################################
+        packageparameter_accept = 0;
+        dlgSpacing(8);
+        dlgHBoxLayout {
+          dlgSpacing(8);
+          dlgVBoxLayout {
+            dlgGroup("Parameter (generate new package)") {
+              dlgGridLayout {
+                dlgCell( 1,0) dlgLabel(" &L ");
+                dlgCell( 1,1) dlgRealEdit(xA_pac);
+                dlgCell( 1,2) dlgSpacing(10);
+
+                dlgCell( 2,0) dlgLabel(" L1 ");
+                dlgCell( 2,1) dlgRealEdit(yA_pac);
+
+                dlgCell( 4,0) dlgLabel(" &D ");
+                dlgCell( 4,1) dlgRealEdit(xD_pac);
+
+                dlgCell( 5,0) dlgLabel(" D1 ");
+                dlgCell( 5,1) dlgRealEdit(yD_pac);
+
+                dlgCell( 1,4) dlgLabel(" &m ");
+                dlgCell( 1,5) dlgRealEdit(mark_length);
+
+                dlgCell( 2,4) dlgLabel(" &b ");
+                dlgCell( 2,5) dlgRealEdit(pad_width);
+
+                dlgCell( 3,4) dlgLabel(" &e ");
+                dlgCell( 3,5) dlgRealEdit(basic_pad_grid);
+
+                dlgCell( 4,4) dlgLabel(" &w ");
+                dlgCell( 4,5) dlgRealEdit(pad_stand_out);
+
+                dlgCell( 5,4) dlgLabel(" &x ");
+                dlgCell( 5,5) dlgRealEdit(xpad_length);
+
+                dlgCell( 6,4) dlgLabel(" &y");                 // 2008-05-20
+                dlgCell( 6,5) dlgRealEdit(ypad_length);
+
+                dlgCell( 7,1) dlgLabel(round_restring, 1);     // 2005-12-01
+                dlgCell( 7,4) dlgLabel(" &r ");
+                dlgCell( 7,5) dlgRealEdit(roundness_restring, 0, 100);
+
+              }
+              dlgHBoxLayout {
+                dlgLabel("&Grid ");
+                dlgStringEdit(genpac_grid);
+                dlgStretch(1);
+              }
+            }
+            dlgStretch(1);
+          }
+          dlgVBoxLayout {
+            dlgLabel(packinfo, 1);
+            dlgSpacing(50);
+            dlgLabel(packinfomess, 1);    // 2005-12-01
+            dlgStretch(2);
+          }
+          dlgVBoxLayout {
+            dlgGroup("Package PAD Layout") {
+              dlgGridLayout {
+                dlgCell(0, 1) dlgLabel("<img src=\"images/make_package_quad_left.bmp\">");
+                dlgCell(0, 3) dlgLabel("<img src=\"images/make_package_quad_middle.bmp\">");
+                dlgCell(0, 5) dlgLabel("<img src=\"images/make_package_dual.bmp\">");
+                dlgCell(1, 1) dlgRadioButton("Quad &1", pad_layout)  packinfo = "<img src=\"images/make_package_meass_pacinfo.bmp\">";
+                dlgCell(1, 3) dlgRadioButton("Quad &2", pad_layout)  packinfo = "<img src=\"images/make_package_meass_pacinfo.bmp\">";
+                dlgCell(1, 5) dlgRadioButton("Dual &3", pad_layout)  packinfo = "<img src=\"images/make_package_meass_pacinfo2.bmp\">";
+              }
+              dlgStretch(1);
+            }
+            dlgHBoxLayout {
+              dlgGroup("Contact") {    // 2005-12-01
+                dlgGridLayout {
+                  dlgCell( 1,0) dlgRadioButton("SMD", smd_pad) {
+                    packinfomess = "<img src=\"images/make_package_meass_smdinfo.bmp\">";
+                    round_restring = "Roundness %";
+                  }
+                  dlgCell( 2,0) dlgRadioButton("PAD", smd_pad) {
+                    round_restring = "Restring";
+                    switch(pad_shape) {
+                      case PAD_SHAPE_SQUARE  : packinfomess = "<img src=\"images/make_package_meass_padinfo-sqr.bmp\">";
+                                               break;
+                      case PAD_SHAPE_ROUND   : packinfomess = "<img src=\"images/make_package_meass_padinfo-round.bmp\">";
+                                               break;
+                      case PAD_SHAPE_OCTAGON : packinfomess = "<img src=\"images/make_package_meass_padinfo-oct.bmp\">";
+                                               break;
+                    }
+                  }
+                }
+              }
+              //dlgSpacing(4);
+              dlgGroup("Shape") {
+                dlgGridLayout {
+                  dlgCell( 1,0) {
+                    dlgVBoxLayout {
+                      dlgRadioButton("Square", pad_shape) if (smd_pad) packinfomess = "<img src=\"images/make_package_meass_padinfo-sqr.bmp\">";
+                      dlgRadioButton("Round", pad_shape)  if (smd_pad) packinfomess = "<img src=\"images/make_package_meass_padinfo-round.bmp\">";
+                      dlgRadioButton("Oct.", pad_shape)   if (smd_pad) packinfomess = "<img src=\"images/make_package_meass_padinfo-oct.bmp\">";
+                    }
+                  }
+                }
+              }
+              dlgStretch(1);
+            }
+          }
+          dlgStretch(1);
+        }
+        dlgStretch(1);
+
+        dlgHBoxLayout { // 2011-90-20
+          dlgSpacing(20);
+          dlgPushButton("Save config") savePACconfig();
+          dlgPushButton("Load config") loadPACconfig();
+          dlgStretch(1);
+          dlgLabel("PAC &Name");  // 2011-11-03
+          dlgStringEdit(package_name);
+        }
+
+        dlgHBoxLayout {
+          dlgSpacing(8);
+          dlgCheckBox("A&ccept parameter ", packageparameter_accept) {
+            genpac_grid = strupr(genpac_grid);  // 2008-11-07  use always in upper case
+            switch (pad_layout) {     // check Package PAD placement
+               case 0 : // quad package with Pin 1 on left side
+                        cnt_side = Pad_Count / 4;
+                        break;
+               case 1 : // quad package with Pin 1 on middle of top
+                        cnt_side = Pad_Count / 4;
+                        break;
+               case 2 : // dual in line package
+                        cnt_side = Pad_Count / 2;
+                        break;
+            }
+            if (packageparameter_accept) {
+              string e;
+              if (pad_layout == 0 || pad_layout == 1) {
+                int chkpad = Pad_Count % 4;  // modulo 4
+                if (chkpad) {
+                  sprintf(e, "Error: Number of Pads %d can't be devided by 4,\nplease check Package PAD Layout!", Pad_Count);
+                  packageparameter_accept = 0;
+                }
+                if (!e) {
+                  int middle = cnt_side % 2;
+                  if (!middle && pad_layout == 1) {
+                    sprintf(e, "Error: Pad layout middle can only be used for an odd number of pads at a side.");
+                    packageparameter_accept = 0;
+                  }
+                }
+              }
+              else if (pad_layout == 2) {
+                int chkpad = Pad_Count % 2;  // modulo 2
+                if (chkpad) {
+                  sprintf(e, "Error: Number of Pads %d can't be devided by 2", Pad_Count);
+                  packageparameter_accept = 0;
+                }
+              }
+              if (!e) {
+                if (packageparameter_accept) {
+                  BGAparameter_accept = 0;
+                  use_pad_names = usePACwithPrefix;
+                  if (!package_name) {            // 2011-04-01 first chek if package name defined
+                    packageparameter_accept = 0;  // no, reset accept
+                    dlgMessageBox("!No package name defined.\nSwitch to tab Make and define a package name.", "OK");
+                  }
+                  else {
+                    package_name = strupr(package_name);
+                    gen_package(package_name); // 2005-08-02
+                    make_Package = 1;
+                    MakePacInfo = "Use package parameter";
+                  }
+                }
+              }
+              else {    // show error message
+                MakePacInfo = " ";
+                dlgMessageBox(e, "OK");
+              }
+            }
+          }
+          dlgLabel("<qt><nobr><font color=red> not for BGA </font></nobr></qt>");
+          dlgSpacing(4);
+          dlgLabel(" Pads Cou&nt ");
+          dlgIntEdit(Pad_Count, 1, 2000);
+          dlgSpacing(12);
+          dlgLabel("Generate pad name list \n(without a BSDL- or TEXT-file) ");
+          dlgPushButton("Generate PAD list") {
+            Pad_Count = genPAC_PadList(Pad_Count);   // 2011-04-01
+            n_pins = Pad_Count; // 2011-09-20
+            n_pads = Pad_Count;
+            make_Symbol = 0;    // reset make Symbol
+          }
+          dlgStretch(1);
+          dlgLabel(Revision);
+        }
+      }
+
+      dlgTabPage("&Use Package") { // #######################################
+        dlgSpacing(8);
+        dlgHBoxLayout {
+          dlgSpacing(12);
+          dlgVBoxLayout {
+            dlgHBoxLayout {
+              dlgGroup("Package options ") {
+                dlgRadioButton(" &None", use_pad_names) {
+                  package_selected = 0;
+                  package_name = "";
+                  old_pad_prefix = strupr(pad_prefix);
+                  pad_prefix = "";
+                }
+                dlgRadioButton(" Use PAD Na&mes supplied with BSDL file (for BGA parts) ", use_pad_names) {
+                  old_pad_prefix = strupr(pad_prefix);
+                  pad_prefix = "";
+                }
+                dlgRadioButton(" Use PAD Prefi&x if existing package is used ", use_pad_names) {  // 2011-05-23
+                  old_pad_prefix = strupr(pad_prefix);
+                  pad_prefix = old_pad_prefix;
+                }
+              }
+              dlgSpacing(8);
+              dlgStretch(1);
+            }
+            dlgSpacing(8);
+            dlgHBoxLayout {
+              dlgLabel(" Use &existing package ");
+              dlgComboBox(packages, package_selected) {
+                PadCount = "check pad names, please wait.. ";  // 2008-11-07
+                dlgRedisplay();
+                package_name = packages[package_selected];
+                if (!package_selected) {
+                  pad_prefix = getPackagePadPrefix(packages[package_selected]);
+                  package_name = "";
+                  use_pad_names = useNONE; // 2011-05-23
+                }
+                else {
+                  package_name = packages[package_selected];          // 2008-11-07
+                  use_pad_names = usePACwithPrefix; // 2011-05-23
+                }
+                status("generate pad list from package");
+                PadCount = getPackagePadCount(package_name);             // generate pad list from used package, used_pad_number[]
+                dlgRedisplay();
+                status("");
+                if (package_selected) make_Package = 0;  // if use a package do not generate package
+              }
+              dlgLabel(PadCount, 1);
+              dlgStretch(1);
+            }
+            dlgSpacing(8);
+            dlgHBoxLayout {
+              dlgLabel(" Pad prefi&x ");
+              dlgStringEdit(pad_prefix);
+              dlgSpacing(560);
+              dlgStretch(1);
+            }
+            dlgSpacing(8);
+          }
+        }
+        dlgStretch(1);
+        dlgHBoxLayout {
+          dlgStretch(1);
+          dlgLabel(Revision);
+        }
+      }
+
+      dlgTabPage("&Text Options") { // #######################################
+        if (is_bsdl) {
+          dlgLabel("BSDL file in use! Do not change this text!");
+        }
+        else {
+          dlgHBoxLayout {
+            dlgGroup("Use with text only, not with a BSDL file") {
+              dlgVBoxLayout {
+                dlgHBoxLayout {
+                  dlgSpacing(100);
+                  dlgLabel("<nobr><font color=\"green\">**</font> use word separator also for Parse -->> to list and delete column.</nobr>"); // 2011-04-01
+                  dlgStretch(1);
+                }
+                dlgHBoxLayout {
+                  dlgPushButton("Spl&it") {
+                    change_char_text(w_separator[select_separ], '\n', 0);
+                  }
+                  dlgLabel(" with word &separator ");
+                  dlgComboBox(separator, select_separ) {
+                    Word_separator = w_separator[select_separ];
+                    sprintf(String_separator, "%c", Word_separator);
+                  }
+                  dlgSpacing(16);
+                  dlgLabel("Split with ");
+                  dlgPushButton("&Character ") {
+                    if (strlen(c_separator) == 1)
+                      change_char_text(c_separator[0], '\n', 0);
+                    else if (c_separator)
+                      dlgMessageBox("!Split with character.\nMore than 1 character in this field.", "Ok");
+                    else
+                      dlgMessageBox("!Split with character\nNo character defined.", "Ok");
+                  }
+                  dlgLabel(" separator ");
+                  dlgStringEdit(c_separator);
+                }
+
+                dlgHBoxLayout {
+                  dlgPushButton("&Merge") {
+                    if (separator_counter > 1) {
+                      int cntnl = strsplit(st, text, '\n');
+                      text = "";
+                      cc = 0;
+                      int cnt = 0;
+                      for (int n = 0; n < cntnl; n++) {
+                        text += st[n];
+                        if (cnt < separator_counter-1) {
+                          text += String_separator;
+                          cnt++;
+                        }
+                        else {
+                          text += "\n";
+                          cnt = 0;
+                          cc++;
+                        }
+                      }
+                      if(strlen(text) > 0) {
+                        text[strlen(text)-1] = 0;
+                        sprintf(tinfo, "<nobr>shrink %d to %d lines</nobr>", cntnl, cc);
+                      }
+                    }
+                    else {
+                      dlgMessageBox("Counter must be >= 2", "ok");
+                    }
+                  }
+                  dlgSpacing(4);
+                  dlgIntEdit(separator_counter);
+                  dlgLabel(" lines with word separator");
+                  dlgStretch(1);
+                  dlgPushButton("Merge 1/2 text") text = merge_half_text_lines(text);  // 2009-11-124
+                }
+
+                dlgHBoxLayout {
+                  dlgPushButton("&Replace" ) replaceWord(search, replace);
+                  dlgLabel(" character strin&g ");
+                  dlgStringEdit(search);
+                  dlgLabel(" &with ");
+                  dlgStringEdit(replace);
+                }
+
+                dlgHBoxLayout {
+                  dlgPushButton("D&elete") {
+                    int cntst = strsplit(st, text, '\n');
+                    text = "";
+                    for (int n = 0; n < cntst; n++) {
+                      if (exact_include) {
+                        if (strstr(st[n], del_line) < 0) text += st[n] + "\n";
+                      }
+                      else if (st[n] != del_line) text += st[n] + "\n";
+                    }
+                  }
+                  dlgLabel(" lines with te&xt string ");
+                  dlgStringEdit(del_line);
+                  dlgSpacing(8);
+                  dlgRadioButton("Exact", exact_include);
+                  dlgRadioButton("Include", exact_include);
+                  dlgStretch(1);
+                }
+
+                dlgHBoxLayout {
+                  dlgPushButton("&Delete") delete_x_line(start_line, x_line);
+                  dlgLabel(" e&very ");
+                  dlgIntEdit(x_line);
+                  dlgLabel("th. line. Start at &line ");
+                  dlgIntEdit(start_line);
+                  dlgStretch(1);
+                  dlgPushButton("Delete empt&y lines") delete_empty_lines();
+                }
+
+                dlgHBoxLayout {
+                  dlgPushButton("Delete column") delete_column(delColumn);   // 2008-04-02
+                  dlgLabel(" column &# ");
+                  dlgIntEdit(delColumn, 1, 100);
+                  dlgLabel("<nobr>(count from 1. <font color=\"green\">**</font> use <font folor=\"green\">word separator</font> to count column).</nobr>");
+                  dlgStretch(1);
+                }
+              }
+            }
+            dlgStretch(1);  // stretch waagrecht nach Group
+          }
+          dlgStretch(1);  // stretch senktrecht nach Group
+          dlgHBoxLayout {
+            dlgGroup("Quick file option") {
+              dlgHBoxLayout {
+                dlgPushButton("Load") {
+                  string fl = infile;
+                  if (!fl) fl = path_epf[0] + "/~make.txt";  // 2011-04-01 path_epf[0]
+                  else {
+                    if (strstr(fl, "/~make.txt") < 0) {      // 2009-02-18
+                      fl = filedir(infile) + "~make.txt";
+                    }
+                  }
+                  string fn[];                               // 2008-11-07 first check if file exist
+                  int fc = fileglob(fn, fl);
+                  if (!fc) {
+                    fl = dlgFileOpen(fl, "", "*.txt *.*");
+                  }
+                  if (fl) {
+                    infile = fl;                             // 2008-11-07 show actual filename
+                    int cnt = fileread(text, fl);
+                    parsed_pins = "Text loaded:"+fl;
+                    is_bsdl = 0;                             // 2011-04-01 reset bsdl flag
+                  }
+                }
+                dlgPushButton("Save") {
+                  string fs = infile;
+                  if (!fs) fs = path_epf[0] + "/~make.txt";  // 2008-03-26
+                  else {
+                    if (strstr(fs, "/~make.txt") < 0) {      // 2009-02-18
+                      fs = filedir(infile) + "~make.txt";
+                    }
+                  }
+                  output(fs, "wt") printf("%s", text);
+                  parsed_pins = "Text saved:"+fs;
+                }
+                dlgPushButton("Save as") {
+                  string fsa = dlgFileSave("Text-Save", path_epf[0], "*.txt");
+                  if (fsa) {
+                    output(fsa, "wt") printf("%s", text);
+                    parsed_pins = "Text saved:"+fsa;
+                  }
+                }
+              }
+            }
+            dlgStretch(1);
+            dlgPushButton("&Help") infohelp(Help); // 2011-04-01
+            dlgLabel(Revision);
+          }
+        }
+      }
+
+      dlgTabPage("&List Options") { /*** 2011-04-01  ***/
+        if (is_bsdl) {
+          dlgLabel("BSDL file in use! Do not change this text!");
+        }
+        else {
+          dlgHBoxLayout {
+            dlgStretch(1);
+            dlgGridLayout {
+              dlgCell(0, 0) dlgLabel("Swap ");
+              dlgCell(0, 1) dlgPushButton("PIN <-> PAD") {
+                              if (is_bsdl) {
+                                dlgMessageBox("!Do not swap Pin - Pad if a BSDL file is used!", "Ok");
+                              }
+                              else {
+                                for (int i = 0; i < n_pins; i++) {
+                                  string tt;
+                                  tt = pins[i];
+                                  pins[i] = pads[i];
+                                  pads[i] = tt;
+                                  tt = pin_names[i];
+                                  pin_names[i] = pad_names[i];
+                                  pad_names[i] = tt;
+                                }
+                                gen_viewlist(n_pins);
+                              }
+                            }
+              dlgCell(0, 2) dlgPushButton("PAD <&-> DIR") {
+                              if (is_bsdl) {
+                                dlgMessageBox("!Do not swap PAD - DIR if a BSDL file is used!", "Ok");
+                              }
+                              else {
+                              for (int i = 0; i < n_pins; i++) {
+                                  string tt;
+                                  tt = pad_names[i];
+                                  pad_names[i] = Pin_Direc[i];
+                                  Pin_Direc[i] = tt;
+                                  pads[i] = pad_names[i];
+                                }
+                                gen_viewlist(n_pins);
+                              }
+                            }
+
+              dlgCell(1, 0) dlgLabel(" ");
+              dlgCell(2, 0) dlgLabel("Direction ");
+              dlgCell(2, 1) dlgPushButton("change")  change_dir(n_pins);     // 2008-04-02
+              dlgCell(2, 2) dlgPushButton("set") set_Pin_Direction(n_pins);  // 2008-07-03
+              dlgCell(2, 3) dlgPushButton("delete") {
+                            if (is_bsdl) {
+                              dlgMessageBox("!Do not delete DIR if a BSDL file is used!", "Ok");
+                            }
+                            else {
+                              for (int i = 0; i < n_pins; i++) {
+                                Pin_Direc[i] = "";
+                              }
+                              gen_viewlist(n_pins);
+                            }
+                          }
+
+              dlgCell(3, 0) dlgLabel("Clear leading zeros in");
+              dlgCell(3, 1) dlgPushButton("BGA") clear_leading_z(n_pins);
+              dlgCell(3, 2) dlgLabel(" pad");
+
+              dlgCell(4, 0) dlgLabel("Double pad number");
+              dlgCell(4, 1) dlgPushButton("delete") n_pins = del_double_pad(n_pins);          // 2008-04-02
+
+              dlgCell(5, 0) dlgLabel("Rename ");
+              dlgCell(5, 1) dlgPushButton("PIN") rename_pin(n_pins, search, replace);  // 2011-04-01
+
+              dlgCell(6, 0) dlgLabel("Rename ");
+              dlgCell(6, 1) dlgPushButton("PAD")  rename_pad(n_pins, search, replace); // 2008-11-07
+
+              dlgCell(7, 0) dlgLabel("Pads for pins");
+              dlgCell(7, 1) dlgPushButton("numbering")  number_pads(n_pins);                  // 2008-07-03
+            }
+          }
+          dlgStretch(1);
+          dlgHBoxLayout {
+            dlgPushButton("&Help") infohelp(HelpList); // 2011-04-01
+            dlgStretch(1);
+            if (strstr(OS_SIGNATURE, "Windows") == 0) {
+              dlgPushButton("Manual") {
+                sprintf(PdfDocLink, "%s/doc/make-symbol-device-package-bsdl-2011-en.pdf", EAGLE_DIR );
+                if (language() == "de") {
+                  sprintf(PdfDocLink, "%s/doc/make-symbol-device-package-bsdl-2011-de.pdf", EAGLE_DIR);
+                }
+                system_call(PdfDocLink);
+              }
+            }
+            dlgLabel(Revision);
+          }
+        }
+      }
+    }
+  };
+
+  if (result) {
+    if (make_Symbol)  cmd += "SCRIPT '" + symbol_file + "';\nWIN FIT;\n";
+    if (make_Device)  cmd += "SCRIPT '" + device_file + "';\nWIN FIT;";
+  }
+  exit(cmd);
+}
+
+else {
+  dlgMessageBox("!This is no Library!\nThis program can only work in the Library editor.");
+  exit(0);
+}

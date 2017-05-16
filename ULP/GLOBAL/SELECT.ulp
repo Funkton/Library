@@ -1,0 +1,895 @@
+//======================================================
+// SELECT v 1.0.7
+//
+// Eagle v6.5 or later is required. Only the Board and Schematic editors are supported
+//
+// Updated 21 JAN 2016 to work in Eagle V7.5 and 6.5. Bugfixes part changed to instance and iterators added several places. 
+// Updated 19 OCT 2015 to work in Eagle v7.2 schematic editor
+//
+// Selects components or nets listed at the command line and filter/subtract/add or make new group
+// 
+// This software is released under the BSD 4-clause license:
+//
+// Copyright (c) 2010-2016, Damhave Systems
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+//	*	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+//	*	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+// 		in the documentation and/or other materials provided with the distribution.
+//	*	Neither the name of the Damhave Systems nor the names of its contributors may be used to endorse or promote products derived from
+//	    this software without specific prior written permission.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+// BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+// OF SUCH DAMAGE.
+//======================================================
+#usage	"<B>Selects components, nets or classes listed at the command line or specified in a GUI dialog</B>"
+"<P>"
+	"The components, nets or classes specified can be added or subtract from the existing group, filter the existing group, or define a new group.<br>"
+	"The components/nets/classes are specified as a space separated list of names. The names can be exact or can include wildcards (see the eagle SHOW command) or use regular expressions.<br>"
+	"Components are specified as a list of instance names. Eg. to select an opamp with two instances, the list must include both instance names or a wildcard * after the designator (IC13G$1 IC13G$2 or IC13*).<br>"
+	"The selection can also be saved or loaded from a specifed file. The .sel extension is automatically added to the filename. This save/load of the selection is an experimental feature and it is not supported in the GUI. Note - the complete signal/net is selected when a part of signals/nets is selected in save/load operations."
+	" - sometimes the selection of nets cannot be cleared from within the ulp, maybe a missing refresh.<br><br><br>"
+	"<b>Usage:</b>"
+	"<blockquote>run select -c[i][a|s|f[k]][e][d|p|v|w|x] {component}[ : {device type}|{package}|{value}|{attribute value}|{attribute name}]<br>"
+	"run select -n[i][.|t][a|s|f[k]][e] {net}<br>"
+	"run select -l[i][.|t][a|s|f[k]][e] {class}<br>"
+	"run select -u<br>"
+	"run select &gt; filename<br>"
+	"run select &lt; filename</blockquote>"
+	"<b>Flags:</b>"
+	"<blockquote>a: add to existing group<br>"
+	"c: select <b>C</b>omponents<br>"
+	"d: select components with <b>D</b>evice type listed after : (from schematic)<br>"	
+	"e: use regular Expressions (reg<b>E</b>x) instead of wildcards<br>"
+	"f: <b>F</b>ilter existing group<br>"
+	"i: <b>I</b>nvert - use components/classes/nets/signals not listed<br>"
+	"k: <b>K</b>eep nets when filtering components and vice versa<br>"
+	"l: select nets/signals of specified c<b>L</b>ass<br>"
+	"n: select <b>N</b>ets/signals<br>"
+	"p: select components with <b>P</b>ackages listed after : <br>"	
+	"s: <b>S</b>ubtract from existing group<br>"
+	"t: select only <b>T</b>races (from board)<br>"
+	"u: open a G<b>U</b>I dialog instead of using command line parameters<br>"
+	"v: select components with <b>V</b>alues listed after : <br>"	
+	"w: select components with attribute values listed after : <br>"	
+	"x: select components with <b>eXtra</b> attributtes listed after : <br>"	
+	".: select only vias (from board)<br>"
+	"<I>The existing group is cleared unless one of the flags -a, -s or -f are used.<br>"
+	"The command is run with a GUI if no options are specified</I></blockquote>"
+	"<P>"
+	"<b>Examples:</b><br><br>"	
+	"Run the command with a GUI:"
+	"<blockquote>run select -u</blockquote>"
+	"Select all resistors and capacitors:"
+	"<blockquote>run select -c R* C*</blockquote>"	
+	"Select all resistors and capacitors in 0603:"
+	"<blockquote>run select -cp R* C* : *0603*</blockquote>"
+	"Select all LM358MX devices (from schematic):"
+	"<blockquote>run select -cd * : LM358MX</blockquote>"
+	"Select all 100nF capacitors:"
+	"<blockquote>run select -cv C* : 100nF</blockquote>"
+	"Select all Maxim ICs (Maxim must be found in an attribute):"
+	"<blockquote>run select -cw IC* : MAXIM</blockquote>"
+	"Select all 16V capacitors (16V must be found in an attribute):"
+	"<blockquote>run select -cw C* : 16V</blockquote>"
+	"Select all RESET nets/signals:"
+	"<blockquote>run select -n *RESET*</blockquote>"
+	"Select all GND vias:"
+	"<blockquote>run select -n. GND</blockquote>"
+	"Select all positive supply nets:"
+	"<blockquote>run select -n *+*V*</blockquote>"			
+	"Select all negative supply nets:"
+	"<blockquote>run select -n *-*V*</blockquote>"
+	"Save the selection C1, C2, C3, C4 in the file decoupling.sel:"
+	"<blockquote>run select -c C1 C2 C3 C4<br>"
+	"run select &gt; decoupling</blockquote>"
+	"Load the selection group from the file decoupling.sel:"
+	"<blockquote>run select &lt; decoupling</blockquote>"
+	"Change all 0805 capactors to 0603:"
+	"<blockquote>run select -cp C* : *0805*<br>"
+	"change package 'C0603K'&lt;ENTER&gt;<br>"
+	"&lt;RIGHT MOUSE CLICK&gt;&lt;CHANGE GROUP&gt;</blockquote>"
+	"<b>Hints:</b><br><br>"
+	"<I>When using this command as a more advanced show command it can be an advantage in the schematic editor to set the background color to black.<br>"
+	"This command is best used with the group commands. Select the tool you want and right click in your working area to see the options move group, copy group, change group, smash group, mirror group..</I>"				
+	"<P>"
+	"Copyright (c) 2010-2016 Damhave Systems ApS"
+	"<P>"
+	"<Author>Danny Damhave<br>Damhave Systems<br>www.damhave.com</Author><br><br>"
+	"This ulp is released under the BSD 4-clause license. See source code for details!"
+
+enum {false, true};
+enum {MLIST, QLIST}; // Means use matchList, use qualifierList (qualifiers can be device types, packages, values, attribute values, attribute names)
+int  dlgRes = 0, firstInList = 1;
+int addFlag = false, keepFlag = false, subtractFlag = false, selectClassesFlag = false, selectComponentsFlag = false,
+	selectDeviceTypeFlag=false, selectAttributesFlag=false, selectAttributeValuesFlag=false, regexFlag = false, qualifierRegexFlag = false,
+	filterFlag = false, selectNetsFlag = false, selectPackagesFlag = false, selectValuesFlag = false, selectOnlyTracesFlag = false,
+	selectOnlyViasFlag = false, guiFlag = false;
+string Actions[] = {"Make new Group of", "Add to existing Group", "Subtract from existing Group", "Filter existing Group using"};
+string objectTypes[] = {"Components", "Classes", board ? "Signals" : "Nets"};
+string qualifiers[] = {" ", "in Packages", "with Values", "of Device Types", "with Attributes", "with Attribute Values"};
+string matchTypes[] = {"listed", "not listed"};
+string subObjectTypes[] = {" ",  board ? "Traces in" : "",  board ? "Vias in" : ""};
+int action = 0;
+int objectType = 0;
+int qualifier = 0;
+int oldQualifier = 0;
+int invertMatchFlag = false;
+int subObjectType = 0;
+string matchString = "";
+string qualifierString = "";
+string matchList[];
+int matchListLen = 0;
+string qualifierList[];
+int qualifierListLen = 0;
+int readQualifierList = false;
+
+int isMatch(string s, string test, int useRegex)
+{	
+	string regex = !useRegex ?  "^" : test;
+	if (!useRegex)
+	{
+		for(int i = 0; test[i];)
+		{
+			switch(test[i])
+			{
+				case '[': regex += strsub(test, i, strchr(test, ']', i) - i + 1), i += strchr(test, ']', i) - i + 1; break;
+				case '?': regex += ".", i++; break;
+				case '*': regex += ".*", i++; break;
+				case '+': case '^': case '$': case '.': case '{': case '}': case '(': case ')':  case '|': case '\\':
+				regex += "\\" + test[i], i++; break;
+				default: regex += test[i], i++;
+			}
+		}
+		regex +='$';
+	}
+	return strxstr(s, regex, 0) == 0;
+}
+
+int inList(int list, string name, int useRegex)
+{
+	for(int i = 0; i < (list == QLIST ? qualifierListLen : matchListLen); i++)
+	{
+		if (useRegex)
+		{
+			if (list == QLIST ? isMatch(name, qualifierList[i], useRegex) : isMatch(name, matchList[i], useRegex)) return true;
+		}
+		else
+		{
+			if (list == QLIST ? isMatch(strupr(name), strupr(qualifierList[i]), useRegex) : isMatch(strupr(name), strupr(matchList[i]), useRegex)) return true;		
+		}
+	}
+	return false;
+}
+
+int inListCaseSensitive(int list, string name, int useRegex)
+{
+	for(int i = 0; i < (list == QLIST ? qualifierListLen : matchListLen); i++)
+		if (list == QLIST ? isMatch(name, qualifierList[i], useRegex) : isMatch(name, matchList[i], useRegex)) return true;
+	return false;
+}
+
+//		***** The ulp begins here *****
+if (!board && !schematic && !dlgMessageBox("Can only be used in the board and schematic editors.\n")) exit(1);
+if (EAGLE_VERSION < 6 || (EAGLE_VERSION == 6 && EAGLE_RELEASE < 5) && !dlgMessageBox("Requires Eagle v6.5 or later.\n")) exit(1);
+
+if (argc>firstInList)
+{
+	string flags = argv[firstInList];
+	if (flags[0] == '-')
+	{
+		if (strlen(flags) == 1 && !dlgMessageBox("No flags.\n")) exit(1);
+		for (int i = 1; flags[i]; i++)
+		{
+			switch (flags[i])			 					// Note: If no -n flag use default -c	
+			{
+				case 'a' : addFlag = true; break;
+				case 'c' : selectComponentsFlag = true; break;
+				case 'd' : selectDeviceTypeFlag = true; break;
+				case 'e' : regexFlag = true, qualifierRegexFlag = true; break;
+				case 'f' : filterFlag = true; break;
+				case 'i' : invertMatchFlag = true; break;
+				case 'k' : keepFlag = true; break;
+				case 'l' : selectClassesFlag = true; break;
+				case 'n' : selectNetsFlag = true; break;
+				case 'p' : selectPackagesFlag = true; break;
+				case 's' : subtractFlag = true; break;
+				case 't' : selectOnlyTracesFlag = true; break;
+				case 'u' : guiFlag = true; break;
+				case 'v' : selectValuesFlag = true; break;
+				case 'w' : selectAttributeValuesFlag = true; break;
+				case 'x' : selectAttributesFlag = true; break;
+				case '.' : selectOnlyViasFlag = true; break;
+				default : dlgMessageBox("No such flag.\n"); exit(1);
+			}
+		}	 
+		firstInList++;
+		if (((addFlag && subtractFlag) || (filterFlag && (addFlag || subtractFlag)) || (selectComponentsFlag && selectNetsFlag) || (selectComponentsFlag && selectClassesFlag)
+			|| (board && selectDeviceTypeFlag) || (selectDeviceTypeFlag && selectPackagesFlag) || (selectDeviceTypeFlag && selectValuesFlag) || (selectDeviceTypeFlag && selectAttributesFlag)
+			|| (selectDeviceTypeFlag && selectAttributeValuesFlag) || (selectPackagesFlag && selectValuesFlag) || (selectPackagesFlag && selectAttributesFlag)
+			|| (selectPackagesFlag && selectAttributeValuesFlag) || (selectValuesFlag && selectAttributesFlag) || (selectValuesFlag && selectAttributeValuesFlag)
+		  || (selectAttributesFlag && selectAttributeValuesFlag) || (selectOnlyViasFlag && selectOnlyTracesFlag)) && !dlgMessageBox("Illegal flag combination.\n")) exit(1);
+	}
+	else if (flags[0] == '>' || flags[0] == '<')			// Check for save/load the selection from file	
+	{
+		string fName, fDir;
+		
+		if (flags == ">" || flags == "<")					// White space between operator and filename ?
+		{
+			if (argc<=firstInList && dlgMessageBox("No filename specified.\n")) exit(1);
+			fName = fDir + filesetext(argv[firstInList+1], ".sel");
+		}
+		else fName = fDir + filesetext(strsub(argv[firstInList], 1), ".sel"); // No space between operator and filename
+		
+		if (schematic) schematic(S) { fDir = filedir(S.name); } else if (board) board(brd) { fDir = filedir(brd.name); } // Get the path to the project directory
+		fName = fDir + fName;
+		if (flags[0] == '>')
+		{													// Save selection to file
+			output(fName, "wt")
+			{
+				if(schematic) schematic(S)
+				{
+					printf("-c");
+					S.parts(part)
+					{
+						part.instances(instance)
+						{
+							if (ingroup(instance)) printf(" %s", instance.name);
+						}
+					}
+					printf("\n-n");
+					S.sheets(sch)
+					{
+						sch.nets(net)
+						{
+							if (ingroup(net)) printf(" %s ", net.name);
+						}
+					}
+					printf("\n");
+				}
+				else if (board)	board(brd) 			
+				{
+					printf("-c");
+					brd.elements(element) { if (ingroup(element)) printf(" %s", element.name); }
+					printf("\n-n");
+					brd.signals(signal) { if (ingroup(signal)) printf(" %s", signal.name); }
+					printf("\n");
+				}
+			}
+		}
+		else 												// Load selection from file			
+		{
+			string lines[], list;
+			int l, nLines;
+
+			if (!filesize(fName) && dlgMessageBox("No such file.\n")) exit(1);
+			{				
+				nLines = fileread(lines, fName);
+				
+				if (schematic) schematic(S) { clrgroup(S);  S.sheets(sch)  { clrgroup(sch); } }	// Make sure nothing is selected before the selection is loaded from file
+				if (board) board(brd) { clrgroup(brd); }
+				
+				for (l = 0; l < nLines; l++)
+				{
+					list = strsub(lines[l], 2)+" ";			// Remove -c or -n. The list now has a space in the beginning and at the end
+					if (strsub(lines[l], 0, 3) == "-c ") 	// Components ?
+					{
+						if(schematic) schematic(S)
+						{
+							S.parts(part)
+							{
+								part.instances(instance)
+								{
+									if (strstr(list, " "+instance.name+" ")>=0) setgroup(instance);
+								}
+							}
+						}
+						else if (board)	board(brd) 			
+						{
+							brd.elements(element) { if (strstr(list, " "+element.name+" ")>=0) setgroup(element); }
+						}
+					}
+					if (strsub(lines[l], 0, 3) ==  "-n ") 	// Nets ?
+					{
+						if(schematic) schematic(S)
+						{
+							S.sheets(sch)
+							{
+								sch.nets(net)
+								{
+									if (strstr(list, " "+net.name+" ")>=0) setgroup(net);
+								}
+							}
+						}
+						else if (board)	board(brd) 			
+						{
+							brd.signals(signal) { if (strstr(list, " "+signal.name+" ")>=0) setgroup(signal); }
+						}
+					}
+				}
+			}
+		}
+		exit(0);											// We are done with the save/load of a selection
+	}
+}
+else guiFlag = true;						// If no parameters at all then open the GUI dialog
+
+if (guiFlag)
+{
+	dlgRes = dlgDialog("Filter/subtract/add or make new group")
+	{
+		dlgHBoxLayout
+		{
+			dlgLabel("<b>Select Action:</b>");
+			dlgComboBox(Actions, action)
+			{
+				if (action == 3) matchString = "*";
+				dlgRedisplay();
+			};
+			dlgStretch(1);
+			dlgCheckBox("", keepFlag);
+			dlgLabel("Keep selected nets/signals when filtering components and vice versa",1);
+		}
+		
+		dlgGroup ("")
+		{
+			dlgVBoxLayout
+			{
+				dlgHBoxLayout
+				{
+					dlgComboBox(subObjectTypes, subObjectType) 
+					{
+						if (objectType == 0) { subObjectType = 0; }
+						dlgRedisplay();
+					}
+					dlgComboBox(objectTypes, objectType)
+					{
+						if (objectType == 0) { subObjectType = 0; }
+						if (objectType != 0) { qualifier = 0; qualifierString = ""; }
+						dlgRedisplay();
+					}
+					dlgComboBox(matchTypes, invertMatchFlag);
+					dlgStringEdit(matchString);
+					dlgCheckBox("use RegEx", regexFlag);
+				}
+				dlgHBoxLayout
+				{
+					dlgComboBox(qualifiers, qualifier) { if (objectType != 0) qualifier = 0; if(board && qualifier == 3) qualifier = oldQualifier; oldQualifier = qualifier; dlgRedisplay(); };
+					dlgLabel("listed:");
+					dlgStringEdit(qualifierString);
+					dlgCheckBox("use RegEx", qualifierRegexFlag);
+				}
+			}
+		}
+		dlgHBoxLayout
+		{
+			dlgStretch(1);
+			dlgPushButton("-Cancel") dlgReject();
+			dlgPushButton("+OK")
+			{
+				switch (objectType)
+				{
+					case 0: selectComponentsFlag = true;								
+						switch (qualifier)
+						{
+							case 0: /* Default: No qualifer */ break;
+							case 1: selectPackagesFlag = true;  break;
+							case 2: selectValuesFlag = true; break;
+							case 3: selectDeviceTypeFlag = true; break;	
+							case 4: selectAttributesFlag = true; break;	
+							case 5: selectAttributeValuesFlag = true; break;	
+						}
+						break;
+					case 1: selectClassesFlag = true; break;
+					case 2: selectNetsFlag = true; break;
+				}					
+				switch (action)
+				{
+					case 0 : /* Default: Make new group */ break;
+					case 1 : addFlag = true; break;
+					case 2 : subtractFlag = true; break;
+					case 3 : filterFlag = true; break;
+				}
+				if (objectType == 1 || objectType == 2)
+				{
+					switch (subObjectType)
+					{
+						case 0 : /* Default: Select complete signals/nets/classes */ break;
+						case 1 : selectOnlyTracesFlag = true; break;
+						case 2 : selectOnlyViasFlag = true; break;
+					}
+				}
+				dlgAccept();
+			};
+
+		}
+		dlgGroup ("Shortcut Keys")
+		{
+			dlgGroup ("All")
+			{
+				dlgHBoxLayout
+				{
+						dlgPushButton("Diff. Pairs") { matchString = "*_P *_N"; regexFlag = false; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("Clocks") { matchString = "*CLOCK* *CLK* *SCL*"; regexFlag = false; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("GNDs") { matchString = "\\$?\\w?GND_?\\w* 0V"; regexFlag = true; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("Pos. Pwr") { matchString = "\\+?A?\\d*V\\w*"; regexFlag = true; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("Neg. Pwr") { matchString = "-A?\\d*V\\w*"; regexFlag = true; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("I2C") { matchString = "*SDA* *SCL*"; regexFlag = false; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("SPI") { matchString = "*SCLK* *MOSI* *MISO* !*SS*"; regexFlag = false; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("DDR") { matchString = "*DDR*"; regexFlag = false; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("Data bus") { matchString = "(\\S*_)?D\\d+"; regexFlag = true; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+						dlgPushButton("Adr bus") { matchString = "(\\S*_)?A\\d+"; regexFlag = true; objectType = 2; subObjectType = 0; qualifier = 0; qualifierString = ""; qualifierRegexFlag = false; dlgRedisplay(); };
+				}
+
+				dlgHBoxLayout
+				{
+					dlgPushButton("Resistors") { matchString = "R*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Capacitors") { matchString = "C*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Inductors") { matchString = "L*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Diodes") { matchString = "D*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Transistors") { matchString = "Q*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("ICs") { matchString = "U* IC*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Connectors") { matchString = "J*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Holes") { matchString = "H*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					dlgPushButton("Test Points") { matchString = "TP*"; regexFlag = false; objectType = 0; subObjectType = 0; qualifier = 0; dlgRedisplay(); };
+					if (board) dlgPushButton("Vias") { matchString = "*"; regexFlag = false; objectType = 2; subObjectType = 2; qualifier = 0; dlgRedisplay(); };
+				}
+			}
+				dlgGroup ("in Package")
+				{				
+					dlgHBoxLayout
+					{
+						dlgPushButton("0201") { qualifierString = "*0201*"; qualifierRegexFlag = false; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("0402") { qualifierString = "*0402*"; qualifierRegexFlag = false; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("0603") { qualifierString = "*0603*"; qualifierRegexFlag = false; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("0805") { qualifierString = "*0805*"; qualifierRegexFlag = false; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("1206") { qualifierString = "*1206*"; qualifierRegexFlag = false; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("SOT-23") { qualifierString = "SOT-?23(-3)?$"; qualifierRegexFlag = true; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("SOIC") { qualifierString = "SO(IC)?-?\\d+.*$"; qualifierRegexFlag = true; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("SOP") { qualifierString = "SOP-?\\d+.*$"; qualifierRegexFlag = true; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("MSOP") { qualifierString = "MSOP-?\\d+.*$"; qualifierRegexFlag = true; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+						dlgPushButton("QFP") { qualifierString = "[CEFMLSTV]?QFP-?\\d+.*$"; qualifierRegexFlag = true; objectType = 0; subObjectType = 0; qualifier = 1; dlgRedisplay(); };
+					}
+				}
+				dlgGroup ("of Value")
+				{
+					dlgHBoxLayout
+					{
+						dlgPushButton("0R") { qualifierString = "0R?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("22R") { qualifierString = "22R?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("49.9R") { qualifierString = "49\\.9R?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("100R") { qualifierString = "100R?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("1k") { qualifierString = "1k$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("10k") { qualifierString = "10k$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("22k") { qualifierString = "22k$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("47k") { qualifierString = "47k$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("100k") { qualifierString = "100k$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("1M") { qualifierString = "1M$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+					}
+					dlgHBoxLayout
+					{
+						dlgPushButton("10pF") { qualifierString = "10pF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("100pF") { qualifierString = "10pF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("1nF") { qualifierString = "1nF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("10nF") { qualifierString = "10nF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("100nF") { qualifierString = "100nF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("220nF") { qualifierString = "220nF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("1uF") { qualifierString = "1uF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("4.7uF") { qualifierString = "4\\.7uF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("10uF") { qualifierString = "10uF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+						dlgPushButton("100uF") { qualifierString = "100uF?$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 2; dlgRedisplay(); };
+					}
+				}
+				dlgGroup ("with Attribute Value")
+				{
+					dlgHBoxLayout
+					{
+						dlgPushButton("50%") { qualifierString = "50%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("30%") { qualifierString = "30%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("20%") { qualifierString = "20%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("10%") { qualifierString = "10%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("5%") { qualifierString = "5%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("2%") { qualifierString = "2%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("1%") { qualifierString = "1%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("0.5%") { qualifierString = "0.5%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("0.1%") { qualifierString = "0.1%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("0.01%") { qualifierString = "0.01%"; qualifierRegexFlag = false; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+					}
+					dlgHBoxLayout
+					{
+						dlgPushButton("100V") { qualifierString = "100V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("63V") { qualifierString = "63V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("50V") { qualifierString = "50V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("35V") { qualifierString = "35V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("25V") { qualifierString = "25V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("16V") { qualifierString = "16V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("10V") { qualifierString = "10V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("6.3V") { qualifierString = "6.3V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("5V") { qualifierString = "5V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+						dlgPushButton("4V") { qualifierString = "4V$"; qualifierRegexFlag = true; objectType = 0; objectType = 0; subObjectType = 0; qualifier = 5; dlgRedisplay(); };
+					}
+				}
+			}
+			dlgStretch(1);
+			dlgLabel("<qt>&copy; 2010-2016 Damhave Systems ApS<BR><I>Advanced electronics design and innovative near field and GHz probing solutions</qt>");
+	}; 
+	if (dlgRes != 1) exit(0); // Cancel or the dialog is closed..
+} 
+
+if (guiFlag)
+{
+	matchListLen = strsplit(matchList, matchString, ' '); 
+	qualifierListLen = strsplit(qualifierList, qualifierString, ' '); 
+}
+else
+{
+	matchListLen = 0; // Build the two lists that are needed
+	qualifierListLen = 0;
+	for(int i = firstInList, j = 0; i < argc && argv[i] != ""; i++)
+	{
+		if (argv[i] == ":")
+		{
+			if ((readQualifierList == true) && !dlgMessageBox("Only one qualifier list is supported\n"))
+			{
+			 exit(1);
+			}
+			else
+			{
+				readQualifierList = true;
+				j = 0;
+			}
+		}
+		else
+		{
+			if  (readQualifierList == false)
+			{
+				matchList[j++] = argv[i];
+				matchListLen++;
+			}
+			else
+			{
+				qualifierList[j++] = argv[i];
+				qualifierListLen++;
+			}
+		}
+	}
+	if ((readQualifierList == true) && !matchListLen && !dlgMessageBox("Missing match list before \":\"\n"));
+	if ((readQualifierList == true) && !qualifierListLen && !dlgMessageBox("Missing qualifier list after \":\"\n"));
+}
+	
+status("Selecting Objects...");
+
+if(schematic)
+{
+	if (!addFlag && !subtractFlag && !filterFlag) schematic(S) { clrgroup(S);  S.sheets(sch)  { clrgroup(sch); } }
+	if (matchListLen || qualifierListLen)
+	{
+		schematic(S)
+		{
+			S.sheets(sch) // Currently it seems that groups cannot cover more than the current sheet, so this will maybe work in the future ;-)
+			{
+				if (selectClassesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) sch.parts(part) { part.instances(instance) clrgroup(instance); }			
+					sch.nets(net)
+					{
+						if (invertMatchFlag != inList(MLIST, net.class.name, regexFlag))
+						{
+							if (filterFlag); else if (addFlag || !subtractFlag) setgroup(net); else if (subtractFlag) clrgroup(net);
+						}
+						else if (filterFlag) clrgroup(net);
+					}
+				}
+				else if (selectNetsFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) sch.parts(part) { part.instances(instance) clrgroup(instance); }			
+					sch.nets(net)
+					{
+						if (invertMatchFlag != inList(MLIST, net.name, regexFlag))
+						{
+							if (filterFlag); else if (addFlag || !subtractFlag) setgroup(net); else if (subtractFlag) clrgroup(net);
+						}
+						else if (filterFlag) clrgroup(net);
+					}
+				}
+				else if (selectComponentsFlag)
+				{
+					if (!selectDeviceTypeFlag && !selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);								
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								if (invertMatchFlag != inList(MLIST, instance.name, regexFlag)) // Obs using instance names. Can be changed to part.name for selection by partnames
+								{
+									if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+								}
+								else if (filterFlag) clrgroup(instance);
+							}
+						}
+					}								
+					else if (selectDeviceTypeFlag && !selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);								
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								if ((invertMatchFlag != inList(MLIST, instance.name, regexFlag)) && inList(QLIST, part.device.name, qualifierRegexFlag))
+								{
+									if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+								}
+								else if (filterFlag) clrgroup(instance);
+							}
+						}
+					}
+					else if (!selectDeviceTypeFlag && selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);								
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								if ((invertMatchFlag != inList(MLIST, instance.name, regexFlag)) && part.device.package  && inList(QLIST, part.device.package.name, qualifierRegexFlag)) // not all parts have a package! */
+								{
+									if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+								}
+								else if (filterFlag) clrgroup(instance);
+							}
+						}
+					}
+					else if (!selectDeviceTypeFlag && !selectPackagesFlag && selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);								
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								if ((invertMatchFlag != inList(MLIST, instance.name, regexFlag)) && inListCaseSensitive(QLIST, instance.value, qualifierRegexFlag))
+								{
+									if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+								}
+								else if (filterFlag) clrgroup(instance);
+							}
+						}
+					}
+					else if (!selectDeviceTypeFlag && !selectPackagesFlag && !selectValuesFlag && selectAttributesFlag && !selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);			
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								instance.attributes(attribute)
+								{
+									if ((invertMatchFlag != inList(MLIST, instance.name, regexFlag)) && inList(QLIST, attribute.name, qualifierRegexFlag))
+									{
+										if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+									}
+									else if (filterFlag) clrgroup(instance);
+								}
+							}
+						}
+					}
+					else if (!selectDeviceTypeFlag && !selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && selectAttributeValuesFlag)
+					{
+						if (!addFlag && !subtractFlag && !keepFlag) sch.nets(net) clrgroup(net);			
+						sch.parts(part)
+						{
+							part.instances(instance) //Added "instance" level to make work in schematic editor
+							{
+								instance.attributes(attribute)
+								{
+									if ((invertMatchFlag != inList(MLIST, instance.name, regexFlag)) && inList(QLIST, attribute.value, qualifierRegexFlag))
+									{
+										if (filterFlag); else if (addFlag || !subtractFlag) setgroup(instance); else if (subtractFlag) clrgroup(instance);
+									}
+									else if (filterFlag) clrgroup(instance);
+								}
+							}
+						}
+					}
+				}				
+			}
+		}
+	}
+}
+else if(board)
+{
+	if (!addFlag && !subtractFlag && !filterFlag) board(brd) { clrgroup(brd); }
+	if (matchListLen || qualifierListLen)
+	{
+		board(brd)
+		{
+			if (selectClassesFlag)
+			{
+				if (!addFlag && !subtractFlag && !keepFlag) brd.elements(element) clrgroup(element);				
+				brd.signals(signal)
+				{
+					if (invertMatchFlag != inList(MLIST, signal.class.name, regexFlag))
+					{
+						if (filterFlag)
+						{
+							if (selectOnlyViasFlag) signal.wires(wire)
+							{
+								clrgroup(wire);
+							}
+							if (selectOnlyTracesFlag || selectOnlyViasFlag) signal.polygons(polygon)
+							{
+								clrgroup(polygon);
+							}
+							if (selectOnlyTracesFlag) signal.vias(via)
+							{
+								clrgroup(via);
+							}
+						}
+						else if (addFlag || !subtractFlag)
+						{
+							if (!selectOnlyViasFlag) signal.wires(wire)
+							{
+								setgroup(wire);
+							}
+							if (!(selectOnlyTracesFlag || selectOnlyViasFlag)) signal.polygons(polygon)
+							{
+								setgroup(polygon);
+							}
+							if (!selectOnlyTracesFlag) signal.vias(via)
+							{
+								setgroup(via);
+							}
+						}
+						else if (subtractFlag)
+						{
+							if (!selectOnlyViasFlag) signal.wires(wire)
+							{
+								clrgroup(wire);
+							}
+							if (!(selectOnlyTracesFlag || selectOnlyViasFlag)) signal.polygons(polygon)
+							{
+								clrgroup(polygon);
+							}
+							if (!selectOnlyTracesFlag) signal.vias(via)
+							{
+								clrgroup(via);
+							}
+						}
+					}
+					else if (filterFlag) clrgroup(signal);
+				}
+			}			
+			else if (selectNetsFlag)
+			{
+				if (!addFlag && !subtractFlag && !keepFlag) brd.elements(element) clrgroup(element);				
+				brd.signals(signal)
+				{
+					if (invertMatchFlag != inList(MLIST, signal.name, regexFlag))
+					{
+						if (filterFlag)
+						{
+							if (selectOnlyViasFlag) signal.wires(wire)
+							{
+								clrgroup(wire);
+							}
+							if (selectOnlyTracesFlag || selectOnlyViasFlag) signal.polygons(polygon)
+							{
+								clrgroup(polygon);
+							}
+							if (selectOnlyTracesFlag) signal.vias(via)
+							{
+								clrgroup(via);
+							}
+						}
+						else if (addFlag || !subtractFlag)
+						{
+							if (!selectOnlyViasFlag) signal.wires(wire)
+							{
+								setgroup(wire);
+							}
+							if (!(selectOnlyTracesFlag || selectOnlyViasFlag)) signal.polygons(polygon)
+							{
+								setgroup(polygon);
+							}
+							if (!selectOnlyTracesFlag) signal.vias(via)
+							{
+								setgroup(via);
+							}
+						}
+					}
+					else if (subtractFlag)
+					{
+							if (!selectOnlyViasFlag) signal.wires(wire)
+							{
+								clrgroup(wire);
+							}
+							if (!(selectOnlyTracesFlag || selectOnlyViasFlag)) signal.polygons(polygon)
+							{
+								clrgroup(polygon);
+							}
+							if (!selectOnlyTracesFlag) signal.vias(via)
+							{
+								clrgroup(via);
+							}
+					}
+					else if (filterFlag) clrgroup(signal);
+				}
+			}		
+			else if (selectComponentsFlag)
+			{
+				if (!selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) brd.signals(signal) clrgroup(signal);				
+					brd.elements(element)
+					{
+						if (invertMatchFlag != inList(MLIST, element.name, regexFlag))
+						{
+							if (filterFlag); else if (addFlag || !subtractFlag) setgroup(element); else if (subtractFlag) clrgroup(element);
+						}
+						else if (filterFlag) clrgroup(element);
+					}
+				}			
+				else if (selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) brd.signals(signal) clrgroup(signal);				
+					brd.elements(element)
+					{
+						if ((invertMatchFlag != inList(MLIST, element.name, regexFlag)) && inList(QLIST, element.package.name, qualifierRegexFlag))
+						{
+							if (filterFlag); else if (addFlag || !subtractFlag) setgroup(element); else if (subtractFlag) clrgroup(element);
+						}
+						else if (filterFlag) clrgroup(element);
+					}
+				}
+				else if (!selectPackagesFlag && selectValuesFlag && !selectAttributesFlag && !selectAttributeValuesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) brd.signals(signal) clrgroup(signal);				
+					brd.elements(element)
+					{
+						if ((invertMatchFlag != inList(MLIST, element.name, regexFlag)) && inListCaseSensitive(QLIST, element.value, qualifierRegexFlag))
+						{
+							if (filterFlag); else if (addFlag || !subtractFlag) setgroup(element); else if (subtractFlag) clrgroup(element);
+						}
+						else if (filterFlag) clrgroup(element);
+					}
+				}
+				else if (!selectPackagesFlag && !selectValuesFlag && selectAttributesFlag && !selectAttributeValuesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) brd.signals(signal) clrgroup(signal);				
+					brd.elements(element)
+					{
+						element.attributes(attribute)
+						{
+							if ((invertMatchFlag != inList(MLIST, element.name, regexFlag)) && inList(QLIST, attribute.name, qualifierRegexFlag))
+							{
+								if (filterFlag); else if (addFlag || !subtractFlag) setgroup(element); else if (subtractFlag) clrgroup(element);
+							}
+							else if (filterFlag) clrgroup(element);
+						}
+					}
+				}
+				else if (!selectPackagesFlag && !selectValuesFlag && !selectAttributesFlag && selectAttributeValuesFlag)
+				{
+					if (!addFlag && !subtractFlag && !keepFlag) brd.signals(signal) clrgroup(signal);				
+					brd.elements(element)
+					{
+						element.attributes(attribute)
+						{
+							if ((invertMatchFlag != inList(MLIST, element.name, regexFlag)) && inList(QLIST, attribute.value, qualifierRegexFlag))
+							{
+								if (filterFlag); else if (addFlag || !subtractFlag) setgroup(element); else if (subtractFlag) clrgroup(element);
+							}
+							else if (filterFlag) clrgroup(element);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+exit("WINDOW;");

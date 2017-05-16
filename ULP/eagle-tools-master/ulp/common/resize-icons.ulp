@@ -1,0 +1,30 @@
+#usage "en: Resize SVG icons\n"
+           "Resizes the svg icons in ../icons/master to current user settings, replacing the transform/scale in the svg header\n"
+           "Usage: RUN resize-icons.ulp\n"
+           "Author: behner@zess.uni-siegen.de"
+if (argc < 3) {
+	exit("");
+}
+
+string sourceDir = argv[1];
+string destDir = argv[2];
+
+string resizeIcon(string file_name, string outfile_name){
+	real iconSize = strtod(cfgget("EAGLE:Interface.IconSize","16"));
+	real iconScale = iconSize/40.0;
+	string iconBuffer;
+	int nbrRead = fileread(iconBuffer, file_name);
+	int len;
+	int pos = strxstr(iconBuffer,"transform\\s*=\\s*\\\"\\s*scale\\s*\\(\\s*[0-9\\.]*\\s*\\)\\s*\\\"",0,len);
+	if (pos>=0) {
+		output(outfile_name,"w")
+			printf("%stransform=\"scale(%.2f)\"%s",strsub(iconBuffer,0,pos) ,iconScale, strsub(iconBuffer,pos+len));
+		return outfile_name;
+	}
+}
+
+string files[];
+int n = fileglob(files, filedir(sourceDir+"*.svg"));
+for (int i = 0; i < n; i++) {
+	resizeIcon(files[i], destDir + filename(files[i]));
+}

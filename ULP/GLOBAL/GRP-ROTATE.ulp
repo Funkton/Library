@@ -1,0 +1,67 @@
+/*
+Eagle Group Rotate 
+Copyright (c) 2017 Cameron Nicks, Phase IV Engineering <cnicks@phaseivengr.com>
+
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+Version: 0.1beta 05/12/17
+Basic operation. Rotate group by increment. When launched from shortcut, rotates around origin at mouse cursor. Clear mark using 'mark ;'
+
+To-Do Feature List:
+1) Add argument handling (separate shortcuts or 45/90 selection.)
+2) Rotate using polar grid (by angle)
+3) Option for fixed origin
+*/
+
+#usage 	"Rotate group by increment.<p>"
+		"When launched from shortcut, rotates around origin at mouse cursor. Clear mark using 'mark ;'"
+		"<author>Author: cnicks@phaseivengr.com</author>"
+
+		
+// Origin to rotate around, set using 'WINDOW (@)'
+
+
+real xOrg = 0;
+real yOrg = 0;
+
+string mir = "R"; //Mirror flag (R, MR)
+int error = 0; // error flag placeholder
+string inc = (argv[1]); //Rotate by increment
+string dir = "-"; // Default direction setting. Blank = CCW, "-" = CW
+
+// R = CCW, MR = Mirrored CCW (I still don't understand why the default rotation in Eagle is CCW. Wish I had an option to set it to CW.)
+
+string cmd = "ROTATE ";
+
+cmd += mir;
+cmd += dir;
+cmd += inc;
+cmd += " (> @);";
+
+if (!error) {
+
+//DEBUG
+output ("GRP-ROTATE.txt", "wt") { printf("%s\n", cmd); }// Debug (uncomment output {} section) }
+
+
+exit(cmd);
+}
+

@@ -1,0 +1,105 @@
+
+// \"(\\\"|[^\"])*\"\\s*:?|[\\w\\.\\-\\+]+|\\{|\\}|\\[|\\])
+
+
+string getJSONdata (string json, string fieldname) {
+
+	// generate tokens
+	string tokens[];
+	int tokenCount = 0;
+	int p = 0;
+	while (1) {
+		int l = 0;
+		p = strxstr(json,"(\"((\\\\\")|[^\"])*\")|:|,|[\\w\\.\\-\\+]+|\\{|\\}|\\[|\\]", p, l);
+		if (p < 0) {
+			break;
+		}
+		tokens[tokenCount++] = strsub(json, p, l);
+		p = p+l;
+	};
+	
+	string stack[];
+	int stackArrayCount[];
+	int stackCounter = 0;
+	string value = "";
+	int captureDepth = -1;
+	string tokensHistory[];
+	string path[];
+	
+	string temp = "";
+	
+	string paths;
+	
+	for (int i = 0; i < tokenCount; i++) {
+		tokensHistory[i] = tokens[i];
+		if (tokens[i] == "{" || tokens[i] == "[") {
+			stack[stackCounter++] = tokens[i];
+		}
+		if (tokens[i] == "}") {
+			if (stack[--stackCounter] != "{") {
+				string ret =  "!ERROR!"+strjoin(tokensHistory,' ')+"!";
+				for (int k = 0; k < stackCounter+1; k++) {
+					ret += stack[k];
+				}
+				return ret;
+			}
+		}
+		if (tokens[i] == "]") {
+			if (stack[--stackCounter] != "[") {
+				string ret =  "!ERROR!"+strjoin(tokensHistory,' ')+"!";
+				for (int k = 0; k < stackCounter+1; k++) {
+					ret += stack[k];
+				}
+				return ret;
+			}
+		}
+		if (captureDepth>=0) {
+			value += tokens[i];
+		}
+		
+			
+		if (captureDepth == stackCounter) {
+			return value;
+		}
+		if (stackCounter > 0) {
+			if (stack[stackCounter-1] == "{") {
+				if (tokens[i] == ":") {
+					path[stackCounter-1] = tokens[i-1];					
+				}
+			}
+			
+			if (stack[stackCounter-1] == "[") {
+				if (tokens[i] == ",") {
+					stackArrayCount[stackCounter-1]++;
+					sprintf(path[stackCounter-1], "[%d]", stackArrayCount[stackCounter-1]-1);
+				}
+			if (tokens[i] == "[" & tokens[i+1] != "]") {
+					stackArrayCount[stackCounter-1] = 1;
+					sprintf(path[stackCounter-1], "[%d]", stackArrayCount[stackCounter-1]-1);
+				}
+			}
+			
+			if ((stack[stackCounter-1] == "{" && tokens[i] == ":") || (stack[stackCounter-1] == "[" && (tokens[i] == "," || tokens[i] == "["))) {
+				string pathString = "";
+				for (int k = 0; k < stackCounter; k++) {
+					pathString += path[k];
+				};
+				paths += pathString + "\n";
+				//value += pathString +"\n";
+				if (pathString == fieldname) {
+					captureDepth = stackCounter;
+				}
+			}
+		}
+	}
+	return "";
+}
+/*
+string json_data= "{\"test\": \"\"}";
+netget(json_data, "https://octopart.com/api/v3/parts/match?apikey=54ce793b&queries=[{\"mpn\":\"D\"}]&pretty_print=true&include[]=short_description&include[]=datasheets&include[]=imagesets&limit=1");
+dlgDialog ("DEBUG") {
+	dlgTextView(json_data);
+	dlgTextView(getJSONdata(json_data, "\"results\"[0]\"items\"[0]\"datasheets\"[0]"));
+};
+*/
+

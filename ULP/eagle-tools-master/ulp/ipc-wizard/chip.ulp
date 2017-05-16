@@ -1,0 +1,260 @@
+//CHIP	Chip Components, 2-Pins	Resistor, Capactor, Inductor, Diode...
+//<p>This will allow you to generate Molded Components like: <ul><li>Resistor</li><li>Capacitor (polarized)</li><li>Inductor</li><li>Diode</li><li>Ferrite Bead</li><li>Fuse</li><li>Fuse</li><li>LED</li><li>Thermistor</li><li>Varistor</li><ul></p><br><center><img width=256 src="ipc-wizard/resc-01.png"></center>
+
+
+#include "common.h"
+
+//Wizard Description
+wizardName = "CHIP";
+wizardImage = "resc-01.png";
+wizardDescription = "<img src=\"resc-02.png\">";
+
+// ComboBox Parameter
+int k=0;
+string familyNames[];
+familyNames[k++] = "Resistor";
+familyNames[k++] = "Capacitor";
+familyNames[k++] = "Capacitor, Polarized";
+familyNames[k++] = "Inductor";
+familyNames[k++] = "Ferrite Bead";
+familyNames[k++] = "Diode";
+familyNames[k++] = "LED";
+familyNames[k++] = "Fuse";
+familyNames[k++] = "Thermistor";
+familyNames[k++] = "Varistor";
+int isPolarized[] = {0, 0, 1, 0, 0, 1, 1, 0, 0, 0};
+int isAnodeCatode[] = {0, 0, 0, 0, 0, 1, 1, 0, 0, 0};
+string namingPrefix[] = {"RESC", "CAPC", "CAPCP", "INDC", "BEADC", "DIOC", "LEDC", "FUSC", "THRMC", "VARC"};
+string materialConditionStr[] = {"L","N","M"};
+string materialConditionLongStr[] = {"Least","Nominal","Most"};
+
+// UI Parameter Elements
+addParameterComboBox("family", "Family", strjoin(familyNames,'|'), 1);
+
+addParameterHeader("Body Dimensions");
+	addParameterMinMax("L","Length (L)", 0, 0);
+	addParameterMinMax("W","Width (W)", 0, 0);
+	addParameterMinMax("H","Height (H)", 0, 0);
+	
+addParameterHeader("Terminal Dimensions");
+	addParameterMinMax("T","Pin Length (T)", 0, 0);
+	
+int debugRet = 0;
+int preloadValues = 0;
+if (argc>1) {
+	if (argv[1] != "EDIT") {
+		for (k = 0; namingPrefix[k] != ""; k++) {
+			int l = 0;
+			int p = strxstr(argv[1], namingPrefix[k], 0, l);
+			if (p == 0) {
+				string temp = strsub(argv[1], l);
+				string tempA[];
+				strsplit(tempA, temp,'_');
+				string tempB[];
+				strsplit(tempB, tempA[0],'L');
+				int T = strtol(tempB[1]);
+				string mc = strsub(tempB[1],strlen(tempB[1])-1,1);
+
+				string tempC[];
+				strsplit(tempC, tempB[0],'X');
+				int L = strtol(tempC[0]);
+				int W = strtol(tempC[1]);
+				int H = strtol(tempC[2]);
+				
+				strsplit(tempB, tempA[1],'L');
+				int Tt = strtol(tempB[1]);
+				strsplit(tempC, tempB[0],'X');
+				int Lt = strtol(tempC[0]);
+				int Wt = strtol(tempC[1]);
+				int Ht = strtol(tempC[2]);
+
+				for (int i = 0; materialConditionStr[i] != ""; i++) {
+					if (materialConditionStr[i]==mc) break;
+				}
+				
+				setParameterListBox("materialCondition", i);
+				setParameterListBox("family", k);
+				setParameterMinMax("H", real(H-Ht)/100.0, real(H+Ht)/100.0);
+				setParameterMinMax("L", real(L-Lt)/100.0, real(L+Lt)/100.0);
+				setParameterMinMax("W", real(W-Wt)/100.0, real(W+Wt)/100.0);
+				setParameterMinMax("T", real(T-Tt)/100.0, real(T+Tt)/100.0);
+				break;
+			}
+		}
+	}
+}
+	
+//if (!preloadValues) {
+	runWizard();
+//}
+
+
+int family = getParameterListBox("family");
+int materialCondition = getParameterListBox("materialCondition");
+
+real Hmin = getParameterMin("H");
+real Hmax = getParameterMax("H");
+
+real Lmin = getParameterMin("L");
+real Lmax = getParameterMax("L");
+
+real Wmin = getParameterMin("W");
+real Wmax = getParameterMax("W");
+
+real Tmin = getParameterMin("T");
+real Tmax = getParameterMax("T");
+
+string lengthCode = "LMAX";
+real length = Lmin + (Lmax - Lmin)/2.0;
+if (length <= 4.75) lengthCode = "L475";
+if (length <= 3.85) lengthCode = "L385";
+if (length <= 2.85) lengthCode = "L285";
+if (length <= 1.30) lengthCode = "L130";
+if (length <= 0.75) lengthCode = "L75";
+if (length <= 0.50) lengthCode = "L50";
+
+string index = lengthCode + materialConditionStr[materialCondition];
+
+string path = filedir(argv[0]);
+string tableContent[];
+fileread(tableContent, path + "/chip.data");
+real Jt = strtod(lookup(tableContent, index, "Jtoe"));
+real Jh = strtod(lookup(tableContent, index, "Jheel"));
+real Js = strtod(lookup(tableContent, index, "Jside"));
+
+// Draw Pads
+real Zmax = calcZmax(Lmin,Lmax,Jt);
+real Gmin = calcGmin(Lmin, Lmax, Tmin, Tmax, Jh);
+real Xmax = calcXmax(Wmin, Wmax, Js);
+
+real padSizeRoundOff = getLibraryParameterValueReal("padSizeRoundOff");
+real padPlaceRoundOff = getLibraryParameterValueReal("padPlaceRoundOff");
+
+real dx = ipcCeil((Zmax-Gmin)/2.0, padSizeRoundOff);
+real dy = ipcCeil(Xmax,padSizeRoundOff);
+real xPos = ipcRound(Zmax/2.0-dx/2.0, padPlaceRoundOff);
+
+beginSmd(dx, dy);
+	if (isAnodeCatode[family]) {
+		name("C");
+	} else {
+		name("1");
+	}
+	position(-xPos,0);
+	if (isAnodeCatode[family]) {
+		name("A");
+	} else {
+		name("2");
+	}
+	position(xPos,0);
+end();
+
+// Draw Legend
+real clearance = getLibraryParameterValueReal("legendClearance");
+real legendLineWidth = getLibraryParameterValueReal("legendLineWidth");
+real legendRoundOff = getLibraryParameterValueReal("legendRoundOff");
+
+real lx = Gmin/2-clearance-legendLineWidth/2;
+real ly = Wmax/2+legendLineWidth/2;
+lx = ipcCeil(lx, legendRoundOff);
+ly = ipcCeil(ly, legendRoundOff);
+
+if (Wmax >= (Xmax+clearance+legendLineWidth)) {
+	lx = Lmax/2-legendLineWidth/2;
+	lx = ipcFloor(lx, legendRoundOff);
+	ly = ipcCeil(ly, legendRoundOff);
+}
+
+real lx2 = lx;
+
+if (isPolarized[family]) {
+	lx = Zmax/2 + clearance + legendLineWidth/2;
+	lx2 = Lmax/2-legendLineWidth/2;
+	ly = max(Xmax/2 + clearance,Wmax/2) + legendLineWidth/2;
+	ly = ipcCeil(ly, legendRoundOff);
+	lx = ipcCeil(lx, legendRoundOff);
+	lx2 = ipcCeil(lx2, legendRoundOff);
+	beginLegendOutline(LAYER_TPLACE);
+		position(-lx, ly);
+		position(-lx, -ly);
+	end();
+}
+
+if (lx>0 && ly>0){
+	beginLegendOutline(LAYER_TPLACE);
+		position(-lx, ly);
+		position(lx2, ly);
+	end();
+	beginLegendOutline(LAYER_TPLACE);
+		position(-lx, -ly);
+		position(lx2, -ly);
+	end();
+}
+setLayer(LAYER_TNAMES);
+changeSize(getLibraryParameterValueReal("legendFontHeight"));
+changeRatio(getLibraryParameterValueReal("legendFontRatio"));
+changeAlign("CENTER");
+changeFont("VECTOR");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+
+// Draw Courtyard
+real CourtyardExcess = strtod(lookup(tableContent, index, "CourtyardExcess"));
+real CourtyardRoundOff = strtod(lookup(tableContent, index, "CourtyardRoundOff"));
+real courtyardLineWidth = getLibraryParameterValueReal("courtyardLineWidth");
+real cyX = ipcCeil(max(max(Zmax,Lmax)/2.0+CourtyardExcess, lx + legendLineWidth/2)-courtyardLineWidth/2, CourtyardRoundOff);
+real cyX2 = ipcCeil(max(max(Zmax,Lmax)/2.0+CourtyardExcess, lx2 + legendLineWidth/2)-courtyardLineWidth/2, CourtyardRoundOff);
+real cyY = ipcCeil(max(max(Xmax,Wmax)/2.0+CourtyardExcess, ly + legendLineWidth/2)-courtyardLineWidth/2, CourtyardRoundOff);
+
+beginCourtyard(LAYER_TKEEPOUT);
+	position(-cyX,cyY);
+	position(cyX2,-cyY);
+	position(-cyX,cyY);
+end();
+
+
+// Draw Component Outline
+real cX = Lmax/2.0;
+real cY = Wmax/2.0;
+real tW = Tmax;
+beginComponentOutline(LAYER_TDOCU);
+	position(-cX,cY);
+	position(cX,cY);
+	position(cX,-cY);
+	position(-cX,-cY);
+	position(-cX,cY);
+end();
+
+begin("RECT");
+	position(-cX,cY);
+	position(-cX+tW,-cY);
+end();
+begin("RECT");
+	position(cX,cY);
+	position(cX-tW,-cY);
+end();
+
+real componentLineWidth = getLibraryParameterValueReal("componentLineWidth");
+begin("CIRCLE");
+	lineWidth(componentLineWidth);
+	position(-(cX-tW) + 0.2*min(cX-tW,cY), -cY + 0.2*min(cX-tW,cY));
+	position(-(cX-tW) + 0.2*min(cX-tW,cY), -cY + 0.2*min(cX-tW,cY) + componentLineWidth/2);
+end();
+
+changeSize(getLibraryParameterValueReal("componentFontHeight"));
+changeAlign("CENTER");
+changeFont("PROPORTIONAL");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+sprintf(packageDescription, "<b>%s, Chip </b><i>%s Material Condition</i><br>Body (LxWxH): %.2fmm x %.2fmm x %.2fmm<br>Lead (L): %.2fmm<br>", familyNames[family],materialConditionLongStr[materialCondition], Lmin+(Lmax-Lmin)/2, Wmin+(Wmax-Wmin)/2, Hmin+(Hmax-Hmin)/2, Tmin+(Tmax-Tmin)/2);
+sprintf(packageName, "%s%dX%dX%dL%d%s_%dX%dX%dL%d", 
+	namingPrefix[family], int(round((Lmin+(Lmax-Lmin)/2)*100)), int(round((Wmin+(Wmax-Wmin)/2)*100)), int(round((Hmin+(Hmax-Hmin)/2)*100)), int(round((Tmin+(Tmax-Tmin)/2)*100)), materialConditionStr[materialCondition],
+	int(round((Lmax-Lmin)/2*100)), int(round((Wmax-Wmin)/2*100)), int(round((Hmax-Hmin)/2*100)), int(round((Tmax-Tmin)/2*100)));
+
+exitWizard();

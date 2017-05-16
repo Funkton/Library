@@ -1,0 +1,903 @@
+string oldCodec = cfgget("EAGLE:Option.Codec");
+cfgset("EAGLE:Option.Codec", "UTF-8");
+string OCTOPARTAPIKEY = "54ce793b";
+string schematicSymbolHeaders = "\tDES\tSYMBOL\tDEVICE\tVALUE\tLIBRARY\tQUERY";
+string schematicSymbols[];
+int selectedSymbolIndex = 0;
+
+string availableDevicesHeader = "\tLIBRARY\tDEVICE\tPACKAGE";
+numeric string availableDevices[];
+int numDevices = 0;
+int selectedDevice = 0;
+
+string queryField[];
+char queryOperator[];
+real queryValueReal[];
+string queryValueString[];
+
+string fieldNames[];
+string fieldNamesChooser;
+string fieldNamesChooserLink;
+int fieldNamesChooserItem;
+
+string baseFileDir = filedir(argv[0]) + "../lib/";
+
+string activeQuery = "";
+
+string partDetailsText = "";
+string partAttributesText = "";
+string partAttributesArray[];
+string partDistributorsText = "";
+
+int distributorFilterEnabled = cfgget("SearchAndReplace.DistributorFilterEneabled", "false") == "true";
+string distributorFilter = cfgget("SearchAndReplace.DistributorFilter", "");
+
+string allSellerHeader="\tDistributor\tCountry\tE-Commerce\tWebpage";
+string allSeller[];
+int allSellerCount = 0;
+
+
+#include "parse-json.ulp"
+
+//Search newest lib date
+int libDate = 0;
+for (int i = 0; used_libraries[i] != ""; i++) {
+	libDate = max(libDate, filetime(used_libraries[i]));
+}
+
+//Search newest idx date
+int idxDate = 0;
+string files[];
+int n = fileglob(files, baseFileDir+"*.idx");
+for (i = 0; i < n; i++) {
+	idxDate = max(idxDate, filetime(files[i]));
+}
+if (idxDate<libDate) {
+	exit("RUN create-lib-index.ulp;\nEDIT .sch;\nRUN " + strjoin(argv,' ') + ";");
+}
+
+
+int optionGroup = 0;
+
+if (argc>1) {
+	if (argv[1] == "GROUP") {
+		optionGroup = 1;
+	}
+} 
+
+
+string strtrim(string str) {
+	string result = "";
+	if (strlen(str) == 0) return "";
+	int i = 0;
+	while (str[i] && isspace(str[i])) {
+		i++;
+	}
+	int s = i;
+	i = strlen(str)-1;
+	while (i>=0 && isspace(str[i])) {
+		i--;
+	}
+	int e = i;
+	if (e-s+1>0) return strsub(str,s,e-s+1);
+	else return "";
+}
+
+real strtoreal(string str) {
+	string rstr;
+	real ret = 0;
+	int k = 0;
+	char suffix = ' ';
+	for (int i = 0; str[i]; i++) {
+		if (isdigit(str[i]) || str[i] == '.') {
+			rstr[k++] = str[i];
+		} 
+		if (str[i] == 'P' || str[i] == 'T' || str[i] == 'G' || str[i] == 'M' || str[i] == 'k' || str[i] == 'm' || str[i] == 'u' || str[i] == 'n' || str[i] == 'p' || str[i] == 'f') {
+			suffix = str[i];
+		}
+	}
+	switch (suffix) {
+		case 'P':
+			return strtod(rstr)*1e12;
+		case 'T':
+			return strtod(rstr)*1e12;
+		case 'G':
+			return strtod(rstr)*1e9;
+		case 'M':
+			return strtod(rstr)*1e6;
+		case 'k':
+			return strtod(rstr)*1e3;
+		case 'm':
+			return strtod(rstr)*1e-3;
+		case 'u':
+			return strtod(rstr)*1e-6;
+		case 'n':
+			return strtod(rstr)*1e-9;
+		case 'p':
+			return strtod(rstr)*1e-12;
+		case 'f':
+			return strtod(rstr)*1e-15;
+		default: 
+			return strtod(rstr);
+	}
+	
+	
+	
+}
+
+string getPartNumber(string symbolRow) {
+	string headerFields[];
+	int n = strsplit(headerFields, availableDevicesHeader, '\t');
+	string valueFields[];
+	int m = strsplit(valueFields, symbolRow, '\t');
+	for (int k = 0; k < n; k++) {
+		if (headerFields[k] == "PARTNUMBER") {
+			return valueFields[k];
+		}
+	}
+	return "";
+}
+
+void parseQuery(string query) {
+	string queryArray[];
+	int n = strsplit(queryArray, query, '&');
+	int ind = 0;
+	for (int i = 0; i < n; i++) {
+		string temp[];
+		queryValueString[ind] = "";
+		if (strsplit(temp, queryArray[i], '<')>1) {
+			queryField[ind] = strtrim(temp[0]);
+			queryOperator[ind] = '<';
+			queryValueReal[ind++] = strtoreal(strtrim(temp[1]));
+			
+		} else if (strsplit(temp, queryArray[i], '>')>1) {
+			queryField[ind] = strtrim(temp[0]);
+			queryOperator[ind] = '>';
+			queryValueReal[ind++] = strtoreal(temp[1]);
+		} else if (strsplit(temp, queryArray[i], '=')>1) {
+			queryField[ind] = strtrim(temp[0]);
+			queryOperator[ind] = '=';
+			string value = strtrim(temp[1]);
+			if (value[0] == '"' || value[0] == 'r') {
+				string val2 = "";
+				
+				int charind = 0;
+				if (value[0] == 'r') {
+					value = strsub(value,1);
+					for (int k = 0; value[k]; k++) {
+						if (value[k] != '"') {
+							val2[charind++] = value[k];
+						}
+					}
+				} else {
+					for (int k = 0; value[k]; k++) {
+						if (value[k] == '\\' || value[k] == '/' || value[k] == '.' || value[k] == '+' || value[k] == '?' || value[k] == '|' || value[k] == '(' || value[k] == ')' || value[k] == '[' || value[k] == ']' || value[k] == '{' || value[k] == '}') {
+							val2[charind++] = '\\';
+						}
+						if (value[k] == '*' && val2[charind] != '\\') {
+							val2[charind++] = '.';
+						}
+						if (value[k] != '"') {
+							val2[charind++] = value[k];
+						}
+					}
+				}
+				
+				queryValueString[ind++] = val2;
+			} else {
+				queryValueReal[ind++] = strtoreal(temp[1]);
+			}
+		}
+	}
+	
+	queryField[ind] = "";
+}
+
+int evalQuery(string strnames, string strvalues) {
+	string names[];
+	string values[];
+	strsplit(names,strnames,'\t');
+	strsplit(values,strvalues,'\t');
+	for (int k = 0; queryField[k] != ""; k++) {
+		
+		for (int i = 0; names[i] != ""; i++) {
+			if (names[i] == queryField[k]) 
+				break;
+		}
+		if (names[i] == "") {
+			return 0;
+		}
+		switch (queryOperator[k]) {
+			case '<':
+				if (strtoreal(values[i]) >= queryValueReal[k]) return 0;
+				break;
+			case '>':
+				if (strtoreal(values[i]) <= queryValueReal[k]) return 0;
+				break;
+			case '=':
+
+				if (queryValueString[k]=="") {
+					if (strtoreal(values[i]) != queryValueReal[k]) return 0;
+				} else {
+					if (strxstr(values[i], queryValueString[k])!=0) return 0;
+				}
+				break;
+		}
+	}
+	return 1;
+}
+
+
+void findDevices(string symbolName, string query) {
+	int listIndex = 0;
+	int i = 0;
+	int s = 0;
+	
+	string files[];
+	parseQuery(query);
+	int n = fileglob(files, baseFileDir+symbolName+".idx");
+	if (n > 0) {
+		string lines[];
+		int nLines = fileread(lines, baseFileDir+symbolName+".idx");
+		availableDevicesHeader = "   " + 0xe115 + "\t"+lines[0];
+		for (i = 1; i<(nLines); i++) {
+			if (evalQuery(lines[0], lines[i]))
+				availableDevices[listIndex++] = "    ?\t"+lines[i];
+			
+		}
+		strsplit(fieldNames, lines[0], '\t');
+	}
+	
+	string headerFields[];
+	int nHeader = strsplit(headerFields, availableDevicesHeader, '\t');/*
+	fieldNamesChooser = "<body><table  cellspacing=\"2\" cellpadding=\"5\"><tr>";
+	for (i = 0; i < nHeader; i++) {
+		if (i>0) {
+			//fieldNamesChooser += " | ";
+		}
+		fieldNamesChooser += "<td bgcolor=\"#EEEEEE\" align=\"center\" align=\"center\"><a color=\"#ffffff\" href=\"" + headerFields[i] + "\">" + headerFields[i] + "</a></td>";
+	}
+	fieldNamesChooser += "</tr></table></body>";
+	*/
+	
+	string jsonQuery;
+	int k = 0;
+	int idx[];
+	for (i = 0; i < 20 && k < listIndex; k++) {
+		string partNumber = getPartNumber(availableDevices[k]);
+		if (partNumber != "") {
+			idx[i] = k;
+			if (i > 0) {
+				jsonQuery += ",";
+			}
+			jsonQuery += "{\"mpn\":\""+ partNumber +"\"}";
+			i++;
+		}
+	}
+	int nPartNumbers = i;
+	string json_data = "";
+	netget(json_data, "https://octopart.com/api/v3/parts/match?apikey=" + OCTOPARTAPIKEY + "&queries=["+ jsonQuery +"]");
+	//partDetailsText = json_data;
+	for (i = 0; i < nPartNumbers; i++) {
+		string jsonKey;
+		sprintf(jsonKey, "\"results\"[%d]\"items\"", i);
+		if (getJSONdata(json_data, jsonKey) != "[]") {
+			string temp[];
+			int n = strsplit(temp, availableDevices[idx[i]],'\t');
+			availableDevices[idx[i]] = "";
+			temp[0] = "   " + 0xe0e7;
+			for (int k = 0; k < n; k++) {
+				if (k>0) {
+					availableDevices[idx[i]] += "\t";
+				}
+				availableDevices[idx[i]] += temp[k];
+			}
+		} else {
+			string temp[];
+			int n = strsplit(temp, availableDevices[idx[i]],'\t');
+			availableDevices[idx[i]] = "";
+			temp[0] = "";
+			for (int k = 0; k < n; k++) {
+				if (k>0) {
+					availableDevices[idx[i]] += "\t";
+				}
+				availableDevices[idx[i]] += temp[k];
+			}
+		}
+	}
+	
+	
+	for (i = listIndex; i < numDevices; i++) {
+		availableDevices[i] = "";
+	}
+	numDevices = listIndex;
+}
+
+void replaceDevice() {
+	string selectedRow = schematicSymbols[selectedSymbolIndex];
+	string selectedSymbol[];
+	strsplit(selectedSymbol,selectedRow,'\t');
+	
+	string sheetString;
+	string designator = selectedSymbol[1];
+	
+	string desParts[];
+	int nDesParts = strsplit(desParts, selectedSymbol[1],':');
+	if (nDesParts == 2) {
+		sheetString = desParts[0] + ".m" + selectedSymbol[7];
+		designator = desParts[1];
+	} else {
+		sheetString = ".s" + selectedSymbol[7];
+	}
+	
+	string cmd = "EDIT " + sheetString + ";\nCHANGE DISPLAY OFF;\nATTRIBUTE " + designator + " _QUERY '" + activeQuery + "';\n";
+	
+	string selectedDevRow = availableDevices[selectedDevice];
+	string selectedDev[];
+	strsplit(selectedDev,selectedDevRow,'\t');
+	cmd += "REPLACE " + designator + " " + selectedDev[2] + "@" + selectedDev[1]+";";
+	
+	for (int i = 0; schematicSymbols[i] != ""; i++) {
+		strsplit(selectedSymbol,schematicSymbols[i],'\t');
+		if (selectedSymbol[0] == "   " + 0xe0a4) {
+			nDesParts = strsplit(desParts, selectedSymbol[1],':');
+			designator = selectedSymbol[1];
+			if (nDesParts == 2) {
+				sheetString = desParts[0] + ".m" + selectedSymbol[7];
+				designator = desParts[1];
+			} else {
+				sheetString = ".s" + selectedSymbol[7];
+			}
+			cmd += "EDIT " + sheetString + ";\nCHANGE DISPLAY OFF;\nATTRIBUTE " + designator + " _QUERY '" + activeQuery + "';\n";
+			cmd += "REPLACE " + designator + " " + selectedDev[2] + "@" + selectedDev[1]+";";
+		}
+	}
+	
+	if (module) {
+		module(M) {
+			sheetString = M.name + ".m";
+		}
+	} else {
+		sheetString = ".s";
+	}
+	
+	
+	if (sheet) {
+		sheet(S) {
+			sprintf(sheetString, "%s%d", sheetString, S.number);
+		}
+	}
+	
+	cmd += "EDIT " + sheetString + ";";
+	
+	if (i > 1) {
+		cmd += "RUN " + strjoin(argv,' ') + ";";
+	}
+	
+	
+	
+	
+	exit(cmd);
+}
+
+string processPart(UL_PART P) {
+	string query = "";
+	P.attributes(A) {
+		if (strupr(A.name) == "_QUERY") {
+			query = A.value;
+		}
+	} 
+	
+	string symbolName="";
+	string uniqueSymbolNames[];
+	int symbolNameCounts[];
+	int k = 0;
+	P.device.gates(G) {
+		string symbolNamePart[];
+		strsplit(symbolNamePart, G.symbol.name, '@');
+		string gateSymbolName = symbolNamePart[0];
+		for (k = 0; uniqueSymbolNames[k] != "";k++) {
+			if (uniqueSymbolNames[k]==gateSymbolName) {
+				symbolNameCounts[k]++;
+				break;
+			}
+		}
+		if (uniqueSymbolNames[k]=="") {
+			uniqueSymbolNames[k] = gateSymbolName;
+			symbolNameCounts[k] = 1;
+		}
+	}
+	for (k = 0; uniqueSymbolNames[k]!="";k++) {
+		if (k>0) {
+			symbolName += " ";
+		}
+		if (symbolNameCounts[k] > 1) {
+			sprintf(symbolName,"%s%sc%d",symbolName,uniqueSymbolNames[k],symbolNameCounts[k]);
+		} else {
+			sprintf(symbolName,"%s%s",symbolName,uniqueSymbolNames[k]);
+		}
+	}
+	/*		
+	string symbolName = "";
+	I.part.device.gates(G) {
+		if (symbolName != "") {
+			symbolName += " ";
+		}
+		symbolName += G.symbol.name;
+	}
+	*/
+	int show = 1;
+	if (optionGroup) {
+		show = 0;
+		P.instances(I) {
+			if (!show) {
+				show = ingroup(I);
+			}
+		}
+	}
+	
+	/*
+	dlgDialog("DEBUG") {
+		dlgTextView(" \t" + P.name + "\t" + symbolName + "\t" + P.device.name + "\t" + P.value + "\t" + P.device.library + "\t" + query);
+		dlgIntEdit(show,-100,100);
+	};
+	*/
+	k=0;
+	string sheetNr = "";
+	
+	P.instances(I) {
+		if (k==0) {
+			sprintf(sheetNr,"%d", I.sheet);
+		}
+		k++;
+	}
+	
+	string designator = P.name;
+	
+	if (P.module) {
+		designator =  P.module.name + ":" + designator;
+	}
+	
+	if (show) {
+		return (" \t" + designator + "\t" + symbolName + "\t" + P.device.name + "\t" + P.value + "\t" + P.device.library + "\t" + query +"\t" + sheetNr);
+	} else return "";
+}
+
+string unEscapeUnicode (string str) {
+	int p = 0;
+	while (1) {
+		int l = 0;
+		p = strxstr(str,"\\\\u[0-9a-fA-F]{4}", 0, l);
+		if (p<0) {
+			return str;
+		}
+		
+		str = strsub(str,0,p) + strtol("0x"+strsub(str,p+2,l-2)) + strsub(str,p+l);
+	}
+	
+}
+
+void updatePartDetails() {
+	int i = 0;
+	string selectedDevRow = availableDevices[selectedDevice];
+	string selectedDev[];
+	strsplit(selectedDev,selectedDevRow,'\t');
+	
+	string partNumber = getPartNumber(selectedDevRow);
+	if (partNumber == "") {
+		partNumber = selectedDev[2];
+	}
+	string json_data = "";
+	netget(json_data, "https://octopart.com/api/v3/parts/match?apikey=" + OCTOPARTAPIKEY + "&queries=[{\"mpn\":\""+ partNumber +"\"}]&include[]=short_description&include[]=datasheets&include[]=imagesets&limit=1");
+	string firstItem = getJSONdata(json_data, "\"results\"[0]\"items\"[0]");
+	partDetailsText = "<body bgcolor=#fff><font color=#333><table cellpadding=5 width=100%><tr><td>";
+	partAttributesText = "";
+	partDistributorsText = "";
+	//partDetailsText+= firstItem;
+	if (firstItem != "") {
+		
+		string shortDescription = unEscapeUnicode(getJSONdata(firstItem, "\"short_description\""));
+		if (shortDescription=="null") {
+			shortDescription = "\"\"";
+		}
+		string manufacturerJson = getJSONdata(firstItem, "\"manufacturer\"");
+		string manufacturer = unEscapeUnicode(getJSONdata(manufacturerJson, "\"name\""));
+		string manufacturerUrl = unEscapeUnicode(getJSONdata(manufacturerJson, "\"homepage_url\""));
+		string octopartUrl = unEscapeUnicode(getJSONdata(firstItem, "\"octopart_url\""));
+		string mpn = unEscapeUnicode(getJSONdata(firstItem, "\"mpn\""));
+		string imageUrl = getJSONdata(firstItem, "\"imagesets\"[0]\"small_image\"\"url\"");
+		string imageCreditString = unEscapeUnicode(getJSONdata(firstItem, "\"imagesets\"[0]\"credit_string\""));
+		string imageCreditUrl = unEscapeUnicode(getJSONdata(firstItem, "\"imagesets\"[0]\"credit_url\""));
+		
+		//partDetailsText += "<img align=right src=" + getJSONdata(firstItem, "\"imagesets\"[0]\"small_image\"\"url\"") + ">";
+		
+		partDetailsText += "<table width=100%><tr><td><font size=5><b>" + strsub(manufacturer, 1, strlen(manufacturer)-2) + "</b> <a href="+manufacturerUrl+"><img src=\"" + filedir(argv[0]) + "icons/link.png\"></a></font>";
+		partDetailsText += "<br><font size=6>" + strsub(mpn,1,strlen(mpn)-2) + " <a href="+octopartUrl+"><img width=16 height=16 src=\"https://n1.octostatic.com/webdocker/cache/brand-resources/blue-octopart-cog-393555fc9d.png\"></font>";
+		partDetailsText += "<p>" + strsub(shortDescription, 1, strlen(shortDescription)-2) + "</p>";
+		
+		string firstDatasheet = getJSONdata(firstItem, "\"datasheets\"[0]");
+		if (firstDatasheet!="") {
+			partDetailsText += "<p><a href=" + getJSONdata(firstDatasheet, "\"url\"") + ">DATASHEET</a></p>";
+		}
+		partDetailsText += "</td>";
+		partDetailsText += "<td align=right><img src=" + getJSONdata(firstItem, "\"imagesets\"[0]\"small_image\"\"url\"") + "><br><a href=" + imageCreditUrl + ">" + strsub(imageCreditString, 1, strlen(imageCreditString)-2) + "</a></td></tr></table>";
+		
+		i = 0;
+		//partDetailsText += "<hr><font size=6><p>Distributors</p></font>";
+		partDistributorsText += "<table cellspacing=0 cellpadding=6><tr bgcolor=#e1e1e1><td><font color=#333><b>Seller</b></font></td><td><font color=#333><b>Packaging</b></font></td><td><font color=#333><b>Stock</b></font></td><td><font color=#333><b>Price</b></font></td></tr>";
+		string offersJson = getJSONdata(firstItem, "\"offers\"");
+		while (1) {
+			string offerIndex="";
+			sprintf(offerIndex, "[%d]", i);
+			string offerJson = getJSONdata(offersJson, offerIndex);
+			if (offerJson == "") {
+				break;
+			}
+			string sellerJson = getJSONdata(offerJson, "\"seller\"");
+			string sellerUid = getJSONdata(sellerJson, "\"uid\"");
+			if (distributorFilterEnabled == 1 && distributorFilter != "" && strxstr(sellerUid,distributorFilter) < 0) {
+				i++;
+				continue;
+			}
+			string sellerName = getJSONdata(sellerJson, "\"name\"");
+			if (sellerName=="null") {
+				sellerName = "\"no info\"";
+			}
+			string sellerUrl = getJSONdata(sellerJson, "\"homepage_url\"");
+			string productUrl = getJSONdata(offerJson, "\"product_url\"");
+
+			string sku = getJSONdata(offerJson, "\"sku\"");
+			if (sku=="null") {
+				sku = "\"-\"";
+			}
+			string inStockQuantity = getJSONdata(offerJson, "\"in_stock_quantity\"");
+			if (inStockQuantity=="null") {
+				inStockQuantity = "-";
+			}
+			if (inStockQuantity=="-1") {
+				inStockQuantity = "Non-stocked";
+			}
+			if (inStockQuantity=="-2") {
+				inStockQuantity = "Yes";
+			}
+			if (inStockQuantity=="-3") {
+				inStockQuantity = "Unknown";
+			}
+			if (inStockQuantity=="-4") {
+				inStockQuantity = "RFQ";
+			}
+			string packaging = getJSONdata(offerJson, "\"packaging\"");
+			if (packaging=="null") {
+				packaging = "\"-\"";
+			}
+			
+			string pricesJson = getJSONdata(offerJson, "\"prices\"");
+			string currencies[];
+			int currCount = 0;
+			int p = 0;
+			string allPricesString = "";
+			while (1) {
+				int l = 0;
+				p = strxstr(pricesJson,"(\"((\\\\\")|[^\"])*\"):", p, l);
+				if (p < 0) {
+					break;
+				}
+				int k = 0;
+				string quantitiesString = "";
+				string pricesString = "";
+				while (1) {
+					string priceIndex="";
+					sprintf(priceIndex,strsub(pricesJson, p, l-1)+"[%d]", k++);
+					string quantity = getJSONdata(pricesJson, priceIndex+"[0]");
+					string price = getJSONdata(pricesJson, priceIndex+"[1]");
+					if (quantity == "") {
+						break;
+					};
+					quantitiesString += "<th><font color=#333>" + quantity + "</font></th>";
+					pricesString += "<td>" + strsub(price,1,strlen(price)-2) + "</td>";
+				}
+				
+				allPricesString += "<table cellpadding=5 cellspacing=0><tr><th><font color=#333></font></th>" + quantitiesString + "</tr><tr><td align=right><font color=#333><b>" + strsub(pricesJson, p+1, l-3) + "</b></font>" + pricesString + "</tr></table>";
+				
+				p = p+l;
+			};
+			
+			
+			
+			string c = "#fff";
+			if (i%2 == 0) {
+				c = "#f8f8f8";
+			}
+			partDistributorsText	+= "<tr bgcolor="+ c +"><td><nobr><b>"+ strsub(sellerName,1,strlen(sellerName)-2) +"</b>&nbsp;<a href="+sellerUrl+"><img width=10 height=10 src=\"" + filedir(argv[0]) + "icons/link.png\"></a></nobr><br>";
+			partDistributorsText += "<a href="+productUrl+"><nobr>"+ strsub(sku,1,strlen(sku)-2) +"</nobr></a></td>";
+			partDistributorsText += "<td><nobr>"+ strsub(packaging,1,strlen(packaging)-2) +"</nobr></td>";
+			partDistributorsText += "<td>"+ inStockQuantity +"</td>";
+			partDistributorsText += "<td>"+ allPricesString +"</td></tr>";
+			i++;
+
+		}
+		partDistributorsText += "</table>";
+		
+		
+		
+		
+	} else {
+		partDetailsText += "<p><font size=5><b>" + selectedDev[1] + "</b></font><br/><font size=6>" + partNumber + "</font><p>";
+	}
+
+	
+	//partDetailsText += "<hr><p><font size=6>Attributes</font></p>";
+	
+	partAttributesText += "<p><table cellspacing=0 cellpadding=5 width=600>";
+	
+	string headerFields[];
+	int nFields = strsplit(headerFields, availableDevicesHeader, '\t');
+	
+	for (i = 4; i < nFields; i++) {
+		string c = "#fff";
+		if (i%2 == 0) {
+			c = "#f8f8f8";
+		}
+		partAttributesText	+= "<tr bgcolor="+ c +"><td><b>"+ headerFields[i] +"</b></td><td >"+ selectedDev[i] +"</td></tr>";
+	}
+	
+	partAttributesText += "</table></p>";
+	
+	
+	for (i = 5; i < nFields; i++) {
+
+		partAttributesArray[i-5]	= headerFields[i] +"\t"+ selectedDev[i];
+	}
+	partAttributesArray[nFields-5] = "";
+	
+	partDetailsText += "</td></tr></table></body></font>";
+}
+
+schematic(S) {
+	int n = 0;
+	S.parts(P) {
+		string d = processPart(P);
+		if (d!="") schematicSymbols[n++] = d;
+	}
+	
+	S.modules(M) M.parts(P) {
+		string d = processPart(P);
+		if (d!="") schematicSymbols[n++] = d;
+	}
+}
+
+int Result = dlgDialog("Search & Replace Device") {
+	int symbolSort = 0;
+	dlgListView(schematicSymbolHeaders, schematicSymbols, selectedSymbolIndex, symbolSort) {
+		if (dlgSelectionChanged()) {
+			string selectedRow = schematicSymbols[selectedSymbolIndex];
+			string selectedSymbol[];
+			strsplit(selectedSymbol,selectedRow,'\t');
+			activeQuery = selectedSymbol[6];
+			findDevices(selectedSymbol[2], activeQuery);
+			for (int i = 0; i <numDevices; i++) {
+				string temp[];
+				int n = strsplit(temp, availableDevices[i],'\t');
+				if (temp[2] == selectedSymbol[3]) {
+					selectedDevice = i;
+					updatePartDetails();
+					break;
+				}
+			}
+		} else {
+			string selectedRow = schematicSymbols[selectedSymbolIndex];
+			string selectedSymbol[];
+			strsplit(selectedSymbol,selectedRow,'\t');
+			if (selectedSymbol[0] == "   "+0xe0a4) {
+				selectedSymbol[0] = " ";
+			} else {
+				selectedSymbol[0] = "   "+0xe0a4;
+			}
+			schematicSymbols[selectedSymbolIndex] = strjoin(selectedSymbol,'\t');
+		}
+			
+	};
+	dlgHBoxLayout {
+		dlgLabel("QUERY: ");
+		string history[];
+		dlgStringEdit(activeQuery, history);
+		dlgComboBox(fieldNames, fieldNamesChooserItem) {
+			string temp = strtrim(activeQuery);
+			string addToQuery = fieldNames[fieldNamesChooserItem];
+			if (temp[strlen(temp)] != '&' && strlen(temp)>0) {
+				addToQuery = " & " + addToQuery;
+			}
+			activeQuery += addToQuery;
+			fieldNamesChooserLink="";
+		}
+		dlgPushButton("+🔍") {
+			string selectedRow = schematicSymbols[selectedSymbolIndex];
+			string selectedSymbol[];
+			strsplit(selectedSymbol,selectedRow,'\t');
+			findDevices(selectedSymbol[2], activeQuery);
+		};
+		
+	}
+	/*
+	dlgLabel(fieldNamesChooser, 1);
+	
+	dlgTextView(fieldNamesChooser, fieldNamesChooserLink) {
+		string temp = strtrim(activeQuery);
+		string addToQuery = fieldNamesChooserLink;
+		if (temp[strlen(temp)] != '&' && strlen(temp)>0) {
+			addToQuery = "& " + addToQuery;
+		}
+		activeQuery += addToQuery;
+		fieldNamesChooserLink="";
+	};
+	*/
+	
+	dlgHBoxLayout {
+		int sortCol = 0;
+		dlgListView(availableDevicesHeader, availableDevices, selectedDevice,sortCol) {
+			if (dlgSelectionChanged()) {
+				updatePartDetails();
+			} else {
+				replaceDevice();
+			}
+			
+		}
+		dlgGridLayout {
+			/*
+			dlgCell (0,0,0,0) {
+				dlgLabel("<table width=550 height=0><tr><td></td></tr></table>");
+			};
+			*/
+			dlgCell (0,0,0,0) {
+				dlgTextView(partDetailsText);
+			};
+			
+			dlgCell (1,0,1,0) {
+				dlgLabel("<table height=300 width=550><tr><td></td></tr></table>");
+			};
+		
+			dlgCell (1,0,1,0) {
+				dlgTabWidget {
+					dlgTabPage ("Attributes") {
+						dlgVBoxLayout {
+							///dlgLabel(partAttributesText,1);
+							int selectedAttribute = 0;
+							dlgListView("Attribute\tValue",partAttributesArray,selectedAttribute);
+							//dlgStretch(1);
+						}
+					}
+					dlgTabPage ("Distributors") {
+						dlgVBoxLayout {
+							dlgTextView(partDistributorsText);
+						}
+					}
+				}
+			};
+		}
+	};
+	
+	dlgHBoxLayout {
+		dlgLabel("<font size=4><table><tr><td><nobr>Powered by </nobr></td><td><a href=\"https://octopart.com\"><img height=17 src=\"" + filedir(argv[0]) + "icons/blue-octopart-logo.png\"></a></td></tr></table></font>");
+		dlgStretch(1);
+		dlgPushButton("   Distributor Options   ") {
+
+			if (allSellerCount <= 0) {
+				int offset = 0;
+				while (1) {
+					string json_data;
+					string octopartUrl = "";
+					sprintf(octopartUrl, "https://octopart.com/api/v3/sellers/search?apikey=%s&limit=100&start=%d", OCTOPARTAPIKEY, offset);
+					netget(json_data, octopartUrl);
+					int numberOfHits = strtol(getJSONdata(json_data,"\"hits\""));
+					if (offset>=numberOfHits) {
+						break;
+					}
+					string results = getJSONdata(json_data,"\"results\"");
+					int i = 0;
+					while (1) {
+						string temp;
+						sprintf(temp,"[%d]\"item\"",i);
+						string sellerJson = getJSONdata(results, temp);
+						if (sellerJson=="") {
+							break;
+						}
+						string name = getJSONdata(sellerJson, "\"name\"");
+						if (name == "null") name = ""; else name = strsub(name,1,strlen(name)-2);
+						string id = getJSONdata(sellerJson, "\"id\"");
+						if (id == "null") id = ""; else id = strsub(id,1,strlen(id)-2);
+						string uid = getJSONdata(sellerJson, "\"uid\"");
+						if (uid == "null") uid = ""; else uid = strsub(uid,1,strlen(uid)-2);
+						string hasEcommerce = getJSONdata(sellerJson, "\"has_ecommerce\"");
+						string homepageUrl = getJSONdata(sellerJson, "\"homepage_url\"");
+						if (homepageUrl == "null") homepageUrl = ""; else homepageUrl = strsub(homepageUrl,1,strlen(homepageUrl)-2);
+						string displayFlag = getJSONdata(sellerJson, "\"display_flag\"");
+						if (displayFlag == "null") displayFlag = ""; else displayFlag = strsub(displayFlag,1,strlen(displayFlag)-2);
+						
+						string selected = "";
+						if (distributorFilter != "" && strxstr(uid,distributorFilter) >= 0) {
+							selected = "   " + 0xe0a4;
+						}
+						
+						allSeller[allSellerCount++] = selected + "\t" + name + "\t" + displayFlag + "\t" + hasEcommerce + "\t" + homepageUrl + "\t" + id + "\t" + uid;
+						
+						
+						i++;
+					}
+					offset += 100;
+				}
+			}
+			
+			int selectedSellerIndex = 0;
+			int sellerSort = -1;
+			dlgDialog("Distributor Options") {
+				dlgCheckBox("Enable Filter", distributorFilterEnabled);
+				dlgHBoxLayout {
+					
+					dlgListView(allSellerHeader, allSeller, selectedSellerIndex, sellerSort) {
+						if (!dlgSelectionChanged()) {
+							string sellerFields[];
+							int nFields = strsplit(sellerFields, allSeller[selectedSellerIndex], '\t');
+							if (sellerFields[0] == "") {
+								sellerFields[0] = "   " + 0xe0a4;
+							} else {
+								sellerFields[0] = "";
+							}
+							allSeller[selectedSellerIndex] = strjoin(sellerFields, '\t');
+						}
+					};
+				}
+				//dlgLabel(distributorFilter);
+				dlgHBoxLayout {
+					dlgStretch(1);
+					dlgPushButton("Select all") {
+						distributorFilter = ".*";
+						for (int i = 0; i < allSellerCount; i++) {
+							string sellerFields[];
+							int nFields = strsplit(sellerFields, allSeller[i], '\t');
+							sellerFields[0] = "   " + 0xe0a4;
+							allSeller[i] = strjoin(sellerFields, '\t');
+						}
+					};
+					dlgPushButton("Deselect all") {
+						distributorFilter = ".*";
+						for (int i = 0; i < allSellerCount; i++) {
+							string sellerFields[];
+							int nFields = strsplit(sellerFields, allSeller[i], '\t');
+							sellerFields[0] = "";
+							allSeller[i] = strjoin(sellerFields, '\t');
+						}
+					};
+					
+					dlgSpacing(10);
+					dlgPushButton("&Cancel") dlgReject();
+					dlgPushButton("&Save") {
+						string temp[];
+						int tempCount = 0;
+						distributorFilter = "";
+						for (int i = 0; i < allSellerCount; i++) {
+							string sellerFields[];
+							int nFields = strsplit(sellerFields, allSeller[i], '\t');
+							if (sellerFields[0] != "") {
+								temp[tempCount++] = sellerFields[6];
+							};
+						}
+						distributorFilter = strjoin(temp,'|');
+						string distributorFilterEneabledString = "false";
+						if (distributorFilterEnabled) distributorFilterEneabledString = "true";
+						cfgset("SearchAndReplace.DistributorFilterEneabled", distributorFilterEneabledString);
+						cfgset("SearchAndReplace.DistributorFilter", distributorFilter);
+						dlgAccept();
+					};
+				};
+			};
+		};
+		dlgSpacing(10);
+		dlgPushButton("" + 0xe201 + " Index") {
+			exit("RUN create-lib-index.ulp;\nEDIT .sch;\nRUN " + strjoin(argv,' ') + ";");
+		};
+		dlgSpacing(10);
+		dlgPushButton("&Replace") replaceDevice();
+	}
+}; 
+
+cfgset("EAGLE:Option.Codec", oldCodec);

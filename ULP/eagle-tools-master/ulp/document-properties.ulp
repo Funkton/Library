@@ -1,0 +1,161 @@
+string propertyValues[];
+string propertyLayerSheet[];
+string propertyLayerPartName[];
+string propertyDescription[];
+string propertyNames[];
+string propertySymbol[];
+string symbol_sch = "ISO7200";
+string symbol_brd = "ISO7200_B";
+
+int nbrProperties;
+void setAttributeValue(UL_ATTRIBUTE attribute, int propertyLayer){
+	for (int i; propertyNames[i];i++){
+		if (attribute.name == propertyNames[i]){
+			propertyValues[i+(propertyLayer*nbrProperties)] = attribute.value;
+			break;
+		}
+	}
+}
+
+string getAttributeValue(UL_ATTRIBUTE attribute, int propertyLayer){
+	for (int i; propertyNames[i];i++){
+		if (attribute.name == propertyNames[i]){
+			return propertyValues[i+(propertyLayer*nbrProperties)];
+		}
+	}
+	return "";
+}
+
+void main(){
+	string configstr = cfgget("libtool.attrdesc","DOCUMENT_ID	Bauteilnummer:	PROJECT	Titel:	DOC_CLASS_NAME	Dokumentenart:	DOC_STATUS	Dokumentenstatus:	ORGANIZATIONAL_UNIT	Projekt/Abteilung:	TECH_REF	Technische Referenz:	CREATOR_NAME	Erstellt durch:	APPROVED_BY_PERSON	Genehmigt von:	COST_CENTER	Kostenstelle:	DATE	Ausgabedatum:	REVISION	Revision:");
+	string configstrsplit[];
+	nbrProperties = strsplit(configstrsplit,configstr,'\t')/2;
+	{for (int i = 0; i<nbrProperties; i++){
+		propertyNames[i] = configstrsplit[2*i];
+		propertyDescription[i] = configstrsplit[2*i+1];
+	}}
+	
+	int selectedSheet;
+	int nbrSymbols;
+	int sortTable = 0;
+	string sheetNames[];
+	string propertyValuesGUI[];
+	
+	if (schematic){
+		schematic(S){
+			int i=0;
+			S.attributes(A){
+				setAttributeValue(A,i);
+			}
+			sprintf(propertyLayerSheet[i],".s%d",1);
+			propertyLayerPartName[i]="*";
+			sheetNames[i++] = "Common Properties";
+			S.sheets(H){
+				H.instances(I){
+						if (I.gate.symbol.name==symbol_sch){
+							I.attributes(A){
+								setAttributeValue(A,i);
+							}
+						sprintf(propertyLayerSheet[i],".s%d",H.number);
+						propertySymbol[i] = I.gate.symbol.name;
+						propertyLayerPartName[i]=I.name;
+						sprintf(sheetNames[i++],"%s: %d\t%s","Schematic",H.number,I.part.name);
+						
+						}
+						
+					}
+			}
+			S.modules(M){
+				M.sheets(H){
+					H.instances(I){
+						if (I.gate.symbol.name==symbol_sch){
+							I.attributes(A){
+								setAttributeValue(A,i);
+							}
+						propertySymbol[i] = I.gate.symbol.name;
+						sprintf(propertyLayerSheet[i],"%s.m%d",M.name,H.number);
+						propertyLayerPartName[i]=I.name;
+						sprintf(sheetNames[i++],"Module %s: %d\t%s",M.name,H.number,I.part.name);
+						}
+						
+					}
+					
+				}
+			}
+			S.sheets(H){
+				H.instances(I){
+						if (I.gate.symbol.name==symbol_brd){
+							I.attributes(A){
+								if (getAttributeValue(A,0)!=A.value)
+									setAttributeValue(A,i);
+							}
+						propertySymbol[i] = I.gate.symbol.name;
+						sprintf(propertyLayerSheet[i],".s%d",H.number);
+						propertyLayerPartName[i]=I.name;
+						sprintf(sheetNames[i++],"%s: %d\t%s","Board",H.number,I.name);
+						}
+				}
+			}
+			
+			nbrSymbols=i;
+		}
+	} else if (dlgMessageBox(":Please run in schematic editor", "&OK") == 0) {
+		exit(-1);
+	};
+	for (int i=0;i<nbrProperties;i++){
+					propertyValuesGUI[i] = propertyValues[i+(0*nbrProperties)];
+				}
+	dlgDialog("Document Properties"){
+		dlgHBoxLayout{
+			dlgListView("Document Field\tDesignator",sheetNames,selectedSheet,sortTable){
+				if (dlgSelectionChanged()){
+					for (int i=0;i<nbrProperties;i++){
+						if (propertyValues[i+(selectedSheet*nbrProperties)])
+							propertyValuesGUI[i] = propertyValues[i+(selectedSheet*nbrProperties)];
+						else 
+							propertyValuesGUI[i] = propertyValues[i];
+					}
+				}
+			};
+			dlgVBoxLayout{
+				dlgGridLayout {
+					for (int iw=0; propertyDescription[iw]; iw++){
+						dlgCell(iw, 0) dlgLabel(propertyDescription[iw]);
+						dlgCell(iw, 1) dlgStringEdit(propertyValuesGUI[iw]);
+					};
+				};
+				dlgHBoxLayout{
+					dlgStretch(1);
+					dlgPushButton("+&Save"){
+						for (int i=0;i<nbrProperties;i++){
+							if (propertyValuesGUI[i] != propertyValues[i])
+								propertyValues[i+(selectedSheet*nbrProperties)] = propertyValuesGUI[i];
+						}
+					};
+				};
+				dlgStretch(1);
+			}
+		}
+		dlgHBoxLayout{
+			dlgStretch(1);
+			dlgPushButton("&OK"){
+				string script="CHANGE DISPLAY OFF;\n";
+				for (int i=0;i<nbrSymbols;i++){
+					sprintf(script,"%sEDIT %s;\n",script,propertyLayerSheet[i]);
+					for (int j=0;j<nbrProperties;j++){
+						if (propertyValues[i*nbrProperties+j])
+							sprintf(script,"%sATTRIBUTE %s %s '%s';\n",script,propertyLayerPartName[i],propertyNames[j],propertyValues[i*nbrProperties+j]);
+						else if (propertySymbol[i]==symbol_brd)
+							sprintf(script,"%sATTRIBUTE %s %s '%s';\n",script,propertyLayerPartName[i],propertyNames[j],propertyValues[j]);
+					}
+					if (i>0)
+						sprintf(script,"%sATTRIBUTE %s SHEETNUM '%d/%d';\n",script,propertyLayerPartName[i],i,nbrSymbols-1);
+				}
+				exit(script);
+			};
+			dlgPushButton("&Cancel"){
+				exit(-1);
+			};
+		};
+	};
+};

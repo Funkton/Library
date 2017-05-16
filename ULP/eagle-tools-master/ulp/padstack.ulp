@@ -1,0 +1,116 @@
+#usage "en: IPC-7351C Proportional Pad Stacks\n"
+			"Implements padstack calculation specified by IPC-7351C draft.\n"
+			"Usage: RUN padstack.ulp\n"
+			"Author: behner@zess.uni-siegen.de",
+		"de: IPC-7351C Proportional Pad Stacks\n"
+			"Implementiert Padstack berechnung nach IPC-7351C (Entwurf)\n"
+			"Aufruf: RUN padstack.ulp\n"
+			"Autor: behner@zess.uni-siegen.de"
+
+string outScript;
+real maximumLead;
+real maximumLeadA;
+real maximumLeadB;
+real holeOverLead=0.2;
+real holeOverRoundLead=0.2;
+real holeOverRectLead=0.15;
+real padToHoleRatio=1.5;
+real minimumAnnularRing=0.2;
+real thermalInnerDiameterOverHole=0.4;
+real minimumThermalOuterDiameterOverInnerDiameter=0.3;
+real thermalOuterDiameterToHoleRatio=1.1;
+real spokeWidth=75;
+real resultRoundOff=0.01;
+
+real holeDiameter;
+real padDiameter;
+real thermalID;
+real thermalOD;
+real thermalSpokeWidth;
+real antiPad;
+
+string resultString;
+
+string leadTypes[] = { "round", "square", "rectangular"};
+int selectedLeadType=0;
+
+real roundReal(real value){
+	return(ceil(value/resultRoundOff)*resultRoundOff);
+}
+
+void calculatePadstack(void){
+	if (selectedLeadType < 1)
+		holeOverLead=holeOverRoundLead;
+	else
+		holeOverLead=holeOverRectLead;
+	if (selectedLeadType == 0)
+		maximumLead = maximumLeadA;
+	else if (selectedLeadType == 1)
+		maximumLead = sqrt(maximumLeadA*maximumLeadA+maximumLeadA*maximumLeadA);
+	else 
+		maximumLead = sqrt(maximumLeadA*maximumLeadA+maximumLeadB*maximumLeadB);
+	holeDiameter=roundReal(maximumLead+holeOverLead);
+	padDiameter=roundReal(max(holeDiameter*padToHoleRatio,holeDiameter+2*minimumAnnularRing));
+	thermalID=roundReal(holeDiameter+thermalInnerDiameterOverHole);
+	thermalOD=roundReal(holeDiameter*thermalOuterDiameterToHoleRatio+(thermalInnerDiameterOverHole+minimumThermalOuterDiameterOverInnerDiameter));
+	thermalSpokeWidth=roundReal(thermalOD/4.0*spokeWidth/100.0);
+	antiPad=roundReal(thermalOD);
+}
+
+int Result = dlgDialog("Enter lead diameter") {
+	dlgTabWidget {
+		dlgTabPage("&Lead geometry") {
+			dlgComboBox(leadTypes,selectedLeadType) {
+				
+				
+			}
+			dlgGridLayout {
+				dlgCell(0, 0) dlgLabel("maximum Lead Dimension A");
+				dlgCell(0, 1) dlgRealEdit(maximumLeadA);
+				dlgCell(0, 2) dlgLabel("maximum Lead Dimension B");
+				dlgCell(0, 3) dlgRealEdit(maximumLeadB);
+			}
+			dlgLabel(resultString,1);
+		}
+		dlgTabPage("&Padstack parameters") {
+			dlgGridLayout {
+				dlgCell(0, 0) dlgLabel("Hole over round lead");
+				dlgCell(0, 1) dlgRealEdit(holeOverRoundLead);
+				dlgCell(1, 0) dlgLabel("Hole over rectangular lead");
+				dlgCell(1, 1) dlgRealEdit(holeOverRectLead);
+				dlgCell(2, 0) dlgLabel("Pad to hole ratio");
+				dlgCell(2, 1) dlgRealEdit(padToHoleRatio);
+				dlgCell(3, 0) dlgLabel("Minimum annular ring");
+				dlgCell(3, 1) dlgRealEdit(minimumAnnularRing);
+				dlgCell(4, 0) dlgLabel("Thermal ID over hole");
+				dlgCell(4, 1) dlgRealEdit(thermalInnerDiameterOverHole);
+				dlgCell(5, 0) dlgLabel("Minimum thermal OD over ID");
+				dlgCell(5, 1) dlgRealEdit(minimumThermalOuterDiameterOverInnerDiameter);
+				dlgCell(6, 0) dlgLabel("Thermal OD to hole ratio");
+				dlgCell(6, 1) dlgRealEdit(thermalOuterDiameterToHoleRatio);
+				dlgCell(7, 0) dlgLabel("Spoke width (% of OD/4)");
+				dlgCell(7, 1) dlgRealEdit(spokeWidth);
+				dlgCell(8, 0) dlgLabel("Round off");
+				dlgCell(8, 1) dlgRealEdit(resultRoundOff);
+			}
+		}
+	}
+	dlgPushButton("Update") {
+		calculatePadstack();
+		sprintf(resultString,"<table>\
+		<tr><th>Hole diameter</th><td>%0.2f mm</td></tr>\
+		<tr><th>Pad diameter</th><td>%0.2f mm</td></tr>\
+		<tr><th>Thermal inner diameter</th><td>%0.2f mm</td></tr>\
+		<tr><th>Thermal outer diameter</th><td>%0.2f mm</td></tr>\
+		<tr><th>Thermal spoke width</th><td>%0.2f mm</td></tr>\
+		<tr><th>Antipad diameter</th><td>%0.2f mm</td></tr>\
+		</table>",holeDiameter,padDiameter,thermalID,thermalOD,thermalSpokeWidth,antiPad);
+		dlgRedisplay();
+		};
+	dlgPushButton("+OK") {
+		calculatePadstack();
+		dlgAccept();
+	};
+};
+sprintf(outScript,"%sSET DRILL %0.2fmm; PAD  %0.2fmm",outScript,holeDiameter,padDiameter);
+exit(outScript);

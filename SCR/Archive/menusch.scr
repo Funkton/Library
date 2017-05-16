@@ -1,0 +1,85 @@
+# Command Menu Setup
+#
+# This is an example that shows how to set up a complex command menu,
+# including submenus and command aliases. To display the command menu in
+# the editor windows you have to activate the option 'Command texts'
+# in the 'Options/User Interface' menu.
+
+MENU 
+     'Next Page : run editnext-sheet;'\
+     'Prev Page : run editprev-sheet;'\
+     '---'\
+     'Grid {\
+             0.0125" : Grid inch 0.0125; |\
+             0.0250" : Grid inch 0.025; |\
+             0.0500" : Grid inch 0.050; |\
+             0.1000" : Grid inch 0.1; |\
+             Show Grid : Grid On; | \
+             Hide Grid : Grid Off;\
+           }'\
+     '---'\
+     'Display {\
+         Default : Display None Nets Busses Symbols Names Values HeatSink Descript OrgLBR; |\
+         Pin Nums : Display None Nets Busses Pins Symbols Names Values HeatSink Descript OrgLBR; \
+     }'\
+     '---'\
+     'Selection {\
+         Selection On: GROUP|\
+         Selection All: GROUP ALL;\
+     }'\
+     '---'\
+     'Copy {\
+         Duplicate On: COPY|\
+         Copy Selection: CUT;|\
+         Copy and Paste Selection: CUT; COPY (C>0 0)|\
+         Copy All: GROUP ALL; CUT;|\
+         Copy All and Paste: GROUP ALL; CUT; COPY (C>0 0)\
+     }'\
+     '---'\
+     'Paste: PASTE'\
+     '---'\
+     'Delete {\
+         Delete On: DELETE|\
+         Delete Selection: DELETE (C>0 0);|\
+         Delete All: GROUP ALL; DELETE (C>0 0)\
+     }'\
+     '---'\
+     'Move {\
+         Move On: MOVE|\
+         Move Selection: MOVE (C>0 0);|\
+         Move All: GROUP ALL; MOVE (C>0 0)\
+     }'\
+     '---'\
+     'Find : run find;'\
+     '---'\
+     'Attribute : run attrib-add.ulp;'\
+     '---'\
+     'BOM : run bom-ex.ulp;'\
+     '---'\
+     'PartNo Mgr: run bom-partno-mgr.ulp;'\
+     '---'\
+     'Renumber : run renumber-sch;'\
+     '---'\
+     'Statistics : run statistic-sch.ulp;'\
+     '---'\
+     'Normalize : run normalize-rcl-values4.ulp;'\
+     '---'\
+     'Migrate RCL : run migrate-rc-master.ulp;'\
+     '---'\
+     'Change  {\
+         Cap : change cap |\
+         Class : change class |\
+         Display : change display |\
+         Font : change font |\
+         Layer : change layer |\
+         Package : change package |\
+         Ratio : change ratio |\
+         Size : change size |\
+         Style : change style |\
+         Technology : change technology |\
+         Text : change text |\
+         Width : change width |\
+         Xref : change xref\
+     }'\
+     '---';
+

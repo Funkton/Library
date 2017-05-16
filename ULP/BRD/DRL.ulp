@@ -1,0 +1,118 @@
+#usage "<b>Export drill configuration</b>\n"
+       "<p>"
+       "Generates a drill configuration file for the current board."
+       "<p>"
+       "Units: mm or inches can be chosen."
+       "<p>"
+       "The generated file can be edited before saving."
+       "<p>"
+       "Use this ULP also for checking the drills of a board."
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+/*
+ *  This EAGLE User Language Program generates
+ *  a drill configuration file for the current
+ *  board.
+ *
+ *  Units can be switched between mm and inch.
+ */
+
+string unitName[] = { "mm", "in" };
+int    Unit, unitPrec[] = { 2, 3 }, RoundFactor = pow(10, unitPrec[Unit]),
+       Result = 0, imax = 0;
+real   Drilling[];
+string s, fileName, conf = "";
+enum { unitMM, unitINCH};
+
+  int getunit (void) {
+  string s;
+  int Unit = unitINCH; // preset unit
+  Result = dlgDialog("Drill Configuration") {
+    dlgHBoxLayout {
+       dlgStretch(0);
+       dlgGroup("Select unit for output file") {
+          dlgStretch(0);
+          dlgGridLayout {
+             dlgCell(1, 0)  dlgRadioButton("&mm", Unit);
+             dlgCell(2, 0)  dlgRadioButton("&inch", Unit);
+             }
+          }
+       dlgStretch(0);
+       dlgVBoxLayout {
+          dlgHBoxLayout {
+             dlgSpacing(20);
+             dlgStretch(0);
+             dlgPushButton("+OK") dlgAccept();
+             dlgStretch(1);
+             }
+          dlgHBoxLayout {
+             dlgSpacing(20);
+             dlgStretch(0);
+             dlgPushButton("-Quit") dlgReject();
+             dlgStretch(1);
+             }
+          }
+       dlgStretch(1);
+       }
+     dlgStretch(1);
+    };
+  RoundFactor = pow(10, unitPrec[Unit]);
+  return Unit;
+}
+
+void AddDrilling(int Size)
+{
+  real x;
+
+  switch (Unit) {
+    case unitMM:   x = round(u2mm(Size) * RoundFactor) / RoundFactor;
+                   break;
+    case unitINCH: x = round(u2inch(Size) * RoundFactor) / RoundFactor;
+                   break;
+    }
+
+  for (int i = imax; --i >= 0; )
+      if (Drilling[i] == x)
+         return;
+  Drilling[imax++] = x;
+}
+
+Unit = getunit();
+if (Result == 0) exit(0);
+board(B) {
+  B.holes(H) AddDrilling(H.drill);
+  B.signals(S) S.vias(V) AddDrilling(V.drill);
+  B.elements(E) {
+    E.package.contacts(C) {
+      if (C.pad)
+         AddDrilling(C.pad.drill);
+      }
+    E.package.holes(H) AddDrilling(H.drill);
+    }
+  sort(imax, Drilling);
+
+  for (int i = 0; i < imax; ++i) {
+      sprintf(s, "T%02d %5.*f%s\n", i + 1, unitPrec[Unit], Drilling[i], unitName[Unit]);
+      conf += s;
+      }
+
+  dlgDialog("Edit Drill Configuration") {
+     dlgVBoxLayout {
+     dlgLabel("Edit only if you are sure what you do!");
+     dlgTextEdit(conf);
+        dlgPushButton("+Ok") dlgAccept();
+        dlgPushButton("-Cancel") dlgReject();
+        }
+     };
+
+
+  fileName = dlgFileSave("Save Configuration File", filesetext(B.name, ".drl"), "*.drl");
+  if (fileName == "") exit(0);
+
+  output(fileName) {
+    printf("%s",conf);
+    }
+  }

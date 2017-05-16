@@ -1,0 +1,242 @@
+//HEADER_VERTICAL	Header, Vertical	Board to board, wire to board connector
+//<p>This will allow you to generate vertical through hole header.</p><br><center><img src="ipc-wizard/hdrv-01.png"></center>
+
+#include "common.h"
+
+wizardName = "Through-Hole Header, vertical";
+wizardImage = "hdrv-01.png";
+wizardDescription = "<img src=\"hdrv-02.png\">";
+
+string bodyTypes[] = {"Male", "Male, shrouded", "Female"};
+string namingPrefix[] = {"HDRV","SHDRV","RHDRV"};
+string contactShapes[] = {"Rectangular","Round"};
+string contactShapeCodes[] = {"R","C"};
+string numberingSchemes[] = {"Vertical first","Horizontal First","Meander, vertical","Meander, horizontal"};
+string designatorSchemes[] = {"Linear index, numeric","Matrix, column numeric (A1)","Matrix, row numeric (1A)"};
+string contactCharsDefault = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+string materialConditionStr[] = {"L","N","M"};
+string materialConditionLongStr[] = {"Least","Nominal","Most"};
+
+addParameterComboBox("bodyType", "Body Type", strjoin(bodyTypes,'|'), 0);
+addParameterComboBox("contactShape", "Terminal Shape", strjoin(contactShapes,'|'), 0);
+
+addParameterHeader("Number of Terminals");
+	addParameterInt("ND","Number of Columns",4);
+	addParameterInt("NE","Number of Rows",2);
+	addParameterComboBox("indexScheme", "Index scheme", strjoin(numberingSchemes,'|'), 0);
+	addParameterComboBox("designatorScheme", "Designator scheme", strjoin(designatorSchemes,'|'), 0);
+	addParameterString("designatorSymbols", "Designator symbols", contactCharsDefault);
+
+addParameterHeader("Terminal Dimensions");
+	addParameterReal("b","Pin thickness (b)", 0.64);
+	addParameterReal("d","Column pitch (d)", 2.54);
+	addParameterReal("e","Row pitch (e)", 2.54);
+
+addParameterHeader("Body Dimensions");
+	addParameterReal("H","Height (H)", 8);
+	addParameterReal("D","Length (D)", 10.16);
+	addParameterReal("E","Width (E)", 5);
+	
+addParameterHeader("Component Name");
+	addParameterComboBox("nameScheme", "Component Name Scheme", "Standard|Manufacturer Name / Part Number", 0);
+	addParameterString("manufacturerName", "Manufacturer Name Abbreviation", "");
+	addParameterString("manufacturerPartNo", "Part Number / Case Code", "");
+runWizard();
+
+real b = getParameterReal("b");
+int ND = getParameterInt("ND");
+int NE = getParameterInt("NE");
+
+real padPlaceRoundOff = getLibraryParameterValueReal("padPlaceRoundOff");
+real d = getParameterReal("d");
+real e = getParameterReal("e");
+real D = getParameterReal("D");
+real E = getParameterReal("E");
+real H = getParameterReal("H");
+
+int bodyTypeSelected = getParameterListBox("bodyType");
+int designatorSchemeSelected = getParameterListBox("designatorScheme");
+int indexSchemeSelected = getParameterListBox("indexScheme");
+int contactShapeSelected = getParameterListBox("contactShape");
+int materialCondition = getParameterListBox("materialCondition");
+
+string contactChars = getParameterString("designatorSymbols");
+
+real pd;
+if (contactShapeSelected==0)
+	pd = beginPad(sqrt(2)*b,1);
+else
+	pd = beginPad(b,0);
+string padname;
+real xpos;
+real ypos;
+
+
+for (int padnum=0;padnum<(ND*NE);padnum++){
+	if (padnum==0)
+		firstPad();
+	else
+		shape("round");
+	switch (designatorSchemeSelected){
+		case 0: sprintf(padname,"%d",padnum+1);
+				break;
+		case 1: sprintf(padname,"%c%d",contactChars[(padnum % NE) % strlen(contactChars)], padnum / NE+1);
+				break;
+		case 2: sprintf(padname,"%d%c",padnum / NE+1,contactChars[(padnum % NE) % strlen(contactChars)]);
+				break;
+	}
+	name(padname);
+	switch (indexSchemeSelected){
+		case 0: xpos = ((padnum / NE)-(ND-1)/2.0)*d;
+				ypos = ((padnum % NE)-(NE-1)/2.0)*e;
+				break;
+		case 1: xpos = ((padnum % ND)-(ND-1)/2.0)*d;
+				ypos = ((padnum / ND)-(NE-1)/2.0)*e;
+				break;
+		case 2: xpos = ((padnum / NE)-(ND-1)/2.0)*d;
+				ypos = -((padnum % NE)-(NE-1)/2.0)*e*(2*((padnum / NE)%2)-1);
+				break;
+		case 3: xpos = -((padnum % ND)-(ND-1)/2.0)*d*(2*((padnum / ND)%2)-1);
+				ypos = ((padnum / ND)-(NE-1)/2.0)*e;
+				break;
+	}
+	if (bodyTypeSelected==2)
+		ypos *= -1;
+	position(ipcRound(xpos,padPlaceRoundOff),
+		 ipcRound(ypos,padPlaceRoundOff));
+}
+end();
+
+setLayer(LAYER_TNAMES);
+changeSize(getLibraryParameterValueReal("legendFontHeight"));
+changeRatio(getLibraryParameterValueReal("legendFontRatio"));
+changeAlign("CENTER");
+changeFont("VECTOR");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+real co_xmax = D/2.0;
+real co_ymax = E/2.0;
+
+real pad_x = ((ND-1)/2.0)*d;
+real pad_y = ((NE-1)/2.0)*e;
+real pad_xmax = pad_x+pd/2.0;
+real pad_ymax = pad_y+pd/2.0;
+
+// Component Outline
+
+beginComponentOutline(LAYER_TDOCU);
+	position(-co_xmax,-co_ymax);
+	position(co_xmax,-co_ymax);
+	position(co_xmax,co_ymax);
+	position(-co_xmax,co_ymax);
+	position(-co_xmax,-co_ymax);
+end();
+
+for (padnum=0;padnum<(ND*NE);padnum++){
+	xpos = ((padnum / NE)-(ND-1)/2.0)*d;
+	ypos = ((padnum % NE)-(NE-1)/2.0)*e;
+	if (contactShapeSelected==0)
+		coDrawRectTerminal(xpos,ypos,b,b);
+	else
+		coDrawRoundTerminal(xpos,ypos,b);
+}
+
+changeSize(getLibraryParameterValueReal("componentFontHeight"));
+changeAlign("CENTER");
+changeFont("PROPORTIONAL");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+// Legend Outline
+
+real clearance = getLibraryParameterValueReal("legendClearance");
+real legendLineWidth = getLibraryParameterValueReal("legendLineWidth");
+real legendRoundOff = getLibraryParameterValueReal("legendRoundOff");
+
+real lo_xmax;
+real lo_ymax;
+real lo_xmin;
+real lo_ymin;
+
+int minadj=0;
+
+lo_xmax = ipcCeil(co_xmax+legendLineWidth/2, legendRoundOff);
+if (co_xmax>(pad_xmax+clearance)){
+	lo_ymin = 0;
+} else {
+	lo_ymin = pad_ymax+clearance+legendLineWidth/2; 
+	minadj++;
+}
+lo_ymax = ipcCeil(co_ymax+legendLineWidth/2, legendRoundOff);
+if (co_ymax>(pad_ymax+clearance)){
+	lo_xmin = 0;
+} else {
+	lo_xmin = pad_xmax+clearance+legendLineWidth/2; 
+	minadj++;
+}
+
+//real lo_ymax = E/2;
+
+//real lo_xmin = D/2;
+
+if (minadj<2) {
+beginLegendOutline(LAYER_TPLACE);
+	position(lo_xmin, lo_ymax);
+	position(lo_xmax, lo_ymax);
+	position(lo_xmax, lo_ymin);
+end();
+beginLegendOutline(LAYER_TPLACE);
+	position(lo_xmax, -lo_ymin);
+	position(lo_xmax, -lo_ymax);
+	position(lo_xmin, -lo_ymax);
+end();
+beginLegendOutline(LAYER_TPLACE);
+	position(-lo_xmin, -lo_ymax);
+	position(-lo_xmax, -lo_ymax);
+	position(-lo_xmax, -lo_ymin);
+end();
+beginLegendOutline(LAYER_TPLACE);
+	position(-lo_xmax, lo_ymin);
+	position(-lo_xmax, lo_ymax);
+	position(-lo_xmin, lo_ymax);
+end();
+}
+
+// Draw Courtyard
+real CourtyardExcess = getLibraryParameterValueReal("thtCourtyardExcess");
+real CourtyardRoundOff = getLibraryParameterValueReal("thtCourtyardRound");
+real courtyardLineWidth = getLibraryParameterValueReal("courtyardLineWidth");
+
+real cyX = ipcCeil(max(max(pad_xmax,co_xmax)+CourtyardExcess, lo_xmax + legendLineWidth/2)-courtyardLineWidth/2, CourtyardRoundOff);
+real cyY = ipcCeil(max(max(pad_ymax,co_ymax)+CourtyardExcess, lo_ymax + legendLineWidth/2)-courtyardLineWidth/2, CourtyardRoundOff);
+
+beginCourtyard(LAYER_TKEEPOUT);
+	position(-cyX,cyY);
+	position(cyX,-cyY);
+	position(-cyX,cyY);
+end();
+
+sprintf(packageDescription, "<b>%s, vertical header</b> <i>%s Material Condition</i><br>Body (LxWxH): %.2fmm x %.2fmm x %.2fmm<br>Lead (b): %.2fmm, %s<br>Pitch (d x e): %.2fmm x %.2fmm<br>Number of Contacts (N):%d (%dx%d)",
+	bodyTypes[bodyTypeSelected],
+	materialConditionLongStr[materialCondition], 
+	D, E, H,
+	b,contactShapes[contactShapeSelected],
+	d,e,
+	ND*NE,ND,NE);
+
+if (getParameterListBox("nameScheme")==0)
+	if (d==e)
+		sprintf(packageName, "%s%dW%dP%d_%dX%d_%dX%dH%d%s%s", 
+			namingPrefix[bodyTypeSelected],ND*NE, int(round(b*100)), int(round(d*100)), ND,NE, int(round(D*100)), int(round(E*100)), int(round(H*100)),contactShapeCodes[contactShapeSelected], materialConditionStr[materialCondition]);
+	else
+		sprintf(packageName, "%s%dW%dP%d_%d_%dX%d_%dX%dH%d%s%s", 
+			namingPrefix[bodyTypeSelected],ND*NE, int(round(b*100)), int(round(d*100)), int(round(e*100)), ND,NE, int(round(D*100)), int(round(E*100)), int(round(H*100)),contactShapeCodes[contactShapeSelected], materialConditionStr[materialCondition]);
+else sprintf(packageName, "%s_%s", getParameterString("manufacturerName"),getParameterString("manufacturerPartNo"));
+
+exitWizard();

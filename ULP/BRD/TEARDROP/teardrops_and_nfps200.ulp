@@ -1,0 +1,934 @@
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+// version v2p00 was edited with Notepad++ with the Eagle ULP language extension and indents 2 wide [bcm]
+#require 6.0000  // initially tested with version 7.2&3 [bcm]; will this version work with earlier versions?
+
+string ULPlongname = "Generate Teardrops/Snowmen and/or Setup for Non-Functional Pad(NFP) removal"; // [bcm]
+string ULPbasename = "Teardrops_and_NFPs"; // [bcm]
+string Release = "v2p00"; // [bcm]
+string ReleaseDate = "July 7, 2015"; // [bcm]
+
+// following text is to display as first paragraph in Overview tab of ULP dialog window
+#usage "<b>Generate Teardrops/Snowmen and/or Setup for Non-Functional Pad(NFP) removal</b>"   // [bcm] editing and addition
+  "<p>" 
+    "<font color=red>New to this ULP is the option to setup non-functional pads for subsequent simple removal of the pads.  "
+		"Removal of NFPs is desirable in high speed designs - to reduce capacitance and signal reflections.</font>"
+    "<br>This ULP, as always, allows for creation of teardrop<font color=red>, and now snowman, </font>shaped connections to a board's vias/pads from their associated wire segments.  "
+    "Making these connections teardrop <font color=red>or snowman </font>shaped can be part of Design for Manufacture (DFM), by reducing board failures by ensuring "
+    "more robust connectivity between the segment and via/pad.  Cases where a via/pad hole is not accurately drilled when given a small annular ring, "
+    "can result in a poor or broken connection to a segment."
+  "<p>";
+
+// additional text that is to display in Overview tab of ULP dialog window
+string OverviewText = usage + 
+  "<p>"
+    "<b>This ULP (Version " + Release + " Released " + ReleaseDate + ") is provided AS IS and without warranty of any kind, expressed or implied.</b>"
+  "<p><b>Implementation:</b><br>"   
+    "This ULP version is designed to add segment-to-via (or to drilled pad) connections using<font color=red> either a teardrop or snowman shape and new parameters.</font> "
+    "<br>An attempt has been made to implement the teardrops<font color=red>/snowmen</font> in this ULP while maintaining DRC validity and not adding airwires.  "
+    "Teardrops<font color=red>/Snowmen</font> are implemented as a <font color=red>polygon of rank 1 and wire width matching the entering trace, attached to the via/pad.  "
+    "The process might result in fewer clearance errors to double-check before approval or remedy.</font>  Only round, square, and octagon shaped vias/pads are processed for teardrops/snowmen."
+    "<br><font color=red>Part of the setup for subsequent NFP removal necessitates the creation of three zero-width wire/arcs for every removed NFP in a via/pad's inner layers pad stack.  "
+		"Each functional pad must also be supplemented with one or two wire arcs.  "
+    "The DRC width warnings resulting from the NFPs to be removed, can be approved and your board manufacturer should be told to ignore these zero-width wires.  "
+    "To simply remove the inner layer NFPs once the URL has been run, change the inner layer restring value(s) to zero, then DRC/ratsnest, and check the DRC & ULP results.  "
+    "Most manufacturers require complete annular rings to properly plate holes, thus outer layers and the beginning/end of buried vias, are not processed for NFPs.</font>"
+    "<br><font color=red>The URL uses mm units throughout.</font>"
+  "<p><b>Output:</b><br>"
+    "One output of this program is a script <font color=red>(.scr) </font>which is automatically run to add the teardrops/snowman and NFP setup objects to the board.  "
+    "This .scr file can also be read into a spreadsheet program as a .csv file.  It contains "
+    "detailed information about the signal and via/pad to which each teardrop/snowman and NFP setup object is being added.  The spreadsheet "
+    "columns can be sorted and copied back to a .scr to simplify adding teardrops to only certain net classes, via sizes, layers, etc. "
+    "The spreadsheet format can also allow teardrops to be added to an unused signal layer which would facilitate cutting "
+    "them from undesired portions of the board and might create a cleaner situation for future board upgrades."
+		"<br><font color=red>A settings (.set) file is created to hold the user's settings.  Rerunning the URL displays the prior settings used.</font>"
+		"<br><font color=red>Also output are two scripts (_p2undoA.scr and _vwundoB.scr) that are used by the URL if the user wants to restore the board to the prior state</font>"
+  "<p><b>Warnings:</b><br>"
+    "<b>This ULP should be used after finalizing via/pad drill/pad diameters, restring values, and wire widths all negotiated between you and your manufacturer.  "
+		"Use this ULP as one of the final few steps before manufacture, on a permanent copy of your board file <font color=red>just before zeroing inner layer restring values, if desired, DRC/ratsnest,</font> "
+    "a final check to make sure the URL performed as desired, saving another permanent copy of the now teardropped/NFP modified board file, and generating the Gerbers.</b>"
+    "<p>It is somewhat time consuming to remove teardrops <font color=red>and NFP related objects</font>, once added.  "
+		"<br>Running the ULP a second time on a board copy already having run the URL, may be problematic.  It is generally suggested that you revert to a saved copy before re-running.  "
+    "<br><font color=red>Take the implications of checking the NFP removal setup box seriously.  Be sure your manufacturer can accept removal of NFPs "
+    "on all the inner layers you select in your board stackup. Check your resulting vias/pads and clearances, and please report those not drawn appropriately to the author.</font>"
+    "<p>With considerable forethought, it may be possible to alleviate concerns and change the order in which things are done, by using the spreadsheet output or a find/replace "
+    "on the .scr file to send the teardrops to unused signal layers which are then included when the original signal layer is plotted."
+  "<p><b>Limitations/Known Bugs:</b><br>"
+		"<font color=red>* When using the NFP feature, a subsequent restore the prior state will leave many associated artifacts on inner layers within the vias/pads.  "
+		"They include pie-shaped wedges, semi-circles and lines, many which may have zero width.</font>"
+		"<br>* The restore the prior state feature creates duplicates of vias & wires that are not directly/indirectly connected to a pad.  This is a pre v2.00 bug that has yet to be fixed.  "
+		"It is not clear how many finished boards have such 'unrouted' vias or wires, or if the duplicates may cause problems.  "
+		"The bug is because the ripup; command does not ripup vias & wires that do not have a contactref, but all the vias and wires found on the board are recreated."
+		"<br><font color=red>* Do not restore the prior state more than once after a run, as it will render the board badly corrupted.</font>  "
+		"<br><b>It is recommended to revert to a saved backup rather than restore the prior state.</b>"
+  "<p><b>Copyright:</b>"
+    "  This program may be freely modified and distributed.  "
+		"<br>Enhancements to the ULP are welcome without the necessity of contacting the author, but a courtesy email before starting is encouraged."
+  "<hr>"
+  "<font color=red>All text in red shows differences with the previous version of this program.</font>"
+  "<hr>";
+
+// text that is to display on right side of Processing tab of ULP dialog window.  substantial editing [bcm]
+string HelpText =    
+  "<p><b>Parameter Help:</b>"       
+  "<p><b>Ignore traces parameters</b>"       
+  "<br>Teardrops/Snowmen will be applied if two conditions are met: \n"
+  "<br>- if the trace width is smaller than the <b>Ignore traces with width >=</b> parameter.\n"
+  "<br>- if the trace width/via or pad diameter is smaller than the <b>Ignore traces of trace width/pad diameter >=</b> parameter.\n"
+  "<br>Examples if width is set to 0.8 and ratio parameter is set to 68%:\n"
+  "<br>trace width=0.3 & Via-diameter=0.6 --> 50% --> Teardrop will be done\n"
+  "<br>trace width=0.7 & Via-diameter=1.0 --> 70% --> Teardrop will not be done\n"
+	"<br>trace width=0.8 --> Teardrop will not be done\n"
+  "<p><b>Via/Pad center to teardrop apex, and Shape angles</b><br>"
+  "Each board designer has their own way to Design for Manufacture (DFM) given the limitations of drilling and layer/process registration during manufacture.  "
+  "Teardrops/Snowmen are a way to deal with these issues, that vary by manufacturer line/day and drill size.  There are six parameters that can be explored depending upon how and how far you, as a designer, want to push "
+  "the apex of the teardrop/snowman out along the incoming trace.  Pick one of the two default buttons as a starting point for experiments on your saved board design, and revert to the saved version after each experiment "
+  "until you find the combination that will best work for your finished board.  Note that positive curvatures result in snowmen and negative result in teardrops.  "
+  "If you experience polygon formation errors during ratsnest, make the curvature slightly more positive."
+  "<p><b>Teardrop Isolation</b>"
+  "<br>This version of the ULP utilizes Polygons to implement the teardrops/snowmen, so you may want to make sure your pre-existing board polygons have ranks >1.  "
+  "As a result, if a teardrop or snowman encroaches to a distance less than the isolation value, the teardrop will back off and not completely form. "
+  "The isolation value needs to be consistent with your DRC rules, which should match your manufacturer's expectations."
+  "<p>Should you encounter improperly formed teardrops/snowmen or have other URL related problems/suggestions prior to Dec2015, you may email the author and include the "
+  "pre-ULP board file, post-URL board file, resulting .scr files, resulting .set file, x,y (in mm) coordinates of problem vias/pads, and description of the problem(s)."
+;
+  
+// text that is to display in History tab of ULP dialog window
+string HistoryText2 =
+  "<p>"
+  "The following is a history of this program (most recent first)."
+  "<p>"
+  "Version History:"
+  "<ul>"
+  "<li>v2.00 (July/2015) - Add option to Setup to Remove Non-Functional Pads, and significant rework of Teardrop code to use polygons and other (metric) parameters to allow new tear shapes, including snowman.</li><p>"  // [bcm]
+  "<li>v1.14 - Bug when airwires exist.</li><p>"  //ars662001@yahoo.com
+  "<li>v1.13 (June/2014) - Correct glitch when wires intersect via/pad TD perimeter. Change td perimeter definition.</li><p>"  //Andres Restrepo S. ars662001@yahoo.com
+  "<li>v1.12 - Correct glitch when wirestubs (length=0) are found</li><p>"  //ars662001@yahoo.com
+  "<li>v1.11 - Add option to avoid to do teadrops when airwires are present</li><p>"  //ars662001@yahoo.com
+  "<li>v1.10 - Modify sdratio use</li><p>"  //ars662001@yahoo.com
+  "<li>v1.09 - Add backstub option</li><p>"  //ars662001@yahoo.com
+  "<li>v1.08 - Add undo option</li><p>"  //ars662001@yahoo.com
+  "<li>v1.07 (Sept/2013) - Add curved teardrop option</li><p>"  //Andres Restrepo S. ars662001@yahoo.com
+  "<li>v1.06 - Modified selectable layer</li><p>"  //alfcadsoft.de
+  "<li>v1.05 (Feb/2012)  - Modified pad teardrops to fill better</li><p>" //Bob Starr rtzaudio@comcast.net
+  "<li>v1.04 - Added fixes for Eagle v6.0 </li><p>" //Walter Mueller [MUEWA104]
+  "<li>v1.03 - Teardropping of square pad types added support.</li><p>"
+  "<li>v1.02 (June/2009) - Improved pad teardrop support.</li><p>"  //Bob Starr rtzaudio@comcast.net
+  "<li>v1.01 (Jan/2008) -  Added teardropping of pads support.</li><p>"  //Bob Starr rtzaudio@comcast.net
+  "<li>v1.00 (Aug/2006) -  Initial release version.</li><p>"  //Tad Artis E3Switch.com
+  "</ul>"
+  "<p>"
+  "Authors:"
+  "<p>"
+  "Modification: Bruce Mellen (bruce@mellen.biz) [bcm]<br>" // [bcm]
+  "Modification: Andres Restrepo S. (ars662001@yahoo.com)<br>"
+  "Modification: (alf@cadsoft.de)<br>"
+  "Modifications: Walter Mueller<br>"
+  "Modifications: Bob Starr (rtzaudio@comcast.net)<br>"
+  "<author>Original Author: Tad Artis (E3Switch.com)<br>"
+  "</author>"
+;
+
+// values entered in ULP dialog window
+int     User_Pads; 
+int     User_Vias;
+int     User_Setup_NFPs; // [bcm]
+int     User_Override_Air;  // ars662001@yahoo.com
+real    User_Ignore_Width_mm;  // now mm [bcm]
+real    User_Ignore_Wwidth2dia_percent;  // don't teardrop for wire-width/item-diameter >= value entered [bcm]
+real    User_Hole_Plus_mm;  // these next 4 are ways to specify the apex distance [bcm]
+real    User_Hole_Factor;
+real    User_Pad_Plus_mm;
+real    User_Pad_Factor;
+real    User_Tear_Deflect_angle;  // distance between apex vector and where tear ends along via [bcm]
+real    User_Tear_Curve_angle;  // teardrop/snowman arc angle (rather than previously used radius) [bcm]
+real    User_Isolation_mm;  // reduces errors if other items of a different signal are very close [bcm]
+// next 5 calculated from above [bcm]
+int     u_hp_internal;  // converted to internal units
+int     u_iw_internal;
+int     u_pp_internal;
+real    u_iww2d;  // as decimal fraction
+real    u_tda_rad;  // in radians  
+// Global variables; a few have been renamed to no longer be the same as data structure keywords, some have been added [bcm]
+string  Boardname; // including path to file [bcm]
+string  FileIniD;  // settings file moved to board file directory with new name & .set ext [bcm]
+string  Partialname = "_" + ULPbasename + "_" + Release; // [bcm]
+int     nAirs=0;
+string  Fname; // script file name 
+int     LayerCount = 0;
+numeric string  LayerName[];
+int     LayActiv[];
+int     via_count;
+string  vcount;
+int     in1 , in2 ;    // inside apex dist indicators
+numeric string  TargetLayer[];  // 2012-04-04
+int     tCount = 0;
+int     LayerSel = 0;
+int     changes = 0;  // when teardrops/snowman were generated
+// following are new v2 variables needed [bcm]
+char    via_f[];  // flag representing each layer used by NFP logic
+int     ad_h, ad_v, apex_dist;  // needed to determine apex distance
+real    apex_dist_sq;
+int     pad_radius;
+real    pad_radius_sq;
+real    d1, d2; // temp distance
+real    we1d, we2d; // temp distance squared
+real    xe1 , xe2 , ye1 , ye2;  // wire ends
+real    A_coefficient,	B_coefficient, C_coefficient, Asq_plus_Bsq;  // needed to determine apex coordinates for straight wires
+int     xac , yac, xaca, yaca ;  // center of apex (internal units) regular and alternate solutions
+int     xcd , ycd;  // distance to apex from center of via/pad (internal)
+real    ray_angle, ray_angle_sl; // in radians
+int     e_4arc, f_4arc;  // needed to determine apex coordinates for arcs
+real    p_sq_4arc, p_4arc, k_4arc, other_4arc; // needed to determine apex coordinates for arcs
+real    ray_angle1, ray_angle2, ra1, ra2; // angles in radians
+int     radius_reduced;  //internal, reduced by wire width
+int     xr1, yr1, xr2, yr2;  // points near via perimeter to use for polygon
+int     pc = 0;  // count teardrop polygons created
+int     pl[], px[], py[]; // save some created polygon info to log for possible undo
+
+void Default_Teardrop_Settings(void) {
+// called from dialog window if user wants to set these defaults
+  User_Pads                      = 1;
+  User_Vias                      = 1;
+  User_Setup_NFPs                = 0;      // [bcm]
+  User_Override_Air              = 0;   
+  User_Ignore_Width_mm           = 0.8;    // [bcm] about 32mil
+  User_Ignore_Wwidth2dia_percent = 68;     // [bcm] replacing similar sdratio
+  User_Hole_Plus_mm              = 0.0;    // [bcm]
+  User_Hole_Factor               = 1.0;    // [bcm]
+  User_Pad_Plus_mm               = 0.1;    // [bcm] edit value will make it visible
+  User_Pad_Factor                = 1.7;    // [bcm]
+  User_Tear_Deflect_angle        = 60.0;   // [bcm]
+  User_Tear_Curve_angle          = -30.0;  // [bcm]
+  User_Isolation_mm              = 0.15;   // [bcm]
+}  
+
+void Default_Snowman_Settings(void) {
+// called from dialog window if user wants to set these defaults
+  User_Pads                      = 1;
+  User_Vias                      = 1;
+  User_Setup_NFPs                = 0;      // [bcm]
+  User_Override_Air              = 0;   
+  User_Ignore_Width_mm           = 0.8;    // [bcm] about 32mil
+  User_Ignore_Wwidth2dia_percent = 68;     // [bcm] replacing similar sdratio
+  User_Hole_Plus_mm              = 0.0;    // [bcm]
+  User_Hole_Factor               = 1.0;    // [bcm]
+  User_Pad_Plus_mm               = 0.1;    // [bcm] edit value will make it visible
+  User_Pad_Factor                = 1.0;    // [bcm]
+  User_Tear_Deflect_angle        = 70.0;   // [bcm]
+  User_Tear_Curve_angle          = +80.0;  // [bcm]
+  User_Isolation_mm              = 0.15;   // [bcm]
+}  
+
+void Restore_Settings(void) {
+// called 1st from main - get old settings if there were any
+  // look at board name so can have .set file in board directory instead of ULP directory [bcm]
+  board(B) {
+    Boardname = filesetext(B.name , "");
+    FileIniD = Boardname + Partialname + ".set";
+  }
+  // search for set file and recover settings: [bcm]
+  status("Looking for set file..."); // [bcm]
+  output(FileIniD, "at") {}  // create just in case file doesn't yet exist - so no error message [bcm]
+  string linesf[];
+  int nLines = fileread(linesf,FileIniD);
+  if (real(strtod(linesf[4])) != 0) { // if was likely actually out there [bcm]
+	  // list of settings is evolving [bcm]
+    User_Pads                      =strtol(linesf[0]);
+    User_Vias                      =strtol(linesf[1]);
+    User_Setup_NFPs                =strtol(linesf[2]);
+    User_Override_Air              =strtol(linesf[3]);
+    User_Ignore_Width_mm           =strtod(linesf[4]);
+    User_Ignore_Wwidth2dia_percent =strtod(linesf[5]);
+    User_Hole_Plus_mm              =strtod(linesf[6]);
+    User_Hole_Factor               =strtod(linesf[7]);
+    User_Pad_Plus_mm               =strtod(linesf[8]);
+    User_Pad_Factor                =strtod(linesf[9]);
+    User_Tear_Deflect_angle        =strtod(linesf[10]);
+    User_Tear_Curve_angle          =strtod(linesf[11]);
+    User_Isolation_mm              =strtod(linesf[12]);
+    status("Ok.");
+  }
+	else Default_Teardrop_Settings(); // set to something good if was no previous run [bcm]
+}
+
+void Save_Settings(void) {
+// called 1st when starting to generate the tears
+// write settings into set file: 
+  status("Saving settings...");
+  output(FileIniD, "wt") {
+	  // list is evolving
+    printf("%d\n",User_Pads);
+    printf("%d\n",User_Vias);
+    printf("%d\n",User_Setup_NFPs);
+    printf("%d\n",User_Override_Air);
+    printf("%f\n",User_Ignore_Width_mm);
+    printf("%f\n",User_Ignore_Wwidth2dia_percent);
+    printf("%f\n",User_Hole_Plus_mm);
+    printf("%f\n",User_Hole_Factor);
+    printf("%f\n",User_Pad_Plus_mm);
+    printf("%f\n",User_Pad_Factor);
+    printf("%f\n",User_Tear_Deflect_angle);
+    printf("%f\n",User_Tear_Curve_angle);
+    printf("%f\n",User_Isolation_mm);
+  } 
+}
+
+void do_via_list(UL_SIGNAL S) {
+// called 2nd when starting to generate the tears & preparing for an undo
+// make a list of all vias for use if need to undo
+  string viatyp;
+  S.vias(V) {           
+    if(V.shape[1]==0)      viatyp="square";
+    else if(V.shape[1]==1) viatyp="round";
+    else                   viatyp="octagon";
+    printf("CHANGE DRILL  %.5f; VIA  '%s' %.5f %s %d-%d (%.9f %.9f);\n", 
+      u2mm(V.drill), S.name, u2mm(V.diameter[1]), viatyp, V.start,V.end, u2mm(V.x), u2mm(V.y) );                          
+  }  
+  return;
+}
+
+void do_wire_list(UL_SIGNAL S) {
+// called 3rd when starting to generate the tears & preparing for an undo
+// make a list of all wires for use if need to undo
+  S.wires(W) {         
+    if(W.layer!=19) {
+      if(W.arc) { // is an arc:  WIRE 'signal' width (xe1 ye1) @[sign(curve)]radius (x2 y2);              
+        if(W.curve>0) // must include sign of curve
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @+%.10f (%.10f %.10f);\n",                                     
+            W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+        else
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @-%.10f (%.10f %.10f);\n",                                     
+            W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+      }
+      else {      // is a straight wire: WIRE 'signal' width (xe1 ye1) (x2 y2);              
+        printf("LAYER %d;\tWIRE '%s' %.8f (%.9f %.9f) (%.9f %.9f); \n",                                     
+          W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1),  u2mm(W.x2),  u2mm(W.y2)); 
+      }    
+    }
+    else nAirs++;  // make note how many airwires were encountered
+  }    
+  return;
+}
+
+void generate_undo_partB(void) {
+// called 2nd when starting to generate the tears so can recreate the board if undo requested
+// save vias and wires before teardropping in case undo is requested
+// note that when undo is requested, this file will now be run at the end of other undo .scr created (undoA) [bcm]
+  nAirs=0; 
+  board(B) {
+    Fname = Boardname + Partialname + "_vwundoB.scr";  // [bcm]
+    output(Fname, "wt") { // no longer deleted at end of session [bcm]
+      B.signals(S) { do_via_list(S);
+      }  
+      B.signals(S) { do_wire_list(S);
+      }
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");
+    }
+  }
+}
+
+void setlayerstatus(void) {  // 2012-04-04 set layer status
+// called 3rd when starting to generate the tears
+  string s[];
+  for (int n = 0; n < LayerCount; n++) {
+    int cnt = strsplit(s, LayerName[n], '\t');
+    int num = strtol(s[0]);
+    int target  = strtol(s[1]);
+    // IsLayer[num] = num;    // Where is this otherwise used?????? [bcm]
+    // TeardropLayer[num] = target;  // where is this otherwise used? [bcm]
+    if (s[2] == "yes" ) LayActiv[num] = 1;
+    else LayActiv[num] = 0;
+  }
+  return;
+}
+
+real Vector_Angle(int delta_x , int delta_y) {  // new with version 2 [bcm]
+// determines angle from dx & dy movement
+  real delta_angle; // to be the angle/vector from the input xy change (signs paramount)
+  if (delta_x == 0) {
+    if (delta_y < 0)  delta_angle = +PI*1.5;
+    else  delta_angle = +PI*.5;
+  }
+  else {
+    delta_angle = atan (real(delta_y)/(delta_x));
+    if (delta_x < 0) delta_angle = delta_angle + PI;
+    if (delta_angle <0) delta_angle = delta_angle + 2 * PI;
+  }
+  // printf("# delta_x %f, delta_y %f, ray angle %f\n", real(delta_x)/resolution, real(delta_y)/resolution, delta_angle * 180 / PI);
+  return delta_angle;
+}
+
+void do_vias(UL_SIGNAL S) {  
+  // printf("# beginning of 'do vias' for signal %s\n", S.name );
+  S.vias(V) {
+    via_count++;
+    for (int n = 2; n<16; ++n) via_f[n] = 'x';  // clear the string of NFP flags [bcm]
+    // printf("# considering the via (count of %d) at (%f,%f)mm\n", via_count, u2mm(V.x), u2mm(V.y)); // [bcm]
+    sprintf (vcount, "Processing Via #%d -- Signal %s", via_count, S.name);
+    status (vcount);
+    ad_h = max((V.drill / 2) + u_hp_internal , (V.drill / 2) * User_Hole_Factor); // distance to apex will be the largest of at least these (and more later) [bcm]
+    // loop through looking for wires starting within teardrop-apex radius of the via and ending outside it:
+    S.wires(W) {
+      // printf("# considering a wire on layer %d of width %f mm and curve %f degrees between (%f,%f)mm and (%f,%f)mm\n", W.layer , u2mm(W.width), W.curve , u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+      if(W.layer >= V.start && W.layer <= V.end && LayActiv[W.layer ]) {  // no airwires and only in drilled portion of via, and in layers selected by user [bcm]
+        pad_radius = V.diameter [W.layer ] / 2;   pad_radius_sq = real(pad_radius) * pad_radius; // begin section of algorithm for NFPs, even though they may not be done later [bcm]
+        d1 = real(W.x1 - V.x); d2 = real(W.y1 - V.y);
+        we1d = (d1 * d1) + (d2 * d2); // square of distance from via to one end [bcm]
+        d1 = real(W.x2 - V.x); d2 = real(W.y2 - V.y);
+        we2d = (d1 * d1) + (d2 * d2); // square of distance from via to other end [bcm]
+        if ((via_f[W.layer ] == 'x') && ((we1d < pad_radius_sq) || (we2d < pad_radius_sq))) {  // keep track of what is happening for potential NFPs [bcm]
+        	via_f[W.layer ] = 'F';  // consider and save this for NFPs - if they get done later [bcm]
+        	// printf("# wire inside via pad radius of %f\n", u2mm(pad_radius));
+        }
+        else {
+				  // printf("# wire completely outside via pad radius of %f\n", u2mm(pad_radius));
+				}
+        if ((W.width < u_iw_internal) && (real(W.width )/ V.diameter [W.layer ] < u_iww2d) && (W.width >= mm2u(0.025))) {  // meet user criteria & must also be at least some width to avoid crazy polygon fill [bcm]
+        	ad_v = max(pad_radius + u_pp_internal , pad_radius * User_Pad_Factor );  // another couple items to consider to determine largest distance to apex [bcm]
+        	apex_dist = max(ad_h , ad_v) - W.width / 2; apex_dist_sq = real(apex_dist) * apex_dist;  // now we have the largest and it's square [bcm]
+        	// printf("# apex_dist needs to be %f mm\n", u2mm(apex_dist));
+          // Now get on to confirm one inside and one not inside the apex distance
+          in1 = 0; in2 = 0;  // zero to represent at or beyond apex_dist, and one will represent within apex_dist
+          if (we1d < apex_dist_sq) { // if true, this end is within distance [bcm]
+            in1 = 1; // end is within the apex distance 
+            xe1 = W.x1; ye1 = W.y1; xe2 = W.x2; ye2 = W.y2;  // in anticipation of the upcoming apex location algorithm, make xe1,ye1 the closer and x2,y2 the further away [bcm]
+          }
+          if (we2d < apex_dist_sq) { // if true, this end is within distance [bcm]
+            in2 = 1;  // end is within the apex distance
+            xe1 = W.x2; ye1 = W.y2; xe2 = W.x1; ye2 = W.y1;  // in anticipation of the upcoming apex location algorithm, make xe1,ye1 the closer and x2,y2 the further away [bcm]
+          }
+          if (in1 ^ in2) {  // but only one (XOR) can be allowed within the apex_dist if it is to be a good wire to use
+            changes = 1; // definitely will be used
+            // printf("# trace is crossing the apex distance from (%f,%f)mm to (%f,%f)mm\n", xe1/resolution, ye1/resolution, xe2/resolution, ye2/resolution);
+            // Next, calculate point where wire, considering it straight (even if not), crosses that apex distance [bcm]
+            // see as a starting reference, the following: https://en.m.wikipedia.org/wiki/Intersection_(Euclidean_geometry)#A_line_and_a_circle [bcm]
+            // but had to additionally derive the A_coefficient,	B_coefficient, and C_coefficient from a line in point-slope form.  Denominator should not go to zero in real life [bcm]
+        	  A_coefficient = ye1 - ye2; B_coefficient = xe2 - xe1;
+        	  C_coefficient = (B_coefficient * (ye1 - V.y)) + (A_coefficient * (xe1 - V.x));
+        	  Asq_plus_Bsq = (A_coefficient * A_coefficient ) + (B_coefficient * B_coefficient );  // will be used a few times later [bcm]
+        	  xac = (((A_coefficient * C_coefficient ) + (B_coefficient * sqrt((apex_dist_sq * Asq_plus_Bsq ) - (C_coefficient*C_coefficient )))) / Asq_plus_Bsq ) + V.x;
+        	  yac = (((B_coefficient * C_coefficient ) - (A_coefficient * sqrt((apex_dist_sq * Asq_plus_Bsq ) - (C_coefficient*C_coefficient )))) / Asq_plus_Bsq ) + V.y;
+        	  // printf("# straight line apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+        	  // do not need to consider the alternative quadratic solution as I kept xe1,ye1 the closer of the points [bcm]
+            // determine its angle from center of via/pad [bcm]
+            xcd = xac - V.x; ycd = yac - V.y;
+            ray_angle = Vector_Angle(xcd, ycd);
+        	  // printf("# straight line ray angle %f\n", ray_angle * 180 / PI);
+            if (W.curve != 0) {  // must be an arc with non-zero curve and may now have 2 mathematical solutions, so need to choose [bcm]
+              ray_angle_sl = ray_angle; // save to compare & choose later [bcm]
+              // see as a reference, the following from Intersection of Circles 1/16/2002: http://mathforum.org/library/drmath/view/51836.html [bcm]
+        	    // a=V.x; b=V.y; c=W.arc.xc; d=W.arc.yc; and sign4pairing=W.curve will be needed to pick correct quadratic solutions.  Hopefully p_4arc will never go to zero in real life [bcm]
+         	    e_4arc = W.arc.xc - V.x; f_4arc = W.arc.yc - V.y;
+        	    p_sq_4arc = (real(e_4arc) * e_4arc) + (real(f_4arc) * f_4arc);
+        	    p_4arc = sqrt(p_sq_4arc);
+              k_4arc = (p_sq_4arc + apex_dist_sq - (real(W.arc.radius) * W.arc.radius)) / (2 * p_4arc );
+              other_4arc = sqrt(apex_dist_sq - (k_4arc * k_4arc));  // will also be used a couple times later [bcm]
+              // printf("# some computation values: a %f, b %f, radius away %f, c %f, d %f, curve %f, radius %f, e %f, f %f, p %f, k %f, other %f\n",
+        	    //   u2mm(V.x), u2mm(V.y), u2mm(apex_dist), u2mm(W.arc.xc), u2mm(W.arc.yc), W.curve, u2mm(W.arc.radius), u2mm(e_4arc), u2mm(f_4arc), p_4arc/resolution, k_4arc/resolution, other_4arc/resolution);
+              // first solution: [bcm]
+        	    xac = V.x + ((real(e_4arc) * k_4arc) - (real(f_4arc) * other_4arc)) / p_4arc;
+        	    yac = V.y + ((real(f_4arc) * k_4arc) + (real(e_4arc) * other_4arc)) / p_4arc;
+        	    // printf("# one solution to apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+        	    // second solution: [bcm]
+        	    xaca = V.x + ((real(e_4arc) * k_4arc) + (real(f_4arc) * other_4arc)) / p_4arc;
+        	    yaca = V.y + ((real(f_4arc) * k_4arc) - (real(e_4arc) * other_4arc)) / p_4arc;
+              // printf("# second solution to apex center is at(%f,%f)mm\n", u2mm(xaca), u2mm(yaca));
+        	    // determine ray of the first possible solution [bcm]
+              xcd = xac - V.x; ycd = yac - V.y;
+              ray_angle1 = Vector_Angle(xcd, ycd);
+        	    // printf("# first solution ray angle %f\n", ray_angle1 * 180 / PI);
+              // determine ray of the second possible solution [bcm]
+        	    xcd = xaca - V.x; ycd = yaca - V.y;
+              ray_angle2 = Vector_Angle(xcd, ycd);
+        	    // printf("# second solution ray angle %f\n", ray_angle2 * 180 / PI);
+        	    // choose the solution for the angle that is closer to the straight line solution (hopefully it will always result in correct choice - if not, may be bizarre board wire geometry) [bcm]
+        	    if (abs(ray_angle_sl - ray_angle2) < abs(ray_angle_sl - ray_angle1)) {
+                ray_angle = ray_angle2; xac = xaca; yac = yaca;
+        	    }
+              else ray_angle = ray_angle1;
+            }
+         	  // now have apex center of wire/arc that will be used for teardrop [bcm]
+        	  // printf("# apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+            // Next determine the location of the two points near the via perimeter, to complete the 4 point polygon [bcm]
+        	  // first find angle of ray from via to apex [bcm]
+            if (User_Vias)  {  // next add the user requested angle off the apex to find the two points near the via perimeter [bcm]
+              radius_reduced = ( V.diameter [W.layer ] - W.width)/2;  // will always be positive due to limits on User_Ignore_Wwidth2dia_percent [bcm]
+              ra1 = ray_angle + u_tda_rad;
+        	    xr1 = radius_reduced * cos(ra1 ) + V.x;  yr1 = radius_reduced * sin(ra1 ) + V.y;
+              ra2 = ray_angle - u_tda_rad; 
+              xr2 = radius_reduced * cos(ra2 ) + V.x;  yr2 = radius_reduced * sin(ra2 ) + V.y;
+        	    // printf("# points on polygon will be (%f,%f), (%f,%f), (%f,%f), (%f,%f)\n",u2mm(V.x) ,u2mm(V.y) ,u2mm(xr1), u2mm(yr1), u2mm(xac), u2mm(yac),u2mm(xr2), u2mm(yr2));
+        	    if (User_Tear_Curve_angle <0)
+        	      printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) %.9f (%.9f %.9f) %.9f (%.9f %.9f) (%.9f %.9f);\n",
+                  W.layer , S.name , u2mm(W.width),u2mm(V.x),u2mm(V.y), u2mm(xr2), u2mm(yr2), User_Tear_Curve_angle, u2mm(xac), u2mm(yac), User_Tear_Curve_angle, u2mm(xr1), u2mm(yr1), u2mm(V.x), u2mm(V.y));
+        	    else if (User_Tear_Curve_angle >0)
+                  printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) +%.9f (%.9f %.9f) +%.9f (%.9f %.9f) (%.9f %.9f);\n",
+                    W.layer , S.name , u2mm(W.width), u2mm(V.x), u2mm(V.y), u2mm(xr2), u2mm(yr2), User_Tear_Curve_angle, u2mm(xac), u2mm(yac), User_Tear_Curve_angle, u2mm(xr1), u2mm(yr1), u2mm(V.x), u2mm(V.y));
+              else  // angle user requested must be zero [bcm]
+                  printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (%.9f %.9f);\n",
+                    W.layer , S.name , u2mm(W.width),u2mm(V.x),u2mm(V.y), u2mm(xr2), u2mm(yr2), u2mm(xac), u2mm(yac), u2mm(xr1), u2mm(yr1), u2mm(V.x), u2mm(V.y));
+							pc = pc + 1; pl[pc] = W.layer; px[pc] = xr1; py[pc] = yr1;  // save for making undo script [bcm]
+              // printf("# done with making teardrop for wire\n");
+            }
+        	  if (User_Setup_NFPs && User_Vias &&(via_f[W.layer ] != 'P') && (W.layer > 1) && (W.layer < 16) && (W.layer >= V.start) && (W.layer <= V.end))	{
+              // if doing NFPs, time to make the remainder of a pad (inner layers only) to allow for future reduction in restring value [bcm]
+              changes = 1; // definitely will be used
+        	    via_f[W.layer ] = 'P';
+        	    xr1 = V.x + V.diameter[W.layer]/4*cos(ra1); yr1 = V.y + V.diameter[W.layer]/4*sin(ra1);
+              xr2 = V.x + V.diameter[W.layer]/4*cos(ra2); yr2 = V.y + V.diameter[W.layer]/4*sin(ra2);
+              printf("LAYER %d; WIRE '%s' %.8f FLAT (%.9f %.9f) +%.6f (%.9f %.9f);\n", W.layer, S.name, u2mm(pad_radius), u2mm(xr1), u2mm(yr1), 360 - 2 * User_Tear_Deflect_angle, u2mm(xr2), u2mm(yr2) );
+              // printf("# done making functional pad for this via in layer %d\n", W.layer);
+              // printf("# %c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c\n", via_f[2],via_f[3],via_f[4],via_f[5],via_f[6],via_f[7],via_f[8],via_f[9],via_f[10],via_f[11],via_f[12],via_f[13],via_f[14],via_f[15]);
+            }
+          }
+        	else {
+        	  // printf("# skipping wire, as is not both inside and outside of apex diameter\n");
+        	}
+        }
+        else {
+        	// printf("# skipping wire, as too wide or narrow\n");
+        }
+      }
+      else {
+			  // printf("# skipping wire, as layer situation encountered (airwire or inactive layer)\n");
+			}
+    }
+    // printf("# done with wires [for that via]\n");
+    // printf("# %c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c\n", via_f[2],via_f[3],via_f[4],via_f[5],via_f[6],via_f[7],via_f[8],via_f[9],via_f[10],via_f[11],via_f[12],via_f[13],via_f[14],via_f[15]);
+    if (User_Setup_NFPs) {  // Consider drawing for NFPs [bcm]
+      // printf("# Next do explicit via capture pads:\n");
+      for (int n = 2; n<16; ++n) {
+        if ((via_f[n] == 'x') && (n > V.start ) && (n < V.end) && LayActiv[n]) {
+          changes = 1; // definitely will be used
+        	pad_radius = V.diameter [n] * .5;
+        	xr1 = V.x + pad_radius; xr2 = V.x - pad_radius; 
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) (%.9f %.9f);\n", n, S.name, u2mm(V.x), u2mm(V.y), u2mm(xr1), u2mm(V.y) );  // no airwire wanted [bcm]
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(xr1), u2mm(V.y), u2mm(xr2), u2mm(V.y) );
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(xr2), u2mm(V.y), u2mm(xr1), u2mm(V.y) );
+        	// printf("# done making zero width NFP pad of radius %f for this via in layer %d\n", u2mm(pad_radius), n);
+					// must be zero width and normal diameter to keep other signal pours away from via [bcm]
+        	via_f[n] = 'I';
+        }
+        if (((via_f[n] == 'F') || ((via_f[n] == 'x') && ((n == V.start ) || (n == V.end)))) && LayActiv[n]) {
+          changes = 1; // definitely will be used
+        	pad_radius = V.diameter [n] * .5;
+        	xr1 = V.x + pad_radius * .5; xr2 = V.x - pad_radius * .5;
+        	printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(V.x), u2mm(V.y), u2mm(xr1), u2mm(V.y) );  // no airwire wanted [bcm]
+        	printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(xr1), u2mm(V.y), u2mm(xr2), u2mm(V.y) );
+        	printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(xr2), u2mm(V.y), u2mm(xr1), u2mm(V.y) );
+        	// printf("# done making functional pad of radius %f for this via in layer %d\n", u2mm(pad_radius), n);
+        }
+      }
+    }
+  }
+  // printf("# done with vias [for signal %s]\n", S.name);
+  return;
+}
+
+void do_pads(UL_SIGNAL S) {  // this is similar to but different from do_vias.  If find comments lacking for this routine, look to do_vias for additional [bcm]
+  int pshape, pshape_OK;
+  // printf("# beginning of 'do pads' for signal %s\n", S.name );
+  S.contactrefs(C) {              // Is this database/loop/naming structure use in this routine to be supported long-term, as it is not referenced in ulp720_en.pdf ?????? [bcm]
+  if (C.contact.pad) {
+    via_count++;
+    for (int n = 2; n<16; ++n) via_f[n] = 'x';  // clear the string of NFP flags [bcm]
+    sprintf (vcount, "Processing Pad #%d -- Signal %s", via_count, S.name);
+    // printf("# considering the pad (count of %d) at (%f,%f)mm\n", via_count, u2mm(C.contact.pad.x), u2mm(C.contact.pad.y));
+    status (vcount);
+    // distance to apex will be the largest of at least these:  (and more later) [bcm]
+    ad_h = max((C.contact.pad.drill / 2) + u_hp_internal , (C.contact.pad.drill / 2) * User_Hole_Factor);
+    // loop through looking for wires starting within teardrop-apex radius of the Pad and ending outside it: [bcm]
+    S.wires(W) {
+      // printf("# considering a wire on layer %d of width %f mm and curve %f degrees between (%f,%f)mm and (%f,%f)mm\n", W.layer , u2mm(W.width), W.curve , u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+      pshape = C.contact.pad.shape[W.layer];  pshape_OK = 0; 
+      if (pshape == PAD_SHAPE_ROUND || pshape == PAD_SHAPE_OCTAGON || pshape == PAD_SHAPE_SQUARE) pshape_OK = 1;  // only do for certain shapes [bcm]
+      if(W.layer >= 1 && W.layer <= 16 && LayActiv[W.layer ] && pshape_OK) {  // no airwires and in layers selected by user [bcm]
+        pad_radius = C.contact.pad.diameter [W.layer ] / 2;   pad_radius_sq = real(pad_radius) * pad_radius;
+        d1 = real(W.x1 - C.contact.pad.x); d2 = real(W.y1 - C.contact.pad.y);
+        we1d = (d1 * d1) + (d2 * d2);
+        d1 = real(W.x2 - C.contact.pad.x); d2 = real(W.y2 - C.contact.pad.y);
+        we2d = (d1 * d1) + (d2 * d2);
+        if ((via_f[W.layer ] == 'x') && ((we1d < pad_radius_sq) || (we2d < pad_radius_sq))) {  // keep track of what is happening for future NFPs [bcm]
+          via_f[W.layer ] = 'F';  // consider this for NFPs [bcm]
+        	// printf("# wire inside pad radius of %f\n", u2mm(pad_radius));
+        }
+        else {
+				  // printf("# wire completely outside pad radius of %f\n", u2mm(pad_radius));
+					}
+        if ((W.width < u_iw_internal) && (real(W.width )/ C.contact.pad.diameter [W.layer ] < u_iww2d) && (W.width >= mm2u(0.025))) {  // must also be at least some width to avoid crazy polygon fill [bcm]
+          ad_v = max(pad_radius + u_pp_internal , pad_radius * User_Pad_Factor );  // another couple to consider to be largest distance to apex [bcm]
+          apex_dist = max(ad_h , ad_v) - W.width / 2; apex_dist_sq = real(apex_dist) * apex_dist;  // now we have the largest and it's square [bcm]
+          // printf("# apex_dist needs to be %f mm\n", u2mm(apex_dist));
+          // Now get on to make sure one inside and one outside the apex distance [bcm]
+          in1 = 0; in2 = 0;  // zero to represent at or beyond apex_dist, and one will represent within apex_dist [bcm]
+          if (we1d < apex_dist_sq) { // if true, this end is within distance [bcm]
+            in1 = 1; // end is within the apex distance [bcm]
+            xe1 = W.x1; ye1 = W.y1; xe2 = W.x2; ye2 = W.y2;  // in anticipation of the upcoming apex location algorithm, make xe1,ye1 the closer and x2,y2 the further away [bcm]
+          }
+          if (we2d < apex_dist_sq) { // if true, this end is within distance [bcm]
+            in2 = 1;  // end is within the apex distance [bcm]
+            xe1 = W.x2; ye1 = W.y2; xe2 = W.x1; ye2 = W.y1;  // in anticipation of the upcoming apex location algorithm, make xe1,ye1 the closer and x2,y2 the further away [bcm]
+          }
+          if (in1 ^ in2) {  // but only one (XOR) can be allowed within the apex_dist if it is to be a good wire to use
+            changes = 1;
+            // printf("# trace is crossing the apex distance from (%f,%f)mm to (%f,%f)mm\n", xe1/resolution, ye1/resolution, xe2/resolution, ye2/resolution);
+            // Next, calculate point where wire, considering it straight (even if not), crosses that apex distance. [bcm]
+            // see as a starting reference, the following: https://en.m.wikipedia.org/wiki/Intersection_(Euclidean_geometry)#A_line_and_a_circle [bcm]
+            // but had to additionally derive the A_coefficient,	B_coefficient, and C_coefficient from a line in point-slope form.  Denominator should not go to zero in real life. [bcm]
+            A_coefficient = ye1 - ye2; B_coefficient = xe2 - xe1;
+        	  C_coefficient = (B_coefficient * (ye1 - C.contact.pad.y)) + (A_coefficient * (xe1 - C.contact.pad.x));
+        	  Asq_plus_Bsq = (A_coefficient * A_coefficient ) + (B_coefficient * B_coefficient );  // will be used a few times later [bcm]
+            xac = (((A_coefficient * C_coefficient ) + (B_coefficient * sqrt((apex_dist_sq * Asq_plus_Bsq ) - (C_coefficient*C_coefficient )))) / Asq_plus_Bsq ) + C.contact.pad.x;
+        	  yac = (((B_coefficient * C_coefficient ) - (A_coefficient * sqrt((apex_dist_sq * Asq_plus_Bsq ) - (C_coefficient*C_coefficient )))) / Asq_plus_Bsq ) + C.contact.pad.y;
+        	  // printf("# straight line apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+        	  // do not need to consider the alternative quadratic solution as I kept xe1,ye1 the closer of the points [bcm]
+            // determine its angle from center of via/pad [bcm]
+            xcd = xac - C.contact.pad.x; ycd = yac - C.contact.pad.y;
+            ray_angle = Vector_Angle(xcd, ycd);
+            // printf("# straight line ray angle %f\n", ray_angle * 180 / PI);
+            if (W.curve != 0) {  // must be an arc with non-zero curve and may now have 2 mathematical solutions, so need to choose [bcm]
+              ray_angle_sl = ray_angle; // save to compare later[bcm]
+              // see as a reference, the following from Intersection of Circles 1/16/2002: http://mathforum.org/library/drmath/view/51836.html [bcm]
+        	    // a=C.contact.pad.x; b=C.contact.pad.y; c=W.arc.xc; d=W.arc.yc; and sign4pairing=W.curve will be needed to pick correct quadratic solutions.  Hopefully p_4arc will never go to zero in real life. [bcm]
+         	    e_4arc = W.arc.xc - C.contact.pad.x; f_4arc = W.arc.yc - C.contact.pad.y;
+              p_sq_4arc = (real(e_4arc) * e_4arc) + (real(f_4arc) * f_4arc);
+              p_4arc = sqrt(p_sq_4arc);
+              k_4arc = (p_sq_4arc + apex_dist_sq - (real(W.arc.radius) * W.arc.radius)) / (2 * p_4arc );
+              other_4arc = sqrt(apex_dist_sq - (k_4arc * k_4arc));  // will also be used a couple times later [bcm]
+        	    // printf("# some computation values: a %f, b %f, radius away %f, c %f, d %f, curve %f, radius %f, e %f, f %f, p %f, k %f, other %f\n",
+        	    //   u2mm(C.contact.pad.x), u2mm(C.contact.pad.y), u2mm(apex_dist), u2mm(W.arc.xc), u2mm(W.arc.yc), W.curve, u2mm(W.arc.radius), u2mm(e_4arc), u2mm(f_4arc), p_4arc/resolution, k_4arc/resolution, other_4arc/resolution);
+        	    // first solution: [bcm]
+        	    xac = C.contact.pad.x + ((real(e_4arc) * k_4arc) - (real(f_4arc) * other_4arc)) / p_4arc;
+        	    yac = C.contact.pad.y + ((real(f_4arc) * k_4arc) + (real(e_4arc) * other_4arc)) / p_4arc;
+        	    // printf("# one solution to apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+        	    // second solution: [bcm]
+        	    xaca = C.contact.pad.x + ((real(e_4arc) * k_4arc) + (real(f_4arc) * other_4arc)) / p_4arc;
+        	    yaca = C.contact.pad.y + ((real(f_4arc) * k_4arc) - (real(e_4arc) * other_4arc)) / p_4arc;
+        	    // printf("# second solution to apex center is at(%f,%f)mm\n", u2mm(xaca), u2mm(yaca));
+         	    // determine ray of the first possible solution [bcm]
+        	    xcd = xac - C.contact.pad.x; ycd = yac - C.contact.pad.y;
+              ray_angle1 = Vector_Angle(xcd, ycd);
+        	    // printf("# first solution ray angle %f\n", ray_angle1 * 180 / PI);
+        	    // determine ray of the second possible solution [bcm]
+              xcd = xaca - C.contact.pad.x; ycd = yaca - C.contact.pad.y;
+              ray_angle2 = Vector_Angle(xcd, ycd);
+        	    // printf("# second solution ray angle %f\n", ray_angle2 * 180 / PI);
+        	    // choose the solution for the angle that is closer to the straight line solution (hopefully it will always result in correct choice - if not, may be bizarre board wire geometry) [bcm]
+        	    if (abs(ray_angle_sl - ray_angle2) < abs(ray_angle_sl - ray_angle1)) {
+        	      ray_angle = ray_angle2; xac = xaca; yac = yaca;
+        	    }
+              else ray_angle = ray_angle1;
+            }
+         	  // now have apex center of wire/arc that will be used for teardrop [bcm]
+        	  // printf("# apex center is at(%f,%f)mm\n", u2mm(xac), u2mm(yac));
+            // Next determine the location of the two points near the via perimeter, to complete the 4 point polygon [bcm]
+        	  // first find angle of ray from via to apex  (degree angle will be (-90,270] in interval notation) [bcm]
+            if (User_Pads)  {  // next add the user requested angle off the appex to find the two points near the via perimeter [bcm]
+              radius_reduced = ( C.contact.pad.diameter [W.layer ] - W.width)/2;  // will always be positive due to limits on User_Ignore_Wwidth2dia_percent [bcm]
+              ra1 = ray_angle + u_tda_rad;
+        	    xr1 = radius_reduced * cos(ra1 ) + C.contact.pad.x;  yr1 = radius_reduced * sin(ra1 ) + C.contact.pad.y;
+              ra2 = ray_angle - u_tda_rad; 
+        	    xr2 = radius_reduced * cos(ra2 ) + C.contact.pad.x;  yr2 = radius_reduced * sin(ra2 ) + C.contact.pad.y;
+              // printf("# points on polygon will be (%f,%f), (%f,%f), (%f,%f), (%f,%f)\n",u2mm(C.contact.pad.x) ,u2mm(C.contact.pad.y) ,u2mm(xr1), u2mm(yr1), u2mm(xac), u2mm(yac),u2mm(xr2), u2mm(yr2));
+        	    if (User_Tear_Curve_angle <0)
+                printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) %.9f (%.9f %.9f) %.9f (%.9f %.9f) (%.9f %.9f);\n",
+                  W.layer , S.name , u2mm(W.width),u2mm(C.contact.pad.x),u2mm(C.contact.pad.y), u2mm(xr2), u2mm(yr2), User_Tear_Curve_angle, u2mm(xac), u2mm(yac), User_Tear_Curve_angle, u2mm(xr1), u2mm(yr1), u2mm(C.contact.pad.x), u2mm(C.contact.pad.y));
+  	          else if (User_Tear_Curve_angle >0)
+      	        printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) +%.9f (%.9f %.9f) +%.9f (%.9f %.9f) (%.9f %.9f);\n",
+                    W.layer , S.name , u2mm(W.width), u2mm(C.contact.pad.x), u2mm(C.contact.pad.y), u2mm(xr2), u2mm(yr2), User_Tear_Curve_angle, u2mm(xac), u2mm(yac), User_Tear_Curve_angle, u2mm(xr1), u2mm(yr1), u2mm(C.contact.pad.x), u2mm(C.contact.pad.y));
+  	          else  // angle user requested must be zero [bcm]
+      	        printf("LAYER %d; POLYGON '%s' %.9f (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (%.9f %.9f);\n",
+                    W.layer , S.name , u2mm(W.width),u2mm(C.contact.pad.x),u2mm(C.contact.pad.y), u2mm(xr2), u2mm(yr2), u2mm(xac), u2mm(yac), u2mm(xr1), u2mm(yr1), u2mm(C.contact.pad.x), u2mm(C.contact.pad.y));
+              // printf("# done with making teardrop for wire\n");
+							pc = pc + 1; pl[pc] = W.layer; px[pc] = xr1; py[pc] = yr1;  // save for making undo script [bcm]
+        	  }
+            if (User_Setup_NFPs && User_Pads &&(via_f[W.layer ] != 'P') && (W.layer > 1) && (W.layer < 16))	{
+              // time to make the remainder of a pad (inner layers only) to allow for future reduction in restring value [bcm]
+              changes = 1; // definitely will be used
+        	    via_f[W.layer ] = 'P';
+        	    xr1 = C.contact.pad.x + C.contact.pad.diameter[W.layer]/4*cos(ra1); yr1 = C.contact.pad.y + C.contact.pad.diameter[W.layer]/4*sin(ra1);
+              xr2 = C.contact.pad.x + C.contact.pad.diameter[W.layer]/4*cos(ra2); yr2 = C.contact.pad.y + C.contact.pad.diameter[W.layer]/4*sin(ra2);
+        	    printf("LAYER %d; WIRE '%s' %.8f FLAT (%.9f %.9f) +%.6f (%.9f %.9f);\n", W.layer, S.name, u2mm(pad_radius), u2mm(xr1), u2mm(yr1), 360 - 2 * User_Tear_Deflect_angle, u2mm(xr2), u2mm(yr2) );
+        	    // printf("# done making functional pad for this pad in layer %d\n", W.layer);
+        	    // printf("# %c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c\n", via_f[2],via_f[3],via_f[4],via_f[5],via_f[6],via_f[7],via_f[8],via_f[9],via_f[10],via_f[11],via_f[12],via_f[13],via_f[14],via_f[15]);
+            }
+          }
+        	else {
+        	  // printf("# skipping wire, as is not both inside and outside of apex diameter\n");
+        	}
+        }
+        else {
+          // printf("# skipping wire, as too wide or narrow\n");
+        }
+      }
+      else {
+			  // printf("# skipping wire, as layer situation encountered (airwire or inactive/outer layer or inappropriate pad shape)\n");
+			}
+    }
+    // printf("# done with wires [for that pad]\n");
+    // printf("# %c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c,%c\n", via_f[2],via_f[3],via_f[4],via_f[5],via_f[6],via_f[7],via_f[8],via_f[9],via_f[10],via_f[11],via_f[12],via_f[13],via_f[14],via_f[15]);
+    // Consider drawing explicit pad capture pads [bcm]
+    if (User_Setup_NFPs) {
+      // printf("# Next do explicit pad capture pads:\n");
+      for (int n = 2; n<16; ++n) {
+        if ((via_f[n] == 'x') && (n > 1 ) && (n < 16) && LayActiv[n]) {
+          changes = 1; // definitely will be used
+        	pad_radius = C.contact.pad.diameter [n] * .5;
+        	xr1 = C.contact.pad.x + pad_radius; xr2 = C.contact.pad.x - pad_radius; 
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) (%.9f %.9f);\n", n, S.name, u2mm(C.contact.pad.x), u2mm(C.contact.pad.y), u2mm(xr1), u2mm(C.contact.pad.y) );  // no airwire wanted [bcm]
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(xr1), u2mm(C.contact.pad.y), u2mm(xr2), u2mm(C.contact.pad.y) );
+        	printf("LAYER %d; WIRE '%s' 0 ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(xr2), u2mm(C.contact.pad.y), u2mm(xr1), u2mm(C.contact.pad.y) );
+        	// printf("# done making NFP pad of radius %f for this pad in layer %d\n", u2mm(pad_radius), n);
+        	via_f[n] = 'I';
+        }
+        if (via_f[n] == 'F' && LayActiv[n]) {
+          changes = 1; // definitely will be used
+          pad_radius = C.contact.pad.diameter [n] * .5;
+          xr1 = C.contact.pad.x + pad_radius * .5; xr2 = C.contact.pad.x - pad_radius * .5;
+          printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(C.contact.pad.x), u2mm(C.contact.pad.y), u2mm(xr1), u2mm(C.contact.pad.y) );  // no airwire wanted [bcm]
+          printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(xr1), u2mm(C.contact.pad.y), u2mm(xr2), u2mm(C.contact.pad.y) );
+        	printf("LAYER %d; WIRE '%s' %.8f ROUND (%.9f %.9f) +180 (%.9f %.9f);\n", n, S.name, u2mm(pad_radius), u2mm(xr2), u2mm(C.contact.pad.y), u2mm(xr1), u2mm(C.contact.pad.y) );
+        	// printf("# done making functional pad of radius %f for this pad in layer %d\n", u2mm(pad_radius), n);
+        }
+      }
+    }
+  }
+  }
+  // printf("# done with vias [for signal %s]\n", S.name);
+  return;
+}
+
+void generate_undo_partA(void) { // [bcm]
+// setup to delete all the polygons added in case need to undo [bcm]
+// If undo subsequently requested, this needs to be run before the other undo file (undoB) that was created earlier [bcm]
+  Fname = Boardname + Partialname + "_p2undoA.scr"; // fname  = filesetext(B.name, "_undo.scr"); replaced [bcm]
+  output(Fname, "wt") { 
+      printf("SET UNDO_LOG OFF;\n");
+      printf("SET WIRE_BEND 2;\n"); // method #2 is for straight lines for drawing our teardrop wires.
+      printf("GRID MM;\n");
+      printf("RIPUP;\n"); // yes, ripup everything routed
+			// pull the layer/x/y out of the saved arrays [bcm]
+      for (int n = 1; n <= pc; n++) {
+			  printf("DISPLAY NONE %d; DELETE (s%.9f %.9f); DISPLAY LAST;\n",pl[n],u2mm(px[n]),u2mm(py[n]));  // blow away the complete added polygon because 's' is in xy location
+			}
+			Fname = Boardname + Partialname + "_vwundoB.scr";
+      printf("SCRIPT '%s';\n",Fname); // run other script at the end... [bcm]
+
+		}
+  return;
+}
+
+void generate_tears(void) {
+// called from dialog window when hit the doit button
+  string message;
+  Save_Settings();
+  generate_undo_partB();
+  if(User_Override_Air==0 && nAirs!=0) {
+    sprintf(message,"%d Airwires are pending.\nOperation canceled.",nAirs);  // rewording [bcm]
+    dlgDialog("Attention") {
+    dlgLabel(message);
+    dlgPushButton("+OK") dlgAccept();};
+    return; 
+  }
+  setlayerstatus();
+  board(B) {
+    u_iw_internal = User_Ignore_Width_mm/u2mm(1); // Convert user mm (no longer mil) to internal units [bcm]
+    u_iww2d = User_Ignore_Wwidth2dia_percent/100; // convert percentage to decimal fraction [bcm]
+    u_hp_internal = User_Hole_Plus_mm/u2mm(1);  // convert user mm to internal units [bcm]
+    u_pp_internal = User_Pad_Plus_mm/u2mm(1);  // convert user mm to internal units [bcm]
+    u_tda_rad = User_Tear_Deflect_angle * PI / 180;  // convert to radians [bcm]
+    via_count = 0;
+    if (!User_Vias && !User_Pads && !User_Setup_NFPs) {  // [bcm]
+      dlgMessageBox("You must check at least one of the options re: vias and/or pads and/or NFP setup.");  // wording [bcm]
+      return;
+    }
+    int ret = dlgMessageBox("What is the backup status of the current loaded board?", " I Have One / Proceed Anyway ", " Save One for Me Before Proceeding ", "Cancel");  // [bcm]
+		if (ret == 2) return;
+    Fname = Boardname + Partialname + ".scr";  // fname = filesetext(B.name, "_AddTearDrops.scr"); replaced [bcm]
+		output(Fname, "wt") {  // [bcm] most lines have been altered to reflect the new approach and provide more information for debugging no longer delete
+		  // script will contain some changed entries and new ones [bcm]
+      printf("# Script generated with '%s', *%s* at %sUTC\n", filename(argv[0]), EAGLE_SIGNATURE, t2string(time(), "Uyyyy-MM-dd hh:mm:ss"));
+  		if (ret == 1) {  // [bcm]
+        string Bname = Boardname + "_Pre_" + ULPbasename + "_Backup";
+    		printf("WRITE '%s';\n", Bname);
+  		}
+      printf("# This script generated with the following user parameters:\n");
+      if (User_Vias) printf("# Teardrop/Snowman Vias requested\n"); // [bcm]
+      if (User_Pads) printf("# Teardrop/Snowman Pads requested\n"); // [bcm]
+      if (User_Setup_NFPs) printf("# NFP processing requested\n"); // [bcm]
+      if (User_Override_Air) printf("# Overriding presence of airwires\n"); // [bcm]
+  		for (int n = 1; n <= 16; n++) printf("# Layer %d not/active selection set to %d\n",n,LayActiv[n]); // [bcm]
+      printf("# Ignoring traces with width >= %fmm\n",User_Ignore_Width_mm); // [bcm]
+      printf("# Ignoring traces with trace width/pad diameter >= %fpercent\n",User_Ignore_Wwidth2dia_percent); // [bcm]
+      printf("# Apex distance the max of Hole Radius +%fmm or *%ffactor, or Via/Pad radius +%fmm or *%ffactor\n", User_Hole_Plus_mm, User_Hole_Factor, User_Pad_Plus_mm, User_Pad_Factor); // [bcm]
+      printf("# Tear shape of %fdegrees off apex, and %fdegree curve, with isolation of %fmm\n",User_Tear_Deflect_angle, User_Tear_Curve_angle, User_Isolation_mm);  // [bcm]
+      // printf("# SCR Command, Signal Name, Signal Class, Layer, Width, Via Drill, Via Layer Diameter, Via X, Via Y, Ratio segment_width/Via_drill_size\n");  // Output header - needs updating?????
+      printf("SET UNDO_LOG OFF;\n");
+      printf("SET WIRE_BEND 2;\n"); // method #2 is straight lines for drawing our teardrop wires.
+      printf("GRID MM;\n");
+      printf("CHANGE RANK 1;\n");    // [bcm] added 5 lines for new tear approach
+      printf("CHANGE THERMALS OFF;\n");
+      printf("CHANGE POUR SOLID;\n");
+      printf("CHANGE ORPHANS OFF;\n");
+      printf("CHANGE ISOLATE %.9f;\n", User_Isolation_mm );
+			printf("CHANGE CAP ROUND; CHANGE STYLE 0;\n");
+      B.signals(S) {
+        if (User_Vias || User_Setup_NFPs)
+          do_vias(S);
+        if (User_Pads || User_Setup_NFPs)
+          do_pads(S);
+      }
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");
+      printf("# Script generation ended at %sUTC\n", t2string(time(), "Uyyyy-MM-dd hh:mm:ss"));  // [bcm]
+      generate_undo_partA(); // [bcm]
+      Fname = Boardname + Partialname + ".scr";  // fname = filesetext(B.name, "_AddTearDrops.scr"); replaced [bcm]
+      if (changes) exit ("script '" + Fname + "';\n");
+      else  dlgMessageBox("Nothing done with current parameters");  // reworded [bcm]
+    }
+  }
+  return;
+}
+
+void undo_tears(void) {
+// called from dialog window when user request to undo previous run
+  int ret = dlgMessageBox("This option does not revert to your backup and may very likely result in a board unlike the one you started with.  Are you sure you want to proceed?", "Yes", "No / Cancel");  // [bcm]
+		if (ret == 1) return;
+// execute the undo script
+  board(B) {
+    Fname = Boardname + Partialname + "_p2undoA.scr";  // fname  = filesetext(B.name, "_undo.scr"); replaced [bcm]]
+    exit ("script '" + Fname + "';\n"); // run script
+  }
+}
+
+// the start of the main ULP logic
+string  settarget(string sellayer) {  // 2012-04-04
+  string  no_change  = sellayer;
+  string  s[], l[];
+  strsplit(l, sellayer, '\t');
+  strsplit(s, l[0], '-');
+  int activ;
+  if (l[2] == "yes") activ = 1;
+  int sel = strtol(l[1]) -1;
+  dlgDialog("Target Layer") {
+    dlgLabel("New layer for " + l[0]);
+    dlgGroup("Layer active") {  // [bcm] spelling
+      dlgRadioButton("&no", activ);
+      dlgRadioButton("&yes", activ);
+    }
+    dlgComboBox(TargetLayer, sel) {
+      sellayer = s[0] + "\t" + TargetLayer[sel];
+      if (activ) sellayer += "\t" + "yes";
+      else  sellayer += "\t" + "no";
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") {
+        sellayer = s[0] + "\t" + TargetLayer[sel];
+        if (activ) sellayer += "\t" + "yes";
+        else  sellayer += "\t" + "no";
+        dlgAccept();
+      }
+      dlgPushButton("-Cancel") {
+        dlgReject();
+        sellayer = no_change;
+      }
+    }
+  };
+  return sellayer;
+}
+if (!board) {
+  dlgMessageBox("You should run this ULP from an open board design.");
+  exit(0);
+}
+Restore_Settings(); // will set to default if were none [bcm]
+dlgDialog(ULPlongname + ", version " + Release + " released " + ReleaseDate)  { // [bcm]
+  board(B) {
+    B.layers(L) {
+      if (L.number <= 16) { // 2012-04-04
+        string lname;
+        if (L.used) {
+          sprintf(lname, "%d-%s\t%d-%s\tyes", L.number, L.name, L.number, L.name);
+          LayerName[LayerCount] = lname;
+          // LayerNum[LayerCount]  = L.number;   // Where is this otherwise used? [bcm]
+          ++LayerCount;
+        }
+      }
+      sprintf(TargetLayer[tCount], "%d-%s", L.number, L.name);
+      tCount++;
+    }
+  }
+  dlgHBoxLayout  {  // below has been significantly restructured much due to new/different features [bcm]
+    dlgTabWidget {
+      dlgTabPage("Processing") {
+        dlgHBoxLayout  {
+          dlgGroup("Settings") { // reword [bcm]
+            dlgHBoxLayout {
+              dlgPushButton("Set to Teardrop Defaults") Default_Teardrop_Settings(); // established two default options - one for teardrops & other for snowmen [bcm]
+              dlgPushButton("Set to Snowman Defaults") Default_Snowman_Settings(); // [bcm]
+            }
+            dlgVBoxLayout {
+              dlgGroup("Options") {
+                dlgCheckBox("&Teardrop/Snowman Vias", User_Vias); // reword [bcm]
+                dlgCheckBox("&Teardrop/Snowman drilled Pads", User_Pads); // reword [bcm]
+                dlgCheckBox("&Setup Vias/Pads to later remove those on inner layers that are Non-Functional(NFP)",User_Setup_NFPs); // new [bcm]
+                dlgCheckBox("&Override presence of any existing airwires",User_Override_Air);  //ars662001@yahoo.com & reword [bcm]
+                dlgLabel("Double-Click on layer to make active/not: (active layers will be processed)");  // [bcm] wording clarification
+                dlgListView("Layer Source\tTeardrop Target\tactive", LayerName, LayerSel) {  // [bcm] spelling
+                  LayerName[LayerSel] = settarget(LayerName[LayerSel]);
+                }
+              }
+            }
+            dlgGroup("Parameters") { // restructure [bcm]
+        	    dlgGridLayout {
+                dlgCell( 1, 0)  dlgLabel("Ignore traces:                            with width >= ");
+                dlgCell( 1, 1)  dlgRealEdit(User_Ignore_Width_mm, 0.1, 10.0);
+                dlgCell( 1, 2)  dlgLabel("mm");
+                dlgCell( 2, 0)  dlgLabel("                        or with width/pad diameter >= ");
+                dlgCell( 2, 1)  dlgRealEdit(User_Ignore_Wwidth2dia_percent, 10.0, 99.0);
+                dlgCell( 2, 2)  dlgLabel("percent");
+                dlgCell( 3, 0)  dlgLabel("Via/Pad center to teardrop apex the max of:");
+        	      dlgCell( 4, 0)  dlgLabel("                                                   Hole Radius +");
+                dlgCell( 4, 1)  dlgRealEdit(User_Hole_Plus_mm, 0.0, 10.0);
+                dlgCell( 4, 2)  dlgLabel("mm");
+                dlgCell( 5, 0)  dlgLabel("                                                   Hole Radius *");
+                dlgCell( 5, 1)  dlgRealEdit(User_Hole_Factor, 1.0, 10.0);
+                dlgCell( 5, 2)  dlgLabel("factor");
+        	      dlgCell( 6, 0)  dlgLabel("                                              Via/Pad Radius +");
+                dlgCell( 6, 1)  dlgRealEdit(User_Pad_Plus_mm, 0.025, 10.0);  // want to be at least .025mm, so shows outside via/pad and can delete
+                dlgCell( 6, 2)  dlgLabel("mm");
+                dlgCell( 7, 0)  dlgLabel("                                              Via/Pad Radius *");
+                dlgCell( 7, 1)  dlgRealEdit(User_Pad_Factor, 1.0, 10.0);
+                dlgCell( 7, 2)  dlgLabel("factor");
+                dlgCell( 8, 0)  dlgLabel("Teardrop Shape:");
+        	      dlgCell( 9, 0)  dlgLabel("        Angle between Apex and Side of Via/Pad");
+                dlgCell( 9, 1)  dlgRealEdit(User_Tear_Deflect_angle, 1.0, 90.0);  // want to be 1..90 degrees
+                dlgCell( 9, 2)  dlgLabel("degrees");
+        	      dlgCell( 10, 0)  dlgLabel("              Bloated (+) or Deflated (-) Curvature");
+                dlgCell( 10, 1)  dlgRealEdit(User_Tear_Curve_angle, -50.0, +90.0);  // highly negative value can easily generate invalid polygon
+                dlgCell( 10, 2)  dlgLabel("degrees");
+        	      dlgCell( 11, 0)  dlgLabel("                                            Teardrop Isolation");
+                dlgCell( 11, 1)  dlgRealEdit(User_Isolation_mm, 0.05, 1.0);
+                dlgCell( 11, 2)  dlgLabel("mm");
+              }
+	          }
+            dlgHBoxLayout {
+              dlgPushButton("Do It") generate_tears();
+              dlgPushButton("Attempt to Restore the Prior State") undo_tears();
+              dlgPushButton("-Cancel") dlgReject();
+            }
+          }
+          dlgGroup("--------------------------------------------------Status bar will show progress while generating teardrops") { // widens dialog box so overview fits
+            dlgTextView(HelpText);
+          }
+        }
+      } // tab page
+      dlgTabPage("Overview") {
+        dlgTextView(OverviewText); // renamed [bcm]
+      }
+      dlgTabPage("History") {
+        dlgTextView("Version "+ Release + " Released " + ReleaseDate + " " + HistoryText2); // a little different [bcm]
+      }
+    }
+  }
+};

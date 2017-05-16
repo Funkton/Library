@@ -1,0 +1,118 @@
+/*
+The MIT License (MIT)
+
+Eagle command line preset launcher
+Copyright (c) 2017 Cameron Nicks, Phase IV Engineering <cnicks@phaseivengr.com>
+Autodesk Screencast showing basic example located: 
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+// 
+// 
+
+#usage "Basic outline to use as a ULP Launcher. Set alias or presets using case switch numbers."
+"<p>"
+"Example quick usage: Assign 'RUN PRESET ' to a shortcut. Press shortcut folowed by preset number."
+"<br>Multiple presets can be called in sequence."
+"<br>To add presets copy case number line and put what you want run at the console in quotes."
+"<p>"
+       "<author>Author: cnicks@phaseivengr.com</author>"
+	   
+string runCommand;
+string cmd;
+int argi = 1; //Current index of argv[]
+
+if (argc == 1) {dlgMessageBox("Enter Preset Number"); exit(1);} //If only one argument given (flags), exit with errors
+
+// Presets to launch from Schematic
+if (schematic) {
+for (argi;argi <= argc;argi++) {
+
+int Preset = strtol(argv[argi]);
+switch (Preset)
+	{
+		
+	case 1: cmd += "run ulpmessage.ulp Schematic Preset1;"; continue;
+	case 2: cmd += "run ulpmessage.ulp Schematic Preset2;"; continue;
+	case 3: cmd += "run FIND.ULP;"; continue;
+	case 4: cmd += "run FIND.ULP C1;"; continue;
+	// default : dlgMessageBox("Enter Preset Number"); break;
+	}
+	argi++;
+}
+//dlgMessageBox("In Schematic"); exit(1);
+} // End Schematic presets
+
+// Presets to launch from Board
+else if (board) {
+for (argi;argi <= argc;argi++) {
+
+int Preset = strtol(argv[argi]);
+switch (Preset)
+	{
+		
+	case 1: cmd += "run ulpmessage.ulp Board Preset1;"; continue;
+	case 2: cmd += "run ulpmessage.ulp Board Preset2;"; continue;
+	case 3: cmd += "run FIND.ULP;"; continue;
+	case 4: cmd += "run FIND.ULP C1;"; continue;
+	// default : dlgMessageBox("Enter Preset Number"); break;
+	}
+	argi++;
+}
+//dlgMessageBox("In Board"); exit(1);
+}// End Board Presets
+
+// Presets to launch from Library
+else if (library){
+for (argi;argi <= argc;argi++) {
+
+int Preset = strtol(argv[argi]);
+switch (Preset)
+	{
+		
+	case 1: cmd += "run add_attrib_all_devices.ulp Partno variable;"; continue;
+	case 2: cmd += "run add_attrib_all_devices.ulp MFPN variable;"; continue;
+	case 3: cmd += "run ulpmessage.ulp Library Preset3;"; continue;
+	case 4: cmd += "run ulpmessage.ulp Library Preset4;"; continue;
+	// default : dlgMessageBox("Enter Preset Number"); break;
+	}
+	argi++;
+}
+// dlgMessageBox("In Library"); exit(1);
+}// End Library Presets
+
+
+
+
+runCommand = cmd;
+// For debugging
+/*
+string argnum;
+int number = argc - 1;
+sprintf(argnum, "The number of arguments is %d", number); 
+
+output("Launcher.txt")
+	{
+    printf(runCommand);
+    printf(argnum);
+	}
+*/
+	
+exit(runCommand);

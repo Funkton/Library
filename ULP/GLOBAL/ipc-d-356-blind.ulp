@@ -1,0 +1,197 @@
+#usage "<b>Export IPC-D-356 data format</b>\n"
+       "<p>"
+       "Generates a netlist in IPC-D-356 format from the current board."
+       "<p>"
+       "Please take care of net names. IPC-D-356 does not allow more than 14 characters! "
+       "Written for EAGLE 4.1. "
+       "<p>"
+        "IPC-D-356 syntax generated according to the specifications of<br>"
+        "<table><tr><td>"
+        "<i>IPC-D-356 Simplified</i><br>"
+        "Written by Rich Nedbal<br>"
+        "DownStream Technologies, LLC<br>"
+        "</td></tr></table>"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+#require 4.1602
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+//
+// Release 1.0 -- November 2003
+// Release 1.0.1  -- May 2006,  Added source of specification (ric)
+// Release 2.0.0  -- 2012-02-29, values calculated with u2inch (alf)
+// Release 2.0.1  -- 2012-03-13, corrected calulation of diameter (alf)
+//                   now generate the same data as the original ulp up to V5.
+// Release 2.0.2  -- corrected line 82, multiplicator 1000 -> 10000
+
+string Version = "2.0.2x";
+
+string fileName, RefDes, Access, NoDiameter, Stop;
+int n, Diameter, Xcoord, Ycoord, RectDataX, RectDataY, Angle ;
+
+
+void Header(UL_BOARD B) {
+  printf("C  IPC-D-356 generated using code modified by Don DeWitt\n");
+  //  printf("C  Database %s -- Exported at %s\n", B.name, t2string(time()));
+  //printf("C  ULP-Version %s : Values = Inch/1000\n", Version); // 2012-03-13
+  printf("C  \n");
+  printf("P  JOB DATE: %s\n", t2string(time()));
+  printf("P  UNITS CUST 0\n");
+  printf("P  DIM N\n");
+
+printf("C                                                                               \n");
+printf("C        1         2         3         4         5         6         7         8\n");
+printf("C 345678901234567890123456789012345678901234567890123456789012345678901234567890\n");
+printf("C                                                                               \n");
+
+
+}
+
+// int Lookup[] = {
+//   0,
+//   1,  2,  3,  4,  5,
+//   -1, -1,
+//   6, 7,
+//   -1, -1,
+//   8,  9, 10, 11, 12
+// } ;
+
+int Lookup[] = {
+  0,
+  1,  2,
+  -1, -1, -1, -1, -1, -1,
+  -1, -1, -1, -1, -1, -1,
+  3, 4
+} ;
+
+
+void TestRecord(UL_BOARD B) {
+  B.signals(S) {
+    S.vias(V) {
+      RefDes = "VIA";
+      Diameter = round(u2inch(V.drill)*10000);
+      Xcoord = round(u2inch(V.x)*10000);
+      Ycoord = round(u2inch(V.y)*10000);
+      RectDataX = round(u2inch(V.diameter[V.start])*10000);
+      RectDataY = (V.shape[LAYER_VIAS] == VIA_SHAPE_ROUND ? 0 : RectDataX);
+
+//      printf("d = %.3f\n", u2mm(V.diameter[LAYER_TSTOP]));
+      //Through via
+      if (V.start == 1 && V.end == 16) {
+        Stop   = (V.diameter[LAYER_TSTOP] == 0 ? "S3"  : "S0");  // both sides solder stopped if diameter == 0
+        Access = (V.diameter[LAYER_TSTOP] == 0 ? "   " : "A00"); // both sides solder stopped if diameter == 0
+        if (RectDataY == 0) {
+          printf("317%-14s   %-12sD%04dP%-3sX%+07dY%+07dX%04dY%4s     %2sL01L04\n",
+            S.name, RefDes, Diameter, Access, Xcoord, Ycoord, RectDataX, "", Stop);
+        } else {
+          // printf("317%-14s   %-12sD%04dP%-3sX%+07dY%+07dX%04dY%04d     %2s%6s\n",
+          //   S.name, RefDes, Diameter, Access, Xcoord, Ycoord, RectDataX, RectDataY, Stop, "");
+          printf("317%-14s   %-12sD%04dP%-3sX%+07dY%+07dX%04dY%04d     %2sL01L04\n",
+            S.name, RefDes, Diameter, Access, Xcoord, Ycoord, RectDataX, RectDataY, Stop);
+        }
+
+      } else { // not a through via so send as a record 307
+
+        if (V.diameter[LAYER_TSTOP] == 0) Access = "   "; // both sides covered with solder-stop, regardless of layers
+        else if (V.start ==  1)           Access = "A01"; // Accessible only from the top
+        else if (V.end   == 16)           Access = "A12"; // Accessible only from the bottom
+        else                              Access = "   "; // buried vias are not accessible from either side
+
+        if (V.start == 1 || V.end == 16) { //Blind vias, these need a continuation record, 027, to show surface feature
+          Stop = (V.diameter[LAYER_TSTOP] > 0 ? (V.start == 1 ? "S2" : "S1") : "S3");  // only the opposite side solder stopped if diameter != 0
+          printf("307%-14s   %-12sD%04dP%-3sX%+07dY%+07d%14s %2sL%02dL%02d\n",
+          S.name, RefDes, Diameter, Access, Xcoord, Ycoord, "", Stop, Lookup[V.start], Lookup[V.end]);
+          if (RectDataY == 0) { // send continuation record here, leave out Y coord if feature is round
+            printf("027%-14s   %-12s      %-3sX%+07dY%+07dX%04dY%8s %2sL01L04\n",
+              S.name, RefDes, Access, Xcoord, Ycoord, RectDataX, "", Stop);
+            } else {
+            printf("027%-14s   %-12s      %-3sX%+07dY%+07dX%04dY%04d%4s %2sL01L04\n",
+              S.name, RefDes, Access, Xcoord, Ycoord, RectDataX, RectDataY, "", Stop);
+          }
+
+        } else { // a buried vias
+          printf("307%-14s   %-12sD%04dP%-3sX%+07dY%+07d%17sL%02dL%02d\n",
+            S.name, RefDes, Diameter, Access, Xcoord, Ycoord, "", Lookup[V.start], Lookup[V.end]);
+        }
+      }
+    }
+  }
+
+  B.elements(E) {
+    E.package.contacts(C) {
+      if (C.pad) {
+         RefDes = E.name;
+         Diameter = round(u2inch(C.pad.drill)*10000);
+         Stop = "S0" ;// stop signifies that surface is COVERED with solder-stop, all pads are assumed clear of solder-stop
+         Access = "A00"; // pads always without stop
+         Xcoord = round(u2inch(C.pad.x)*10000);
+         Ycoord = round(u2inch(C.pad.y)*10000);
+         Angle = round(C.pad.angle);
+
+         if (C.pad.elongation == 0) {
+           RectDataX = RectDataY = round(u2inch(C.pad.diameter[LAYER_TOP])*10000);
+           printf("317%-14s   %-6s-%-4s D%04dP%-3sX%+07dY%+07dX%04dY%04sR%03d %2sL01L04\n",
+            C.pad.signal, RefDes, C.pad.name, Diameter, Access, Xcoord, Ycoord, RectDataX, ""      , Angle, Stop);
+         } else { // if (C.pad.elongation != 0)
+           int r;
+           RectDataX = round(u2inch(C.pad.diameter[LAYER_TOP])*10000);
+           RectDataY = round((u2inch(C.pad.diameter[LAYER_TOP])*10000) * (C.pad.elongation / 100) + u2inch(C.pad.diameter[LAYER_TOP])*10000);
+// offset the TP on long pads...
+//          r = round((u2inch(C.pad.diameter[LAYER_TOP])*10000) * ((C.pad.elongation+50) / 100)/2);
+//           Xcoord -=  r * cos(Angle * PI/180.0);
+//           Ycoord -=  r * sin(Angle * PI/180.0);
+
+           printf("317%-14s   %-6s-%-4s D%04dP%-3sX%+07dY%+07dX%04dY%04dR%03d %2sL01L04\n",
+            C.pad.signal, RefDes, C.pad.name, Diameter, Access, Xcoord, Ycoord, RectDataX, RectDataY, Angle, Stop);
+
+         }
+      }
+      if (C.smd) {
+         RefDes = E.name;
+         if (C.smd.layer == 1)  {
+           Access = "A01"; // always without stop
+           Stop = "S2";
+         } else if (C.smd.layer == 16)  {
+           Access = "A12";
+           Stop = "S1";
+         }
+         Xcoord = round(u2inch(C.smd.x)*10000);
+         Ycoord = round(u2inch(C.smd.y)*10000);
+         RectDataX = round(u2inch(C.smd.dx) * 10000) ;
+         RectDataY = round(u2inch(C.smd.dy) * 10000) ;
+         Angle = round(C.smd.angle);
+
+         printf("327%-14s   %-6s-%-4s %-6s%-3sX%+07dY%+07dX%04dY%04dR%03d %2s%6s\n",
+          C.smd.signal, RefDes, C.smd.name, "", Access, Xcoord, Ycoord, RectDataX, RectDataY, Angle, Stop, "");
+      }
+    }
+  }
+}
+
+
+void EndOfFile(void) {
+  printf("999\n");
+}
+
+//==========main===========
+
+
+if (board) {
+ board(B) {
+  fileName = dlgFileSave("Save IPC-D-356 File", filesetext(B.name, ".ipc"), "*.ipc");
+  if (fileName == "") exit(0);
+
+  output(fileName) {
+     Header(B);
+     TestRecord(B);
+     EndOfFile();
+  }
+ }
+}
+
+else {
+   dlgMessageBox("!Start this ULP in a Board.");
+   exit (0);
+}
+

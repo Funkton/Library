@@ -1,0 +1,27 @@
+SYM:
+GRID INCH;
+ch size 0.1;
+ch ratio 12;
+ch font vector;
+ch layer Names;
+text '>NAME' (R 0 0);
+ch size 0.07;
+ch ratio 10;
+ch layer Values;
+text '>VALUE' (R 0 -0.1);
+ch lay Sym;
+GRID LAST;
+
+PAC:
+GRID INCH;
+ch size 0.04;
+ch ratio 18;
+ch font vector;
+ch layer tNames;
+text '>NAME' (R 0 0);
+ch size 0.032;
+ch ratio 10;
+ch layer tValues;
+text '>VALUE' (R 0 -0.05);
+ch lay tPlace;
+GRID LAST;

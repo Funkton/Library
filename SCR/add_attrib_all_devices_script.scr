@@ -1,0 +1,178 @@
+
+EDIT C8051F34*.dev
+
+  PACKAGE -GQ
+    TECHNOLOGY 0
+      ATTRIB MEM constant
+
+EDIT FT230X.dev
+
+  PACKAGE Q
+    TECHNOLOGY ''
+      ATTRIB MEM constant
+
+EDIT MK60F*?12.dev
+
+  PACKAGE LQ
+    TECHNOLOGY N1M0V
+      ATTRIB MEM constant
+
+EDIT NRF51822.dev
+
+  PACKAGE QFAA
+    TECHNOLOGY ''
+      ATTRIB MEM constant
+
+EDIT PIC16LF1508.dev
+
+  PACKAGE ML
+    TECHNOLOGY -E/
+      ATTRIB MEM constant
+
+EDIT PIC18F2*K20-E/.dev
+
+  PACKAGE ML
+    TECHNOLOGY 3
+      ATTRIB MEM constant
+    TECHNOLOGY 4
+      ATTRIB MEM constant
+    TECHNOLOGY 5
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+
+EDIT PIC18F6.dev
+
+  PACKAGE -I/PT
+    TECHNOLOGY 6J11
+      ATTRIB MEM constant
+    TECHNOLOGY 6J16
+      ATTRIB MEM constant
+    TECHNOLOGY 7J11
+      ATTRIB MEM constant
+
+EDIT PIC24FJ*GB002.dev
+
+  PACKAGE -I/SS
+    TECHNOLOGY 32
+      ATTRIB MEM constant
+    TECHNOLOGY 64
+      ATTRIB MEM constant
+
+EDIT PIC24FJ*GB004.dev
+
+  PACKAGE -I/PT
+    TECHNOLOGY 32
+      ATTRIB MEM constant
+    TECHNOLOGY 64
+      ATTRIB MEM constant
+
+EDIT STM8L151C.dev
+
+  PACKAGE T6
+    TECHNOLOGY 4
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+    TECHNOLOGY 8
+      ATTRIB MEM constant
+
+  PACKAGE U3
+    TECHNOLOGY 4
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+    TECHNOLOGY 8
+      ATTRIB MEM constant
+
+EDIT STM8L151G.dev
+
+  PACKAGE U6
+    TECHNOLOGY 4
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+
+  PACKAGE Y6
+    TECHNOLOGY 4
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+
+EDIT STM32F207VC.dev
+
+  PACKAGE T
+    TECHNOLOGY ''
+      ATTRIB MEM constant
+
+EDIT STM32L051C.dev
+
+  PACKAGE T
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+    TECHNOLOGY 8
+      ATTRIB MEM constant
+
+EDIT STM32L052K*U.dev
+
+  PACKAGE 6
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+    TECHNOLOGY 8
+      ATTRIB MEM constant
+
+EDIT STM32L053C.dev
+
+  PACKAGE ''
+    TECHNOLOGY 6T6
+      ATTRIB MEM constant
+    TECHNOLOGY 8T6
+      ATTRIB MEM constant
+
+EDIT STM32L062K8U.dev
+
+  PACKAGE 6
+    TECHNOLOGY ''
+      ATTRIB MEM constant
+
+EDIT STM32L071C.dev
+
+  PACKAGE ''
+    TECHNOLOGY 8T6
+      ATTRIB MEM constant
+    TECHNOLOGY BT6
+      ATTRIB MEM constant
+    TECHNOLOGY ZT6
+      ATTRIB MEM constant
+
+EDIT STM32L443CC?.dev
+
+  PACKAGE T
+    TECHNOLOGY 3
+      ATTRIB MEM constant
+    TECHNOLOGY 6
+      ATTRIB MEM constant
+
+EDIT STM32L475R.dev
+
+  PACKAGE T3
+    TECHNOLOGY C
+      ATTRIB MEM constant
+    TECHNOLOGY E
+      ATTRIB MEM constant
+    TECHNOLOGY G
+      ATTRIB MEM constant
+
+  PACKAGE T6
+    TECHNOLOGY ''
+      ATTRIB MEM constant
+
+EDIT STM32L476R.dev
+
+  PACKAGE T6
+    TECHNOLOGY C
+      ATTRIB MEM constant
+    TECHNOLOGY E
+      ATTRIB MEM constant
+    TECHNOLOGY G
+      ATTRIB MEM constant

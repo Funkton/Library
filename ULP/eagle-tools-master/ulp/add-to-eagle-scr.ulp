@@ -1,0 +1,176 @@
+if (argc<3) {
+	exit("");
+}
+int i;
+int k;
+int j;
+string selectedSection = argv[1];
+if (selectedSection[0] == '^') {
+	selectedSection = strsub(selectedSection, 1);
+}
+string selectedCommand = argv[2];
+string selectedCommandArgv[];
+for (i=0; argv[2+i]; i++) {
+	if (strxstr(argv[2+i], "\\s+")>=0)
+		selectedCommandArgv[i] = "'"+argv[2+i]+"'";
+	else
+		selectedCommandArgv[i] = argv[2+i];
+}
+int selectedCommandArgc = i;
+
+
+string eagleScrFile = path_scr[0] + "/eagle.scr";
+string eagleScrContent;
+fileread(eagleScrContent, eagleScrFile);
+
+string currentToken = "";
+string currentSection = "";
+int isString = 0;
+int isComment = 0;
+int isEscape = 0;
+string commandArgv[];
+int commandArgc = 0;
+
+string currentSectionCmdsv[];
+int currentSectionCmdsc;
+string currentSectionMenuv[];
+int currentSectionMenuc;
+
+string outputString = "";
+
+void printSection() {
+	if (currentSection == selectedSection) {
+		if (strlwr(selectedCommand) != "menu") {
+			string cmdStr = "";
+			for (k = 0; k<selectedCommandArgc; k++) {
+				if (k>0) cmdStr += " ";
+				cmdStr += selectedCommandArgv[k];
+			}
+			cmdStr += ";\n";
+			for (k = 0; k<currentSectionCmdsc; k++) {
+				if (currentSectionCmdsv[k] == cmdStr) {
+					currentSectionCmdsv[k] = cmdStr;
+					break;
+				}
+			}
+			if (currentSectionCmdsc == k) {
+				currentSectionCmdsv[currentSectionCmdsc++] = cmdStr;
+			}
+			
+			
+		} else {
+			for (k = 1; k < selectedCommandArgc; k++) {
+				int pos = strxstr(selectedCommandArgv[k], "\\{|;|'");
+				if (pos = -1) pos = strlen(selectedCommandArgv[k])-1;
+				string searchString = strsub(selectedCommandArgv[k], 0, pos+1);
+				for (j = 0; j<currentSectionMenuc; j++) {
+					if (strstr(currentSectionMenuv[j], searchString) == 0) {
+						currentSectionMenuv[j] = selectedCommandArgv[k];
+						break;
+					}
+				}
+				if (j == currentSectionMenuc) {
+					currentSectionMenuv[currentSectionMenuc++] = selectedCommandArgv[k];
+				}
+			}
+		}
+	}
+	
+	if (currentSectionCmdsc>0) {
+		for (k = 0; k<currentSectionCmdsc; k++) {
+			outputString += currentSectionCmdsv[k];
+		}
+	}
+	
+	
+	
+	if (currentSectionMenuc>0) {
+		outputString += "MENU ";
+		
+		for (k = 0; k<currentSectionMenuc; k++) {
+			if (k>0) {
+				outputString += "     ";
+			} 
+			outputString += currentSectionMenuv[k] + "\\\n";
+		}
+		outputString += ";\n";
+	}
+}
+
+for (i = 0; eagleScrContent[i]; i++) {
+	
+	if (!isString && !isComment && !isEscape && eagleScrContent[i]=='\\') {
+		isEscape = 1;
+		continue;
+	}
+	
+	
+	if (!isEscape && !isComment && eagleScrContent[i]=='\'') {
+		currentToken = currentToken + eagleScrContent[i];
+		isString = !isString;
+		continue;
+	}
+	
+	if (!isEscape && !isComment && eagleScrContent[i] == '#') {
+		isComment = 1;
+		continue;
+	}
+	
+	if (!isEscape && isComment && eagleScrContent[i] == '\n') {
+		isComment = 0;
+		outputString += "#" + currentToken + "\n";
+		currentToken = "";
+		continue;
+	}
+
+	
+	if (!isEscape && !isComment && !isString && (eagleScrContent[i] == ' ' || eagleScrContent[i] == ';' || eagleScrContent[i] == '\t' || (eagleScrContent[i] == ':' && strxstr(currentToken,"(SYM|LBR|DEV|SCH|BRD|PAC)")==0))) {
+		if (eagleScrContent[i] == ':') {
+			
+			printSection();
+		
+			currentSection = currentToken;
+			
+			outputString += "\n" + currentSection + ":\n";
+			
+			currentSectionCmdsc = 0;
+			currentSectionMenuc = 0;
+			
+		} else {
+			if (currentToken != "") {
+				commandArgv[commandArgc++] = currentToken;
+			}
+			if (eagleScrContent[i] == ';') {
+				if (strlwr(commandArgv[0]) == "menu") {
+					currentSectionMenuc = 0;
+					for (k = 1; k<commandArgc; k++) {
+						currentSectionMenuv[currentSectionMenuc++] = commandArgv[k];
+					}
+				} else {
+					currentSectionCmdsv[currentSectionCmdsc] = "";
+					if (commandArgc>0) {
+						for (k = 0; k<commandArgc; k++) {
+							if (k>0) currentSectionCmdsv[currentSectionCmdsc] += " ";
+							currentSectionCmdsv[currentSectionCmdsc] += commandArgv[k];
+						}
+						currentSectionCmdsv[currentSectionCmdsc++] += ";\n";
+					}
+					
+				}
+				
+				commandArgc = 0;
+			}
+		}
+		currentToken = "";
+	} else {
+		if (!(!isString && eagleScrContent[i] == '\n'))
+			currentToken = currentToken + eagleScrContent[i];
+	}
+	
+	isEscape = 0;
+}
+printSection();
+
+output (eagleScrFile, "wt") {
+	printf("%s",outputString);
+};

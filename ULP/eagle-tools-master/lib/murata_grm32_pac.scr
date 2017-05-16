@@ -1,0 +1,14 @@
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X110L75N_20X20X15L45;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X115L77N_30X20X10L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X135L75N_20X20X15L45;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X135L77N_30X20X15L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X160L77N_30X20X20L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X180L77N_30X20X20L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X185L75N_20X20X15L45;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X185L77N_30X20X15L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X200L77N_30X20X20L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X250L75N_20X20X20L45;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X250L77N_30X20X20L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X250L77N_30X30X30L48;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X85L75N_20X20X15L45;
+RUN C:\Users\florianbehner\Documents\eagle-library\ulp\ipc-wizard\chip.ulp CAPC320X250X90L77N_30X20X10L48;

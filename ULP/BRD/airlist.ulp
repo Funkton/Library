@@ -1,0 +1,295 @@
+// Program that list of airwires of the board 
+// gives:
+// coordiantes, length, signal name
+// on double click show it highlighted on the board
+//
+// Modified by Andres Restrepo
+
+
+int i=0;
+
+
+
+string DatabaseFilename;
+
+numeric string Lines[];
+int    nAirCount;
+int    AirX1[],AirX2[],AirY1[],AirY2[];
+real   AirD[],Dsum=0;
+string AirName[];
+string Filename;
+
+int    Selected = 0;
+int    Sort = 0;
+real   Zoom = 50;
+
+real MinimalWireD = 0.05; // [mil] mimimal distance to view a wire as a spot
+int  nSpots=0;
+
+string HelpTextEN =
+  "<b>List of Airwires</b>"
+  "<ul>"
+  "<li>List all airwires with all its information.</li><p>"
+  "<li>Double-click on one airwire and it will "
+  "highlight the corresponding signal and put the airwire in the center of the window</li><p>"
+  "<\ul>"  
+  ;
+
+string ULPname = "Airwire-List v";
+string Release = "1.07";
+string ReleaseDate = "Jan 03, 2014";  // ars662001@yahoo.com
+
+
+string HistoryText2 =
+  "<p>"
+  "The following is a history of this program (most recent first)."
+  "<p>"
+  "Version History"
+  "<ul>"
+  "<li>v1.06 - display layer 19.</li><p>"  
+  "<li>v1.05 - give number of spot airwires.</li><p>"  
+  "<li>v1.04 - calculate accumulated distance.</li><p>"  
+  "<li>v1.03 - cleaning up.</li><p>"  
+  "<li>v1.02 - tabbed format.</li><p>"  
+  "<li>v1.01 - only file output.</li><p>"
+  "<li>v1.00 - Initial release version. - Andres Restrepo S.</li><p>"
+  "</ul>"
+;
+
+
+
+// make a list of all wires: calculate the length of each one
+void do_wire_list(UL_SIGNAL S) {
+  real d1;
+
+  S.wires(W) 
+  {      
+    if(W.layer==19)
+    {
+      printf("[%04d] ",i);
+      
+      if(W.arc)  // is an arc:  WIRE 'signal' width (x1 y1) @[sign(curve)]radius (x2 y2); 
+      {                
+        if(W.curve>0)
+          printf("LAYER %d;\tWIRE '%s' %13.10f (%13.10f %13.10f) @+%13.10f (%13.10f %13.10f);  ",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+        else
+          printf("LAYER %d;\tWIRE '%s' %13.10f (%13.10f %13.10f) @-%13.10f (%13.10f %13.10f);  ",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+      }
+      else       // is a straight wire: WIRE 'signal' width (x1 y1) (x2 y2); 
+      {              
+        printf("LAYER %d;\tWIRE '%s' %13.8f (%13.9f %13.9f) (%13.9f %13.9f);  ",                                     
+                W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1),  u2mm(W.x2),  u2mm(W.y2)); 
+      }    
+
+      d1=sqrt( pow(u2mm(W.x1-W.x2),2) + pow(u2mm(W.y1-W.y2),2) );  
+      printf("d= %5.3f\n",d1);
+      i++;
+    }
+  }    
+  return;
+}
+
+
+
+
+
+void CollectData()
+{
+nAirCount=0;
+
+ board(B) 
+  {
+ 
+    Filename  = B.name; 
+    B.signals(S) 
+    {
+      S.wires(W) 
+      {      
+        if(W.layer==19) 
+        {
+          AirX1  [nAirCount]=W.x1;
+          AirX2  [nAirCount]=W.x2;
+          AirY1  [nAirCount]=W.y1;
+          AirY2  [nAirCount]=W.y2;
+          AirName[nAirCount]=S.name;  
+          AirD   [nAirCount]=sqrt( pow(W.x1-W.x2,2) + pow(W.y1-W.y2,2) ); 
+          Dsum  += AirD   [nAirCount];     
+          if( u2mil(int(AirD[nAirCount]))<=MinimalWireD ) nSpots++;
+          nAirCount++;      
+        }    
+      }    
+    }
+  }
+}
+
+void GenerateList(void)
+{
+  int NumLines   = 1;  
+  string StrIndex;
+  string StrAirX1;
+  string StrAirX2;
+  string StrAirY1;
+  string StrAirY2;
+  string StrAirD ;
+          
+  Lines[0] = "Index" + "\t" + "X1 [mil]" + "\t" + "Y1 [mil]" + "\t"+ "X2 [mil]" + "\t" + "Y2 [mil]" + "\t"+ "D [mil]" + "\t"+ "Signal" + "\t";
+  for (int i = 0; i < nAirCount; i ++)
+  {
+    if(nAirCount<100)         sprintf (StrIndex   , "%02d" , i);
+    else if(nAirCount<1000)   sprintf (StrIndex   , "%03d" , i);
+    else if(nAirCount<10000)  sprintf (StrIndex   , "%04d" , i);
+    else if(nAirCount<100000) sprintf (StrIndex   , "%05d" , i);
+
+    sprintf (StrAirX1   , "%8.2f", u2mil(AirX1[i]));
+    sprintf (StrAirX2   , "%8.2f", u2mil(AirX2[i]));
+    sprintf (StrAirY1   , "%8.2f", u2mil(AirY1[i]));
+    sprintf (StrAirY2   , "%8.2f", u2mil(AirY2[i]));   
+    sprintf (StrAirD    , "%8.4f", u2mil(int(AirD[i])));     
+    
+    Lines[NumLines] = StrIndex + "\t" + StrAirX1 + "\t" + StrAirY1 + "\t" + StrAirX2 + "\t"  + StrAirY2 + "\t" + StrAirD + "\t" + AirName[i] + "\t";
+    NumLines ++;
+  }
+  Lines[NumLines] = "";
+}
+
+
+
+
+void save(void)
+{
+  real d;
+  int i;
+  string StrIndex;
+  string StrAirX1;
+  string StrAirX2;
+  string StrAirY1;
+  string StrAirY2;
+  string StrAirD ;
+
+  output(filesetext(Filename, ".AIR2")) {
+    printf("       Airwire List\n");
+    printf("i     (X1 Y1) [mil]       (X2 Y2) [mil]       Length [mil]  Signal-name\n");
+    for (int i = 0; i < nAirCount; i ++)
+    {
+      if(nAirCount<100)         { sprintf (StrIndex   , "%02d" , i); }
+      else if(nAirCount<1000)   { sprintf (StrIndex   , "%03d" , i); }
+      else if(nAirCount<10000)  { sprintf (StrIndex   , "%04d" , i); }
+      else if(nAirCount<100000) { sprintf (StrIndex   , "%05d" , i); }
+
+      sprintf (StrAirX1   , "%8.2f", u2mil(AirX1[i]));
+      sprintf (StrAirX2   , "%8.2f", u2mil(AirX2[i]));
+      sprintf (StrAirY1   , "%8.2f", u2mil(AirY1[i]));
+      sprintf (StrAirY2   , "%8.2f", u2mil(AirY2[i]));    
+
+      d=sqrt( pow(u2mil(AirX1[i])-u2mil(AirX2[i]),2) + pow(u2mil(AirY1[i])-u2mil(AirY2[i]),2) );  
+      sprintf (StrAirD    , "%8.2f", d);
+      
+      printf("[%s] (%s %s) (%s %s) %s - %s\n",
+              StrIndex, StrAirX1, StrAirY1, StrAirX2, StrAirY2, StrAirD, AirName[i]);     
+    } 
+    printf("\nNumber of vias:%d\n", i);
+  }
+}
+
+
+
+// execute a command at exit:
+void show(int sel) { 
+string cmd;
+ 
+  sel--;
+
+  sprintf(cmd, "GRID MIL; WINDOW FIT; WINDOW %f; WINDOW (%f %f); DISPLAY 19; GRID LAST; SHOW '%s'", 
+          Zoom,u2mil((AirX1[sel]+AirX2[sel])/2),u2mil((AirY1[sel]+AirY2[sel])/2), AirName[sel] );
+  exit(cmd);
+}
+
+
+
+
+int hor;
+
+
+
+
+/* Main: */
+
+string strnairs;
+
+if (!board)
+{
+  dlgMessageBox("You should run this ULP from an open board design.");
+  exit(-1);
+}
+
+
+
+  CollectData();         
+
+  GenerateList();
+     
+  sprintf(strnairs,"[Total airwires=%d]\n[Total of spot-airwires=%d]\n\nDsum = %f [mil]\nDsum = %f [mm]",
+          nAirCount,nSpots,u2mil(int(Dsum)),u2mm(int(Dsum)));
+
+  dlgDialog(ULPname + Release) {
+ 
+
+  dlgTabWidget {
+    dlgTabPage("Processing") {
+
+      dlgHBoxLayout  {
+        
+        dlgGroup("Airwire examiner") {          
+         dlgVBoxLayout {             
+
+
+// unit selector:
+//            dlgHBoxLayout  {
+//              dlgGroup("X,Y") {
+//               dlgRadioButton("&mils" ,hor );//GenerateList(0,0));       
+//               dlgRadioButton("&mm"  , hor);
+//              }              
+//            }
+
+
+            // airwire list:    
+            dlgLabel("Double-Click on via to select :");           
+            dlgHBoxLayout          
+            {
+              dlgVBoxLayout dlgSpacing(400);    
+              dlgListView("", Lines, Selected, Sort) show(Selected) ;
+            }
+          }
+          dlgStretch(1);
+          dlgSpacing(10);
+          dlgHBoxLayout {
+            dlgPushButton("Save")   save();         
+            dlgPushButton("+OK")    dlgAccept();
+            dlgPushButton("Cancel") dlgReject();
+          }
+        }
+      
+        //dlgTextView(mainscrtext);
+        dlgTextView(strnairs);
+        }
+      }
+      
+
+      dlgTabPage("Overview") {
+        dlgTextView(HelpTextEN);
+      }
+
+      dlgTabPage("History") {
+        dlgTextView(Release + " " + ReleaseDate + " " + HistoryText2);       
+      }
+    } // tab page  
+  };
+
+
+
+
+
+
+

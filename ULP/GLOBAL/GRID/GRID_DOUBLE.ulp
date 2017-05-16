@@ -1,0 +1,162 @@
+﻿//EAGLE ULP "grid20.ulp"
+//(C) 2009-10-04 Andreas Weidner (+Rowena Fermi)
+
+#usage "en: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Increase grid size</h3>\n"
+    "This program doubles the current grid distance. The alternative grid "
+    "is set to 1/4 of the resulting distance.<p>"
+    "<author>&copy; 2009-10-04 Andreas Weidner (+ Rowena Fermi)</author></td>"
+    "</tr></table><br><br>"
+    "<b>Usage:</b><dl>"
+    "<dt><tt>RUN grid20</tt></dt></dl><hr>"
+    "<b>Hints:</b><ol>"
+    "<li>Due to its limited drawing size, EAGLE cannot double all possible "
+    "grid distances. In these cases, a warning is displayed and the grid "
+    "remains unchanged.</li>"
+    "<li>Due to its finite precision, EAGLE cannot always set the alternative "
+    "grid to <b>exactly</b> 1/4 of the standard grid. In these cases, a "
+    "warning is displayed and the user is asked whether to cancel the action "
+    "or not.</li>"
+    "<li>The file <i>awtools.inc</i> is necessary for proper execution.</li>"
+    "</ol>",
+  "de: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Raster vergrößern</h3>\n"
+    "Dieses Programm verdoppelt den aktuellen Rasterabstand. Das alternative "
+    "Raster erhält 1/4 des neuen Abstands.<p>"
+    "<author>&copy; 2009-10-04 Andreas Weidner (+ Rowena Fermi)</author></td>"
+    "</tr></table><br><br>"
+    "<b>Aufruf:</b><dl>"
+    "<dt><tt>RUN grid20</tt></dt></dl><hr>"
+    "<b>Hinweise:</b><ol>"
+    "<li>Aufgrund seiner begrenzten Blattgröße kann EAGLE nicht alle "
+    "möglichen Rasterabstände verdoppeln. In diesen Fällen wird eine Warnung "
+    "angezeigt und das aktuelle Raster nicht verändert.</li>"
+    "<li>Aufgrund seiner endlichen Genauigkeit kann EAGLE das alternative "
+    "Raster nicht immer auf <b>exakt</b> 1/4 des Standardrasters setzen. In "
+    "diesen Fällen wird eine Warnung angezeigt und der Benutzer gefragt, ob "
+    "die Aktion abgebrochen werden soll.</li>"
+    "<li>Zur korrekten Programmausführung wird die Datei <i>awtools.inc</i> "
+    "benötigt.</li></ol>"
+
+#include "awtools.inc"
+
+//Global variables
+
+UL_GRID Grid;         //The current grid settings
+real NewGrid;         //The new grid size in the current unit
+string OldUnitText;   //Current grid unit (NOT for use with the grid distance)
+string DistUnitText;  //Unit in which the grid distance is defined
+real NewAltGrid;      //The new alternative grid size in the current unit
+string AltGridText;   //String representing the new alternative grid size
+string Command;       //The command to be executed as script
+int Largest=0;        //1, if the largest grid will be set
+int AltFinest=0;      //1, if the finest alternative grid will be set
+
+//Get the current grid settings from the active window
+if (board)
+  board(B)
+    Grid=B.grid;
+if (schematic)
+  schematic(S)
+    Grid=S.grid;
+if (library)
+  library(L)
+    Grid=L.grid;
+
+//Calculate the new grid sizes
+NewGrid=Grid.distance*2;
+if (Grid.unit==GRID_UNIT_MIC)
+  OldUnitText="mic";
+else if (Grid.unit==GRID_UNIT_MM)
+  OldUnitText="mm";
+else if (Grid.unit==GRID_UNIT_MIL)
+  OldUnitText="mil";
+else
+  OldUnitText="inch";
+
+//Check for errors
+if (Grid.unitdist==GRID_UNIT_MIC) {
+  DistUnitText="mic";
+  if (NewGrid>1562500) {
+    NewGrid=Grid.distance;
+    Largest=1;
+    }
+  NewAltGrid=NewGrid/4;
+  sprintf(AltGridText,"%.7f",NewAltGrid);
+  if (NewAltGrid<0.1) {
+    NewAltGrid=0.1;
+    AltFinest=1;
+    }
+  }
+else if (Grid.unitdist==GRID_UNIT_MM) {
+  DistUnitText="mm";
+  if (NewGrid>1562.5) {
+    NewGrid=Grid.distance;
+    Largest=1;
+    }
+  NewAltGrid=NewGrid/4;
+  sprintf(AltGridText,"%.10f",NewAltGrid);
+  if (NewAltGrid<0.0001) {
+    NewAltGrid=0.0001;
+    AltFinest=1;
+    }
+  }
+else if (Grid.unitdist==GRID_UNIT_MIL) {
+  DistUnitText="mil";
+  if (NewGrid>61515.8) {
+    NewGrid=Grid.distance;
+    Largest=1;
+    }
+  NewAltGrid=NewGrid/4;
+  sprintf(AltGridText,"%.9f",NewAltGrid);
+  if (NewAltGrid<0.00393701) {
+    NewAltGrid=0.00393701;
+    AltFinest=1;
+    }
+  }
+else {
+  DistUnitText="inch";
+  if (NewGrid>61.5158) {
+    NewGrid=Grid.distance;
+    Largest=1;
+    }
+  NewAltGrid=NewGrid/4;
+  sprintf(AltGridText,"%.12f",NewAltGrid);
+  if (NewAltGrid<0.00000393701) {
+    NewAltGrid=0.00000393701;
+    AltFinest=1;
+    }
+  }
+AltGridText=strsub(AltGridText,strlen(AltGridText)-3);
+
+//Display warnings, if needed
+if (Largest!=0) {
+  AWWarning("Warning: <b>Grid too large</b><br>&nbsp; - The grid distance "
+    "will not be increased further.","Warnung: <b>Raster zu groß</b><br>"+
+    "&nbsp; - Der Rasterabstand wird nicht weiter erhöht");
+  exit(0);
+  }
+else if ((AltFinest!=0) || (AltGridText!="000")) {
+  Command="!<html><nobr>"+AWLocalise("Warning: <b>Grid roundoff error</b>",
+    "Warnung: <b>Raster-Rundungsfehler</b>")+"<br>&nbsp; - ";
+  if (AltFinest!=0)
+    Command+=AWLocalise("Alternative grid will be set to smallest possible "+
+      "value","Alternatives Raster wird auf kleinstmöglichen Wert gesetzt");
+  else if (AltGridText!="000")
+    Command+=AWLocalise("Alternative grid will only <b>roughly</b> be set to "+
+      "1/4 of standard grid","Alternatives Raster wird nur <b>ungefähr</b> "+
+      "auf 1/4 des Standardrasters gesetzt");
+  if (dlgMessageBox(Command,"OK",AWLocalise("Cancel","Abbrechen"))!=0)
+    exit(0);
+  }
+
+if (AltFinest)
+  AltGridText="Finest";
+else
+  sprintf(AltGridText,"%.10f",NewAltGrid);
+
+//Run the proper script commands
+sprintf(Command,"GRID %s %.10f On;\n"+
+  "GRID ALT %s %s;\n"+
+  "GRID %s",DistUnitText,NewGrid,DistUnitText,AltGridText,OldUnitText);
+exit(Command);

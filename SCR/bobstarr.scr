@@ -1,0 +1,520 @@
+# bobstarr.net configuration Script<p>
+#
+
+# Define additional color palette values for palette entries 16-64
+
+# Group-2 Normal Color
+SET PALETTE 16 0xB4B26A22
+SET PALETTE 17 0xB4B38E03
+SET PALETTE 18 0xB4466A22
+SET PALETTE 19 0xB46A6A46
+SET PALETTE 20 0xB46A8E6A
+SET PALETTE 21 0xB4466A6A
+SET PALETTE 22 0xB4228E6A
+SET PALETTE 23 0xB4226B8E
+# Group-2 Hi-Light
+SET PALETTE 24 0xB4EE8823
+SET PALETTE 25 0xB4EEBB22
+SET PALETTE 26 0xB4558823
+SET PALETTE 27 0xB4888856
+SET PALETTE 28 0xB489BB88
+SET PALETTE 29 0xB4568889
+SET PALETTE 30 0xB445EEAA
+SET PALETTE 31 0xB4006599
+
+# Group-3 Normal Color
+SET PALETTE 32 0xB4666666
+SET PALETTE 33 0xB4339999
+SET PALETTE 34 0xB4CC66FF
+SET PALETTE 35 0xB4996600
+SET PALETTE 36 0xB499CC99
+SET PALETTE 37 0xB4009933
+SET PALETTE 38 0xB4333399
+SET PALETTE 39 0xB4478F8E
+# Group-3 Hi-Light
+SET PALETTE 40 0xB4999999
+SET PALETTE 41 0xB433CC99
+SET PALETTE 42 0xB4CC99FF
+SET PALETTE 43 0xB4999900
+SET PALETTE 44 0xB499FF99
+SET PALETTE 45 0xB400CC33
+SET PALETTE 46 0xB4336699
+SET PALETTE 47 0xB455BCBB
+
+# Group-4 Normal Color
+SET PALETTE 48 0xB49999CC
+SET PALETTE 49 0xB4FF3333
+SET PALETTE 50 0xB49999FF
+SET PALETTE 51 0xB43399CC
+SET PALETTE 52 0xB4FF33CC
+SET PALETTE 53 0xB4FF6611
+SET PALETTE 54 0xB4999933
+SET PALETTE 55 0xB4FF33FF
+# Group-4 Hi-Light
+SET PALETTE 56 0xB499CCCC
+SET PALETTE 57 0xB4FF6633
+SET PALETTE 58 0xB499CCFF
+SET PALETTE 59 0xB433CCCC
+SET PALETTE 60 0xB4FF66CC
+SET PALETTE 61 0xB4FF9911
+SET PALETTE 62 0xB499CC33
+SET PALETTE 63 0xB4FF66FF
+
+
+##########################################################################
+# Configure the BOARD Editor Default Settings
+
+BRD:
+
+ASSIGN C+F6 run cmd-grid-step;
+ASSIGN S+F6 run cmd-grid-step "up";
+ASSIGN F7   run hide-airwires.ulp;
+ASSIGN S+F7 rats *;
+
+SET Option.DrawUnprocessedPolygonEdgesContinuous 1
+
+# Text Command Menu Setup
+
+MENU 
+     'Grid {\
+             Metric {\
+                        0.05 mm : Grid mm 0.05; |\
+                        0.10 mm : Grid mm 0.1; |\
+                        0.125 mm : Grid mm 0.125; |\
+                        0.25 mm : Grid mm 0.25; |\
+                        0.325 mm : Grid mm 0.325; |\
+                        0.50 mm : Grid mm 0.5; |\
+                        0.65 mm : Grid mm 0.65; |\
+                        0.75 mm : Grid mm 0.75; |\
+                        0.80 mm : Grid mm 0.8; |\
+                        1.00 mm : Grid mm 1; |\
+                        2.50 mm : Grid mm 2.5; |\
+                        5.00 mm : Grid mm 5.0; |\
+                        10.0 mm : Grid mm 10.0; |\
+                      }|\
+             5 mil : Grid mil 5; |\
+             6.25 mil : Grid mil 6.25; |\
+             10 mil : Grid mil 10; |\
+             12.5 mil : Grid mil 12.5; |\
+             25 mil : Grid mil 25; |\
+             39 mil : Grid mil 39; |\
+             50 mil : Grid mil 50; |\
+             100 mil : Grid mil 100; |\
+             156 mil : Grid mil 156; |\
+             Show Grid : Grid On; |\
+             Hide Grid : Grid Off;\
+           }'\
+     '---'\
+     'Display {\
+                Top       : Display None Top tOrigins tStop Unrouted Pads Vias Dimension; |\
+                Top/Place : Display None Top tPlace tOrigins tStop Unrouted Pads Vias Dimension; |\
+                Top/Place/Names : Display None Top tPlace tNames tOrigins tStop Unrouted Pads Vias Dimension; |\
+                Top/Place/Names/Doc : Display None Top tPlace tDoc tOrigins tNames tStop Unrouted Pads Vias Dimension; |\
+                Bottom    : Display None Bottom bOrigins bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place : Display None Bottom bPlace bOrigins bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place/Names : Display None Bottom bNames bPlace bOrigins bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place/Names/Doc : Display None Bottom bPlace bDoc bOrigins bNames bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom : Display None Top Bottom tOrigins bOrigins tStop bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom/Place: Display None Top Bottom tPlace bPlace tOrigins bOrigins tStop bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom/Place/Doc: Display None Top Bottom tPlace bPlace tDoc bDoc tOrigins bOrigins tNames bNames tStop bStop Unrouted Pads Vias Dimension; |\
+                Top Components : Display None tPlace tDoc tNames tStop Unrouted Pads Dimension; |\
+                Bottom Components : Display None bPlace bDoc bNames bStop Unrouted Pads Dimension; |\
+                Documentation  : Display None Document Drills Holes Milling; \
+              }'\
+     '---'\
+     'Selection {\
+         Selection On: GROUP|\
+         Selection All: GROUP ALL;\
+     }'\
+     '---'\
+     'Copy {\
+         Duplicate On: COPY|\
+         Copy Selection: CUT;|\
+         Copy and Paste Selection: CUT; COPY (C>0 0)|\
+         Copy All: GROUP ALL; CUT;|\
+         Copy All and Paste: GROUP ALL; CUT; COPY (C>0 0)\
+     }'\
+     '---'\
+     'Paste: PASTE'\
+     '---'\
+     'Delete {\
+         Delete On: DELETE|\
+         Delete Selection: DELETE (C>0 0);|\
+         Delete All: GROUP ALL; DELETE (C>0 0)\
+     }'\
+     '---'\
+     'Move {\
+         Move On: MOVE|\
+         Move Selection: MOVE (C>0 0);|\
+         Move All: GROUP ALL; MOVE (C>0 0)\
+     }'\
+     '---'\
+     'Find Part : run find.ulp;'\
+     '---'\
+     'Statistics: run statistic-brd.ulp;'\
+     '---'\
+     'Renumber : run cmd-renumber;'\
+     '---'\
+     'Drill Config : run drillcfg.ulp;'\
+     '---'\
+     'Drill Plan : run drillplan3_1.ulp;'\
+     '---'\
+     'Tools {\
+         Add Teardrops: run teardrops.ulp;|\
+         Generate Mount Data Files: script run-assembly-files.scr;|\
+         USE all referenced libraries: run use-ref-libs.ulp;|\
+         Cleanup Unused Layers: run del-empty-sch-brd-layers.ulp;|\
+     }'\
+     '---'\
+     'Change  {\
+         Cap : change cap |\
+         Class : change class |\
+         Class : change class |\
+         Diameter : change diameter |\
+         Display : change display |\
+         Drill : change drill |\
+         Font : change font |\
+         Isolate : change isolate |\
+         Layer : change layer |\
+         Orphans : change orphans |\
+         Package : change package |\
+         Pour : change pour |\
+         Rank : change rank |\
+         Ratio : change ratio |\
+         Shape : change shape |\
+         Size : change size |\
+         Spacing : change spacing |\
+         Stop : change stop |\
+         Technology : change technology |\
+         Text : change text |\
+         Thermals : change thermal |\
+         Via : change via |\
+         Width : change width \
+     }'\
+     '---';
+
+
+
+# Setup Default Grid, Drill and Width Values
+
+Grid Default On;
+
+GRID inch 0.0125;
+GRID ALT 0.00625;
+
+Change Drill 0.005;
+Change Drill 0.007;
+Change Drill 0.010;
+Change Drill 0.012;
+Change Drill 0.015;
+Change Drill 0.024;
+Change Drill 0.028;
+Change Drill 0.032;
+Change Drill 0.036;
+Change Drill 0.040;
+Change Drill 0.050;
+Change Drill 0.056;
+Change Drill 0.066;
+Change Drill 0.076;
+Change Drill 0.086;
+Change Drill 0.125;
+
+Change Width 0.005;
+Change Width 0.007;
+Change Width 0.010;
+Change Width 0.015;
+Change Width 0.024;
+Change Width 0.032;
+Change Width 0.050;
+Change Width 0.056;
+Change Width 0.066;
+Change Width 0.070;
+Change Width 0.076;
+Change Width 0.086;
+Change Width 0.100;
+Change Width 0.150;
+Change Width 0.254;
+
+Change Width 0.010;
+Change Drill 0.015;
+Change Shape Round
+
+GRID MIL 25;
+GRID ALT MIL 5;
+
+##########################################################################
+# Configure the SCHEMATIC Editor Default Settings
+
+SCH:
+
+# Text Command Menu Setup
+
+MENU 
+     'Next Page : run editnext-sheet;'\
+     'Prev Page : run editprev-sheet;'\
+     '---'\
+     'Grid {\
+             0.0125" : Grid inch 0.0125; |\
+             0.0250" : Grid inch 0.025; |\
+             0.0500" : Grid inch 0.050; |\
+             0.1000" : Grid inch 0.1; |\
+             Show Grid : Grid On; | \
+             Hide Grid : Grid Off;\
+           }'\
+     '---'\
+     'Display {\
+         Default : Display None Nets Busses Symbols Names Values HeatSink Descript OrgLBR; |\
+         Pin Nums : Display None Nets Busses Pins Symbols Names Values HeatSink Descript OrgLBR; \
+     }'\
+     '---'\
+     'Selection {\
+         Selection On: GROUP|\
+         Selection All: GROUP ALL;\
+     }'\
+     '---'\
+     'Copy {\
+         Duplicate On: COPY|\
+         Copy Selection: CUT;|\
+         Copy and Paste Selection: CUT; COPY (C>0 0)|\
+         Copy All: GROUP ALL; CUT;|\
+         Copy All and Paste: GROUP ALL; CUT; COPY (C>0 0)\
+     }'\
+     '---'\
+     'Paste: PASTE'\
+     '---'\
+     'Delete {\
+         Delete On: DELETE|\
+         Delete Selection: DELETE (C>0 0);|\
+         Delete All: GROUP ALL; DELETE (C>0 0)\
+     }'\
+     '---'\
+     'Move {\
+         Move On: MOVE|\
+         Move Selection: MOVE (C>0 0);|\
+         Move All: GROUP ALL; MOVE (C>0 0)\
+     }'\
+     '---'\
+     'Find : run find;'\
+     '---'\
+     'Attribute : run attrib-add.ulp;'\
+     '---'\
+     'BOM : run bom-ex.ulp;'\
+     '---'\
+     'Renumber : run renumber-sch;'\
+     '---'\
+     'Statistics : run statistic-sch.ulp;'\
+     '---'\
+     'Tools {\
+         Migrate RCL: run migrate-rc-master.ulp;|\
+         Group Set Part Value: run group-set-value.ulp;|\
+         Normalize RCL Values: run normalize-rcl-values.ulp;|\
+         Cleanup Unused Layers: run del-empty-sch-brd-layers.ulp;|\
+     }'\
+     '---'\
+     'Change  {\
+         Cap : change cap |\
+         Class : change class |\
+         Display : change display |\
+         Font : change font |\
+         Layer : change layer |\
+         Package : change package |\
+         Ratio : change ratio |\
+         Size : change size |\
+         Style : change style |\
+         Technology : change technology |\
+         Text : change text |\
+         Width : change width |\
+         Xref : change xref\
+     }'\
+     '---';
+
+
+
+# Setup Default Grid and Width Values
+
+Grid Default;
+GRID ALT 0.025;	
+Change Width 0.006;
+
+##########################################################################
+# Configure the LIBRARY Editor Default Settings
+
+LBR:
+
+ASSIGN C+F6 run cmd-grid-step;
+ASSIGN S+F6 run cmd-grid-step "up";
+
+# Text Command Menu Setup
+
+MENU
+     'Grid {\
+             Metric   {\
+                        0.05 mm : Grid mm 0.05; |\
+                        0.10 mm : Grid mm 0.1; |\
+                        0.25 mm : Grid mm 0.25; |\
+                        0.50 mm : Grid mm 0.5; |\
+                        1.00 mm : Grid mm 1; |\
+                        2.50 mm : Grid mm 2.5; |\
+                        5.00 mm : Grid mm 5.0; |\
+                        10.00 mm : Grid mm 10.0;\
+                      } | \
+             5 mil : Grid mil 5; |\
+             6.25 mil : Grid mil 6.25; |\
+             10 mil : Grid mil 10; |\
+             12.5 mil : Grid mil 12.5; |\
+             20 mil : Grid mil 20; |\
+             25 mil : Grid mil 25; |\
+             30 mil : Grid mil 30; |\
+             50 mil : Grid mil 50; |\
+             100 mil : Grid mil 100; |\
+             Show Grid : Grid On; | \
+             Hide Grid : Grid Off;\
+           }'\
+     'Display {\
+                Top       : Display None Top tOrigins tStop Unrouted Pads Vias Dimension; |\
+                Top/Place : Display None Top tPlace tOrigins tNames tValues tStop Unrouted Pads Vias Dimension; |\
+                Top/Place/Doc : Display None Top tPlace tDoc tOrigins tNames tValues tStop Unrouted Pads Vias Dimension; |\
+                Bottom    : Display None Bottom bOrigins bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place : Display None Bottom bPlace bOrigins bNames bValues bStop Unrouted Pads Vias Dimension; |\
+                Bottom/Place/Doc : Display None Bottom bPlace bDoc bOrigins bNames bValues bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom : Display None Top Bottom tOrigins bOrigins tStop bStop Unrouted Pads Vias Dimension; |\
+                Top/Bottom/Place: Display None Top Bottom tPlace bPlace tOrigins bOrigins tNames tValues bNames bValues tStop bStop Unrouted Pads Vias Dimension; \
+              }'\
+     '---'\
+     'Next : run editnext-dev-sym-pac.ulp;'\
+     'Prev : run editprev-dev-sym-pac.ulp;'\
+     '---'\
+     'Next Pkg/Desc : run nextpacdescript.ulp;'\
+     'Prev Pkg/Desc : run prevpacdescript.ulp;'\
+     '---'\
+     'Next Dev/Desc : run nextdevdescript.ulp;'\
+     'Prev Dev/Desc : run prevdevdescript.ulp;'\
+     '---'\
+     'Selection {\
+         Selection On: GROUP|\
+         Selection All: GROUP ALL;\
+     }'\
+     '---'\
+     'Copy {\
+         Duplicate On: COPY|\
+         Copy Selection: CUT;|\
+         Copy and Paste Selection: CUT; COPY (C>0 0)|\
+         Copy All: GROUP ALL; CUT;|\
+         Copy All and Paste: GROUP ALL; CUT; COPY (C>0 0)\
+     }'\
+     '---'\
+     'Paste: PASTE'\
+     '---'\
+     'Delete {\
+         Delete On: DELETE|\
+         Delete Selection: DELETE (C>0 0);|\
+         Delete All: GROUP ALL; DELETE (C>0 0)\
+     }'\
+     '---'\
+     'Move {\
+         Move On: MOVE|\
+         Move Selection: MOVE (C>0 0);|\
+         Move All: GROUP ALL; MOVE (C>0 0)\
+     }'\
+     '---'\
+     'Rename : run cmd-rename-in-lbr.ulp;'\
+     '---'\
+     'Remove : run remove-dev-sym-pac.ulp;'\
+     '---'\
+     'Import BMP : run import-bmp.ulp;'\
+     '---'\
+     'Make BSDL : run make-symbol-device-package-bsdl.ulp;'\
+     '---'\
+     'Make Connector : run make-connector.ulp;'\
+     '---'\
+     'Make Supply Symbol : run make-supply-symdev.ulp;'\
+     '---'\
+     'Statistics: run statistic-lbr.ulp;'\
+     '---'\
+     'Add Name/Value : run add-name-value.ulp;'\
+     '---'\
+     'Tools {\
+         Cleanup Unused Layers: run del-empty-lib-layers.ulp;|\
+     }'\
+     '---'\
+     'Change  {\
+         Cap : change cap |\
+         Font : change font |\
+         Function : change function |\
+         Layer : change layer |\
+         Ratio : change ratio |\
+         Size : change size |\
+         Style : change style |\
+         Text : change text |\
+         ---|\
+         Drill : change drill |\
+         Diameter : change diameter |\
+         Pour : change pour |\
+         Shape : change shape |\
+         Width : change width |\
+         ---|\
+         Direction : change dir|\
+         Function : change func|\
+         Length : change len|\
+         Swaplevel : change swaplevel\
+     }'\
+     '---';
+
+DEV:
+
+Grid Default;
+GRID ALT 0.0125;	
+#Menu Add Change Copy Connect Delete Display Export Grid Move Name Package \
+#     Prefix Quit Script Show Value Window ';' Write Edit;
+
+SYM:
+
+Grid Default On;
+GRID ALT 0.025;	
+Change Width 0.010;
+Change Width 0.006;
+Change Ratio 10;
+#Menu Arc Change Copy Cut Delete Display Export Grid Group Move Name Paste \
+#     Pin Quit Script Show Split Text Value Window ';' Wire Write Edit;
+
+PAC:
+
+Grid Default On;
+GRID ALT 0.0125;	
+
+Change Width 0.002;
+Change Width 0.008;
+Change Width 0.01;
+Change Width 0.012;
+Change Width 0.015;
+Change Width 0.024;
+Change Width 0.032;
+
+Change Drill 0.015;
+Change Drill 0.024;
+Change Drill 0.028;
+Change Drill 0.032;
+Change Drill 0.036;
+Change Drill 0.040;
+Change Drill 0.050;
+Change Drill 0.056;
+Change Drill 0.066;
+Change Drill 0.07;
+Change Drill 0.076;
+Change Drill 0.086;
+Change Drill 0.125;
+Change Drill 0.150;
+Change Drill 0.200;
+Change Drill 0.250;
+
+Change Drill 0.024;
+Change Width 0.008;
+
+Change Size 0.050;
+Change Ratio 12;
+
+GRID MIL 25;
+GRID ALT MIL 5;
+
+# End-Of-Script
+

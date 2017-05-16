@@ -1,0 +1,581 @@
+#usage  "<b>Via Fill v0.1</b><p>"
+	"Fills any polygons connected to specified nets."
+       "<p>"
+       "With a grid of vias, if there is a corresponding polygon on the other side"
+       "of the board. Rectiliar or staggered grid can be chosen.<p>"
+	"Specify via spacing, grid type, nets (by pick list) <p>"
+	"Creates viapos.scr when can be run on a PCB to add vias, and viaposundo.scr "
+	"which undos a run of the viapos.scr script. Note the viaposundo.scr should only be "
+	"immediately after running the viapos.scr script, it only has undo statements in it and might accidentally "
+	"undo actual operations if it is run otherwise<p>"
+	"<p>Known Bugs:<p>"
+	"-Will sometimes place vias on or near pads. User should check manually any cooincident vias/pads<p>"
+	"-Position of via from edge of polygon depends on the filling width. Sometimes a via can extend past the"
+	"polygon if the filling is very thin<p>"
+	"-Doesn't differentiate between top/bottom/internal layers. It will place a via between the first two signal"
+	"layers it finds<p>"
+       "<author>Author: rgbphil@rgbsunset.com</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+real nViaSpacing = 1;
+
+//design data
+real sch_distance;
+real pcb_distance;
+int pcb_unit;
+int sch_grid_type;
+int pcb_grid_type;
+real sch_origin_X;
+real sch_origin_Y;
+real pcb_origin_X;
+real pcb_origin_Y;
+string SourceName;
+int sch_x_grid;
+int sch_y_grid;
+int pcb_x_grid;
+int pcb_y_grid;
+
+string sWidth;
+string sHeight;
+string sPCBdim;
+string sSCHdim;
+
+//List of filling segments on defined nets
+int nXSegStart[];
+int nYSegStart[];
+int nXSegEnd[];
+int nYSegEnd[];
+int nSegLayers[];
+string sSegSignal[];
+int nSegWidth[];
+
+real xpos, ypos;
+int xsize,ysize;
+real nXOrigin, nYOrigin;
+numeric string sPolygonNets[];
+numeric string sSelectedNets[];
+int nNumSegs;
+
+//Returns the real world coordinate in PCB coordinates given a system coordinate
+real pcbPosition(int n)
+{
+	real retval;
+	switch(pcb_grid_type)
+	{
+		case GRID_UNIT_MIC:
+			retval = u2mic(n);
+		break;
+		case GRID_UNIT_MM:
+			retval = u2mm(n);
+		break;
+		case GRID_UNIT_MIL:
+			retval = u2mil(n);
+		break;
+		case GRID_UNIT_INCH:
+			retval = u2inch(n);
+		break;
+	}
+	return retval;
+}
+//-------------------------------------------------------------------------------------
+void GetDesignInfo()
+{
+	int i;
+
+	//get some units
+	project.board(B)
+	{
+		pcb_distance = B.grid.distance;
+		pcb_grid_type = B.grid.unit;
+
+	}
+
+	switch(pcb_grid_type)
+	{
+		case GRID_UNIT_MIC:
+			sPCBdim = "microns";
+			nViaSpacing=2000;
+			break;
+		case GRID_UNIT_MM:
+			sPCBdim = "mm";
+			nViaSpacing = 2;
+			break;
+		case GRID_UNIT_MIL:
+			sPCBdim = "mil";
+			nViaSpacing = 200;
+			break;
+		case GRID_UNIT_INCH:
+			sPCBdim = "inch";
+			nViaSpacing=0.2;
+	}
+
+	//find all nets with polygons attached
+	project.board(B)
+	{
+		B.signals(S)
+		{
+			S.polygons(P)
+			{
+				sPolygonNets[i] = S.name;
+				i++;
+				break;
+			}
+		}
+		nXOrigin = pcbPosition(B.area.x1);
+		nYOrigin = pcbPosition(B.area.y1);
+		xsize = int(pcbPosition(B.area.x2 - B.area.x1) / nViaSpacing);
+		ysize = int(pcbPosition( B.area.y2-B.area.y1) / nViaSpacing);
+	}
+	
+
+}
+
+//FUNCTION returns true if the point XP,YP is located within width/2 of the line
+//ASSUMES segment of line (x1 y1)(x2 y2) is either horizontal or vertical so is only
+//really useful for use with the 'fillings' member of a polygon
+//NOTE that X1,Y1,X2,Y2,width are given in system coordinates (ie integers)
+//whilst the XP,YP point is given in board coordinates (ie a real mm,inch,micron,mil)
+int IsOnSeg(int X1, int Y1, int X2, int Y2, real XP, real YP, int width)
+{
+	real nDistanceFromLine;
+	real nWidth;
+	real nX,nY;
+	real nX1,nY1;
+	real nX2, nY2;
+
+	nWidth = pcbPosition(width);
+	nX1 = pcbPosition(X1);
+	nY1 = pcbPosition(Y2);
+	nX2 = pcbPosition(X2);
+	nY2 = pcbPosition(Y2);
+	if(X1==X2)
+	{
+		//is a vertical line
+		//check for out of bounds
+		if(Y2>Y1)
+		{
+			if ((nY2+nWidth)<YP) return 0;	//too far from top
+			if ((nY1-nWidth)>YP) return 0;	//too far from bottom
+			if (nY2<YP)
+			{
+				//point between top of segment and arc of fill
+				nX = nX2;
+				nY = nY2;
+				nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+				if (nDistanceFromLine<=nWidth/2)
+					return 1;
+				else
+					return 0;
+			}
+			else if(nY1>YP)
+				{
+					//point between bottom of segment and arc of fill
+					nX = nX1;
+					nY = nY1;
+					nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+					if (nDistanceFromLine<=nWidth/2)
+						return 1;
+					else
+						return 0;
+				}
+		}
+		else
+		{
+			if ((nY1+nWidth)<YP) return 0;	//too far from top
+			if ((nY2-nWidth)>YP) return 0;	//too far from bottom
+			if (nY1<YP)
+			{
+				//point between top of segment and arc of fill
+				nX = nX1;
+				nY = nY1;
+				nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+				if (nDistanceFromLine<=nWidth/2)
+					return 1;	//in range of the circle
+				else
+					return 0;
+			}
+			else if(nY2>YP)
+				{
+					//point between bottom of segment and arc of fill
+					nX = nX2;
+					nY = nY2;
+					nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+					if (nDistanceFromLine<=nWidth/2)
+						return 1;
+					else
+						return 0;
+				}			
+		}
+
+		//point is within top and bottom of segment
+		if(abs(XP-nX1)>nWidth/2)
+			return 0;
+		else
+			return 1;
+		
+	}
+	else if(Y1==Y2)
+	{
+		//is a horizontal line
+		if(X2>X1)
+		{
+			if ((nX2+nWidth)<XP) return 0;	//too far from top
+			if ((nX1-nWidth)>XP) return 0;	//too far from bottom
+			if (nX2<XP)
+			{
+				//point between top of segment and arc of fill
+				nX = nX2;
+				nY = nX2;
+				nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+				if (nDistanceFromLine<=nWidth/2)
+					return 1;
+				else
+					return 0;
+			}
+			else if(nX1>XP)
+				{
+					//point between bottom of segment and arc of fill
+					nX = nX1;
+					nY = nY1;
+					nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+					if (nDistanceFromLine<=nWidth/2)
+						return 1;
+					else
+						return 0;
+				}
+		}
+		else
+		{
+			if ((nX1+nWidth)<XP) return 0;	//too far from top
+			if ((nX2-nWidth)>XP) return 0;	//too far from bottom
+			if (nX1<XP)
+			{
+				//point between top of segment and arc of fill
+				nX = nX1;
+				nY = nY1;
+				nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+				if (nDistanceFromLine<=nWidth/2)
+					return 1;	//in range of the circle
+				else
+					return 0;
+			}
+			else if(nX2>XP)
+				{
+					//point between bottom of segment and arc of fill
+					nX = nX2;
+					nY = nY2;
+					nDistanceFromLine = sqrt((XP-nX)*(XP-nX)+(YP-nY)*(YP-nY));
+					if (nDistanceFromLine<=nWidth/2)
+						return 1;
+					else
+						return 0;
+				}			
+		}
+
+		//point is within left and right of segment
+		if(abs(YP-nY1)>nWidth/2)
+			return 0;
+		else
+			return 1;
+	}
+	else
+		return 0;	//can't handle 
+	
+}
+
+//FUNCTION to go through all the selected signals on a PCB and put any signals with polygons and fillings
+//into the segment tables
+void GetSignalSegments(void)
+{
+	int n,i;
+	string s;
+		
+	project.board(B)
+	{
+		n = 0;
+		B.signals(S)
+		{
+			i = 0;
+			while(sSelectedNets[i]!="")
+			{
+				s = sSelectedNets[i];
+				if(S.name==s)
+				{
+					S.polygons(P)
+					{
+						
+						P.fillings(C)
+						{
+							nXSegStart[n] = C.x1;
+							nYSegStart[n] = C.y1;
+							nXSegEnd[n] = C.x2;
+							nYSegEnd[n] = C.y2;
+							nSegLayers[n] = C.layer;
+							sSegSignal[n] = s;
+							nSegWidth[n] = C.width;
+							n++;	
+						}
+					}
+					
+				}
+				i++;
+			}
+		
+		}
+		nNumSegs = n;
+	}
+}
+
+//Checks if a via position has a filling underneath it for at least two layers
+string IsOnPolygonSignal(real XPos, real YPos)
+{
+	string s;
+	int i,j;
+	string sOnSignal;
+	int nFirstLayer;
+	int n;
+	
+		i = 0;
+		sOnSignal = "";
+
+		
+		while(i<nNumSegs)
+		{
+			if(IsOnSeg(nXSegStart[i],nYSegStart[i],nXSegEnd[i],nYSegEnd[i],XPos, YPos, nSegWidth[i]))
+			{
+				sOnSignal = sSegSignal[i];
+				nFirstLayer = nSegLayers[i];
+				j = i+1;
+				//found first segment that has the via....need to see if there is one on the bottom side
+				while(j<nNumSegs)
+				{
+					//we're looking through remaining segments
+					if(sSegSignal[j]==sOnSignal)
+					{
+						//picking only the ones with this layer
+						if(IsOnSeg(nXSegStart[j],nYSegStart[j],nXSegEnd[j],nYSegEnd[j],XPos, YPos, nSegWidth[j]))
+						{
+							//if via is on segment on another layer
+							if(nSegLayers[j]!=nFirstLayer) return sOnSignal;
+						}
+					}
+					j++;
+				}
+
+			}
+			i++;
+		}
+
+		if (i==nNumSegs) sOnSignal = "";
+
+	return sOnSignal;	
+}
+
+void addtopolygonlist(string s )
+{
+	int i;
+	i = 0;
+	while(sPolygonNets[i]!="")
+	{
+		if(sPolygonNets[i]==s) return;
+		i++;
+	}
+	sPolygonNets[i] = s;
+}
+
+void removefrompolygonlist(string s)
+{
+	int i,j,k;
+	i =0;
+	k =0;
+	while(sPolygonNets[i]!="")
+	{
+		if(k==0)
+		{
+			if(sPolygonNets[i]==s)
+			{
+				sPolygonNets[i] = sPolygonNets[i+1];
+				k=1;
+			}
+		}
+		else
+			sPolygonNets[i] = sPolygonNets[i+1];
+		i++;
+	}
+}
+
+void addtoselectedlist(string s )
+{
+	int i;
+	i = 0;
+	while(sSelectedNets[i]!="")
+	{
+		if(sSelectedNets[i]==s) return;
+		i++;
+	}
+	sSelectedNets[i] = s;
+}
+
+void removefromselectedlist(string s)
+{
+	int i,j,k;
+	i =0;
+	k =0;
+	while(sSelectedNets[i]!="")
+	{
+		if(k==0)
+		{
+			if(sSelectedNets[i]==s)
+			{
+				sSelectedNets[i] = sSelectedNets[i+1];
+				k=1;
+			}
+		}
+		else
+			sSelectedNets[i] = sSelectedNets[i+1];
+		i++;
+	}
+}
+
+//FUCNTION that Creates a grid of vias and then tests if the via has a top and bottom layer underneath it that belongs to the selected net
+//list
+//Two scripts are created, one named 'viapos.scr' and 'viaposundo.scr'. Note that the undo script mearly has the same number of undo
+//statements as the viapos.scr script.....so should only be used immediately after a placement operation.
+void place_vias(void)
+{
+
+	int nNumSegs=0;
+	real nXVia[];
+	real nYVia[];
+	string script_name;
+	string t;
+	int n,i,nVias;
+	int x,y;		//grid positions
+	string sSignal;
+	int nAddedVias;
+
+	project.board(B)
+	{
+		nXOrigin = pcbPosition(B.area.x1);
+		nYOrigin = pcbPosition(B.area.y1);
+		xsize = int(pcbPosition(B.area.x2 - B.area.x1) / nViaSpacing);
+		ysize = int(pcbPosition( B.area.y2-B.area.y1) / nViaSpacing);
+	}
+
+	script_name=path_scr[0]+'/'+"viapos.scr";
+	output(script_name,"w")
+	{
+		//setup via grid according to user settings
+		n = 0;
+		for(x=0;x<xsize;x++)
+		{
+			for(y=0;y<ysize;y++)
+			{
+				if((y % 2)==0)
+					nXVia[n] = nXOrigin+real(x)*nViaSpacing;
+				else
+					nXVia[n] = nXOrigin+real(x)*nViaSpacing+0.5*nViaSpacing;
+
+				nYVia[n] = nYOrigin+real(y)*nViaSpacing;
+				n++;
+			}
+		}
+		//check if via on polgyon
+
+		nVias = n;
+		nAddedVias = 0;
+		for(n=0;n<nVias;n++)
+		{
+			sSignal=IsOnPolygonSignal(nXVia[n], nYVia[n]);	//see if vias has a signal under two layers and return signal name
+			if(sSignal!="")
+			{
+				//write a via of that signal to that position
+				sprintf(t,"VIA '%s' (%f %f)\r\n", sSignal, nXVia[n], nYVia[n]);
+				printf(t);
+				nAddedVias++;
+			}
+		}
+		
+	}
+	script_name = path_scr[0]+'/'+"viaposundo.scr";
+	output(script_name,"w")
+	{
+		for(n=0;n<nAddedVias;n++)
+		{
+			printf("undo\r\n");
+		}
+	}
+}
+
+
+
+void show_dialog(void)
+{
+	int Result=1;
+	string s;
+	int Selected;
+	int n;
+	int nNumSegs;
+	int SelectedNet=0;
+
+	GetDesignInfo();
+	if(board)
+	{
+		while(Result!=0)
+		{
+			Result = dlgDialog("Via fill v0.1") 
+			{
+
+				dlgPushButton("Cancel") dlgReject(0);
+				dlgHBoxLayout {
+						sprintf(s,"&Via spacing(%s s)",sPCBdim);
+		  		       		dlgLabel(s);
+            					dlgRealEdit(nViaSpacing );
+				};
+				dlgHBoxLayout {
+					dlgGroup("Available nets"){
+						dlgListBox(sPolygonNets,SelectedNet);
+					};
+					dlgVBoxLayout {
+						dlgPushButton("&Add") dlgAccept(3);
+						dlgPushButton("&Remove") dlgAccept(4);
+
+					}
+					dlgGroup("Nets to fill"){
+						dlgListBox(sSelectedNets,Selected);
+					};
+				};
+				
+				dlgPushButton("&Place Vias") dlgAccept(5);
+
+			};
+			if(Result==4)
+			{
+				//move from selected list to available list
+				addtopolygonlist(sSelectedNets[Selected]);
+				removefromselectedlist(sSelectedNets[Selected]);
+			}
+			if(Result==3)
+			{
+				//move from available list to selected list
+				addtoselectedlist(sPolygonNets[SelectedNet]);
+				removefrompolygonlist(sPolygonNets[SelectedNet]);
+			}
+			if(Result==5)
+			{
+				s = sSelectedNets[0];
+				if (s!="")
+				{
+					GetSignalSegments();
+					place_vias();
+					dlgMessageBox("Done! Check viapos.scr and viaposundo.scr in scripts folder");
+					exit(1);
+				}	
+			}
+		};
+	};
+}
+
+show_dialog();
+exit(1);

@@ -1,0 +1,1935 @@
+#usage "<b>clean wires</b>\n"
+       "<p>"
+       "This ULP allows the elimination of double wires, stubs and other artifacts around vias, pads, smd after a repeated teardrop script execution for example."
+       "<p>"
+       "<author>Original Author: Andres Restrepo S (ars662001@yahoo.com)<br>"
+       "</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+
+string ULPname = "CleanWire v";
+string Release = "1.10";
+string ReleaseDate = "Dec 27, 2013";  // ars662001@yahoo.com
+
+string HelpText = "<p><b>"+ULPname+Release+" "+ReleaseDate+"</b><br>"
+  "<p><b>Implementation</b><br>"       
+  "<p><b>Output</b><br>"
+       "The output of this program is two .scr scripts: one with the original via/wire set and another with the purged via/wire set."
+       "the last one is executed automatically at the end of the execution."
+  "<p><b>Warnings</b><br>"
+       "<b>This ULP should be used with forethought or on a copy of your board file.</b>"
+       "<p>It may be needed a verification of the routing, because the short wire stubs are gone. The via are left untouched."       
+  "<p><b>Limitations</b><br>"
+    "The current software operates using mm units for .scr and only accepts units in mils from the user and in generated spreadsheet values."
+  "<p><b>Copyright</b><br>"
+       "Enhancements to the ULP are welcome without the necessity of contacting the author."
+       "<p>"
+  "This program is provided AS IS and without warranty of any kind, expressed or implied."
+  "This program may be freely modified and distributed."
+  "<p>"
+;
+
+string ProcedureText = 
+  "<p><b>Steps to eliminate teardrop artifacts from a board:</b><br>"   
+   "There are two possible scenarios in the teardrop cleaning:"    
+   "<p>" 
+   "1. The board could have been teardropped with straight frontshapers, which is the worst case, due to the difficulty to discern the frontshaper-"
+   "backshaper-set from a effective connection, if the connection to the via or pad has not been done cleanly. "
+   "A de-teardropping action could generate disconnections. <br>"
+   "After executing a de-teardropping, a number of disconnected wires with one node in the via/pad perimeter will appear. <br>"
+   "These cases can be reconnected using the <b>Reconstruct Connections</b> procedure. <br>"
+   "Beware that a further CleanWire run will recognize these recontructions as frontshapers.<br>"
+   "<p>"
+   "2. On the other side, if the board have been teardropped with curved frontshapers, the frontshaper-backshaper-set is easily found," 
+   "except if curved traces are used in profusive manner in the routing. The de-teardropping leads to no disconnections or further repair." 
+  "<p>"
+ ;
+
+
+#require 5.1000
+
+
+
+string HistoryText2 = usage +
+  "<p>"
+  "The following is a history of this program (most recent first)."
+  "<p>"
+  "Version History"
+  "<ul>"
+  "<li>v1.10 - add perimeter wire suppression and reconstruction. detect parallel wires.</li><p>" 
+  "<li>v1.09 - add via/pad perimeter cleanup.</li><p>" 
+  "<li>v1.08 - add status display, improve analysis speed.</li><p>" 
+  "<li>v1.07 - linked and dangling teardrop shape detection.</li><p>" 
+  "<li>v1.06 - improve teardrop topology detection.</li><p>" 
+  "<li>v1.05 - classify wire connections.</li><p>"  
+  "<li>v1.04 - parameters on separated tab.</li><p>"  
+  "<li>v1.03 - change name, use wirelist code, with table analysi.s</li><p>"  
+  "<li>v1.02 - look for curved stubs/ corrected multilayered via managing.</li><p>"  
+  "<li>v1.01 - look for repeated wire, and screen them out/clean up curved stubs.</li><p>"  
+  "<li>v1.00 - Initial release version.</li><p>"  
+  "</ul>"
+;
+
+string mainscrtext =
+        "\nStatus bar will show progress while analysing wires.\n\n"
+        "Delete Perimeter Factor is the perimeter around the via/pad/smd to search and delete wire stubs.  "
+        "The Delete Perimeter Factor entered is multiplied by the via/pad/smd's diameter to arrive at a physical distance.";
+
+
+
+int     User_Pads                  ; // search teardrops on pads
+int     User_Smds                  ; // TBD
+int     User_Vias                  ; // search teardrops on vias
+real    User_Del_Factor            ; // teardrop influence factor:
+                                          // VIA:  TDradius=ViaDrill[i]*User_Del_Factor
+                                          // PAD:  TDradius=PadDrill[i]*(User_Del_Factor-0.5)
+int     User_Curved_Shaper         ; // seek cirved frontshaper
+int     User_Clean_Stub            ; // seek dangling backshapers
+int     User_Clean_dangling_Shaper ; // seek dangling frontshaper : end inside via perimeter is dangling
+int     User_Clean_tangled_Shaper  ; // seek tangled frontshaper  : no dangling checked out
+int     User_Clean_Perimeter       ; // delete all wires inside the via/pad perimeter
+int     User_Debug_Layer           ; // create debug layer on 250
+int     User_Wire                  ;
+real    User_Min_Wire              ; // [mil]   minimal wire length to represent a WSPOT 
+real    User_Curv_Factor           ;
+real    User_Curv_Factor_Err       ;
+int     User_Auto_Analyse          ; // make a wire analyse at startup
+int     User_Show_Mark             ; // show wire info on debug layer when selected from table
+
+string FileIniD=filedir(argv[0]) + "cleanwire.ini";
+
+
+
+void Default_Settings(void)
+{
+  User_Pads                  = 1; // search teardrops on pads
+  User_Smds                  = 0; // TBD
+  User_Vias                  = 1; // search teardrops on vias
+  User_Del_Factor            = 1.9; // teardrop influence factor:
+  User_Curved_Shaper         = 1; // seek cirved frontshaper
+  User_Clean_Stub            = 0; // seek dangling backshapers
+  User_Clean_dangling_Shaper = 0; // seek dangling frontshaper : end inside via perimeter is dangling
+  User_Clean_tangled_Shaper  = 0; // seek tangled frontshaper  : no dangling checked out
+  User_Clean_Perimeter       = 0; // delete all wires inside the via/pad perimeter
+  User_Debug_Layer           = 0; // create debug layer on 250
+  User_Wire                  = 0;
+  User_Min_Wire              = 0.005; // [mil]   minimal wire length to represent a WSPOT 
+  User_Curv_Factor           = 28.;
+  User_Curv_Factor_Err       = 3.;
+  User_Auto_Analyse          = 0; // make a wire analyse at startup
+  User_Show_Mark             = 0;
+}
+
+void Save_Settings(void)
+{
+  // write setting into ini file:
+  status("Saving settings...");
+  output(FileIniD, "wt") 
+  {   
+    printf("%d\n",User_Pads);
+    printf("%d\n",User_Smds);
+    printf("%d\n",User_Vias);
+    printf("%f\n",User_Del_Factor);
+    printf("%d\n",User_Curved_Shaper);
+    printf("%d\n",User_Clean_Stub );
+    printf("%d\n",User_Clean_dangling_Shaper);
+    printf("%d\n",User_Clean_tangled_Shaper );
+    printf("%d\n",User_Clean_Perimeter);
+    printf("%d\n",User_Debug_Layer);
+    printf("%d\n",User_Wire);
+    printf("%f\n",User_Min_Wire );
+    printf("%f\n",User_Curv_Factor);
+    printf("%f\n",User_Curv_Factor_Err );
+    printf("%d\n",User_Auto_Analyse);
+    printf("%d\n",User_Show_Mark);
+  } 
+}
+
+void Restore_Settings(void)
+{
+// search init file and recover settings:
+status("Looking for ini file...");
+string linesf[];
+int nLines = fileread(linesf,FileIniD);
+  if (!fileerror())
+  {
+    User_Pads                 =strtol(linesf[0]);
+    User_Smds                 =strtol(linesf[1]);
+    User_Vias                 =strtol(linesf[2]);
+    User_Del_Factor           =strtod(linesf[3]);
+    User_Curved_Shaper        =strtol(linesf[4]);
+    User_Clean_Stub           =strtol(linesf[5]);
+    User_Clean_dangling_Shaper=strtol(linesf[6]);
+    User_Clean_tangled_Shaper =strtol(linesf[7]);
+    User_Clean_Perimeter      =strtol(linesf[8]);
+    User_Debug_Layer          =strtol(linesf[9]);
+    User_Wire                 =strtol(linesf[10]);
+    User_Min_Wire             =strtod(linesf[11]);
+    User_Curv_Factor          =strtod(linesf[12]);
+    User_Curv_Factor_Err      =strtod(linesf[13]);
+    User_Auto_Analyse         =strtol(linesf[14]);
+    User_Show_Mark            =strtol(linesf[15]);
+    status("Ok.");
+  }
+}
+
+
+
+int    DebugLayer=250;  // layer for debugging purposes
+string Filename;
+
+
+real    uiw_internal;
+
+string  vcount, fname, fnamelog, fnamereco, params;
+
+numeric string  LayerName[];
+int     LayerNum[];
+int     LayerCount = 0;
+int     LayerSel = 0;
+numeric string  TargetLayer[];  // 2012-04-04
+int     tCount = 0;
+
+int     cerocnt   =0;
+int     wire_vcnt =0;
+int     wire_pscnt=0;
+
+
+int     i=0;
+int     sigcnt,wirecnt,viacnt,padcnt,smdcnt;
+
+
+real    Err_mil=4;
+
+// deleted stubbies
+int     ShaperCnt=0;
+int     BackstubCnt=0;
+
+
+
+
+numeric string Lines[];
+int    nWireCount,nDubWireCount,nStubWireCount,nTearWireCount;
+int    nWireCount_c0,nWireCount_c28,nWireCount_c45,nWireDisabled;
+int    WireX1[],WireX2[],WireY1[],WireY2[],WireWidth[];
+int    WireLay[],WireArc[],WireRad[],WireChksum[],WireUnik[],WireSinglo[],WireTear[];
+
+int    WireCa[], WireCb[]; // wire connectors
+int    ViaCa[],  ViaCb[];  // wire end connected to via
+int    PadCa[],  PadCb[];  // wire end connected to pad
+int    ViaDa[],  ViaDb[];  // wire end inside via diameter
+int    PadDa[],  PadDb[];  // wire end inside pad diameter
+int    ViaPa[],  ViaPb[];  // wire end inside via teardrop perimeter
+int    PadPa[],  PadPb[];  // wire end inside pad teardrop perimeter
+
+int    WireInrad[];
+int    WireDetTear[];
+real   WireCur[],WireD[],Dsum;
+string WireName[];
+
+int    nSigCount;
+int    SignalWIndex[];   /* number of signals, signal index vector inside the wire vector */
+int    SignalVIndex[];   /* number of signals, signal index vector inside the via vector */
+string SignalName[];
+
+int    nViaCount=0;                 /* Via and via type number  */
+int    ViaStart[],ViaEnd[];         /* Via start and end layers */
+int    ViaX[],ViaY[];               /* Via coordinates          */ 
+int    ViaDiam[];                   /* Via diameter             */ 
+int    ViaDrill[];                  /* Via drill                */ 
+int    ViaVisit[];                  /* Via visit flag           */
+
+int      nSmdCount=0;
+
+int      nPadCount=0;
+string   PadName   [];          
+string   PadSignal [];          
+int      PadX[],PadY[];          
+int      PadLay    [];          
+int      PadDiam   [];    
+int      PadDrill  [];          
+      
+
+
+int  nLooseWire_1;
+int  nLooseWire_2;
+int  nLooseWire_3;
+int  nLooseWire_4;
+int  nInsider;
+int  nBTears;       // teardrop back component
+int  nFTears;       // teardrop front component
+int  nWSpots;
+int  nVSpots;
+int  nWConn;
+
+int    Selected = 0;
+int    Sort = 0;
+real   Zoom = 10;
+
+int show_D_in_MM=0;
+
+real DMIN_VIA=2.0;  /* minimal connection mismatch distance wire-pad/smd in MIL */
+real DMIN_PS =2.0;  /* minimal connection mismatch distance wire-pad/smd in MIL */
+
+string strinfo;
+real LC28= 28;
+real LC45= 45;
+real E = 2;
+int    user_units;
+
+
+
+void CollectData()
+{
+int enable,curv,diag;
+real perimV,perimOut,ep=1;
+real d1,d2;
+
+nWireCount    =0;
+nWireCount_c28=0;
+nWireCount_c0 =0;
+nWireCount_c45=0;
+
+nPadCount  =0;
+nSmdCount  =0;         
+nViaCount  =0;
+
+ Dsum=0;
+ board(B) 
+  {
+    Filename  = B.name; 
+    
+    nSigCount=1;   // signal counter
+    SignalWIndex[nSigCount]=0;
+    SignalVIndex[nSigCount]=0;
+    B.signals(S) 
+    {
+      S.wires(W) 
+      {      
+        if(W.layer!=19)        
+        {
+          sprintf(vcount, "Collecting Data: Signal %s - Wire #%d ", S.name,nWireCount);      status(vcount);
+          
+          WireX1    [nWireCount]=W.x1;      WireX2    [nWireCount]=W.x2;
+          WireY1    [nWireCount]=W.y1;      WireY2    [nWireCount]=W.y2;          
+          WireWidth [nWireCount]=W.width;
+          WireCur   [nWireCount]=W.curve;
+          if(W.arc)  { WireArc[nWireCount]=1; WireRad [nWireCount]=W.arc.radius; } 
+          else       { WireArc[nWireCount]=0; }
+          WireLay   [nWireCount]=W.layer;
+          WireName  [nWireCount]=S.name;              
+          WireChksum[nWireCount]=W.x1+W.x2+W.y1+W.y2+int(W.curve*100)+W.layer;    
+          WireD     [nWireCount]=sqrt( pow(W.x1-W.x2,2) + pow(W.y1-W.y2,2) );
+            
+          WireUnik  [nWireCount]=-1;
+          WireSinglo[nWireCount]= 0;
+          WireCa    [nWireCount]=-1;   WireCb    [nWireCount]=-1;
+          ViaCa     [nWireCount]=-1;   ViaCb     [nWireCount]=-1;
+          ViaDa     [nWireCount]=-1;   ViaDb     [nWireCount]=-1;
+          ViaPa     [nWireCount]=-1;   ViaPb     [nWireCount]=-1;
+          PadCa     [nWireCount]=-1;   PadCb     [nWireCount]=-1;
+          PadDa     [nWireCount]=-1;   PadDb     [nWireCount]=-1;
+          PadPa     [nWireCount]=-1;   PadPb     [nWireCount]=-1;
+          WireInrad [nWireCount]= 0;
+          
+          Dsum+=WireD     [nWireCount];
+          
+          if(W.curve==0) nWireCount_c0++;
+          if((abs(W.curve)>LC28-E) && (abs(W.curve)<LC28+E)) nWireCount_c28++;
+          if((abs(W.curve)>LC45-E) && (abs(W.curve)<LC45+E)) nWireCount_c45++;
+          
+          nWireCount++;      
+        }            
+      } 
+      
+      /* do via list: */
+      S.vias(V)   
+      { 
+        ViaStart[nViaCount]=V.start;
+        ViaEnd  [nViaCount]=V.end;
+        ViaX    [nViaCount]=V.x;
+        ViaY    [nViaCount]=V.y;
+        ViaDiam [nViaCount]=V.diameter[1];
+        ViaDrill[nViaCount]=V.drill;
+        ViaVisit[nViaCount]=0;
+        nViaCount++;      
+      }
+
+      SignalWIndex[nSigCount]=nWireCount;  // store wire vector index for corresponding signal name
+      SignalVIndex[nSigCount]=nViaCount;   // store via vector index for corresponding signal name
+      SignalName  [nSigCount]=S.name;
+      nSigCount++;   
+    }    
+         
+    /* do pad and smd list: */
+    B.elements(E) 
+    {      
+      E.package.contacts(C)
+      {
+        if(C.smd)
+        {                   
+          nSmdCount++;         
+        }
+        if(C.pad)
+        { 
+          PadName  [nPadCount]=E.name;                             
+          PadSignal[nPadCount]=C.pad.signal;                              
+          PadX     [nPadCount]=C.pad.x;          
+          PadY     [nPadCount]=C.pad.y;          
+          PadDiam  [nPadCount]=C.pad.diameter[1];        
+          PadDrill [nPadCount]=C.pad.drill;                    
+          nPadCount++;         
+        }
+      }          
+    }
+    
+  }
+  status("Collecting Data: Ready");
+}
+
+
+
+
+void Init(void)
+{
+int i;
+  for (i = 0; i < nWireCount; i ++)
+  {
+    WireUnik  [i]=-1;
+    WireSinglo[i]= 0;
+    WireCa    [i]=-1;
+    WireCb    [i]=-1;
+    ViaCa     [i]=-1;
+    ViaCb     [i]=-1;
+    ViaDa     [i]=-1;
+    ViaDb     [i]=-1;
+    PadCa     [i]=-1;
+    PadCb     [i]=-1;
+    PadDa     [i]=-1;
+    PadDb     [i]=-1;
+    WireInrad [i]= 0;
+    WireDetTear[i]=0;
+  }
+}
+
+// distance verification: x,y are un u, dmin in mil:
+int chkdist(int xa,int ya,int xb,int yb,real dmin)
+{
+  real d=u2mil( int(sqrt( pow(xa-xb,2) + pow(ya-yb,2) )) );
+  if(d<dmin)  return 1; 
+  else        return 0;
+}
+
+
+
+// Teardrop-artifact detector:
+//  detect teardrop components and other artifacts:  
+// Method:
+//  look for a backtear in order to find the index of the fronttear segment
+//
+//  User_Curved_Shaper=1: if the detected fronttear is not curved, dont mark it.
+//  User_Clean_Shaper=1 : search a fronttear independently without the backtear origin
+//  User_Del_Factor     : if the detected fronttear is outside the factor*diameter, dont mark it.
+//
+void Teardrop_detector(void)
+{
+int i,ifath,ichil,j;
+int FrontI;
+real tdradius;
+int va,vb;
+  
+  for (i = 0; i < nWireCount; i ++)
+  {
+    if(WireInrad[i]==1) // detect an insider
+    {
+     sprintf(vcount, "4. Scanning for Teardrop artifacts: Wire %d ", i);     status(vcount);
+     
+     if(User_Vias)
+     {
+        // ----- Vias: --------------------------------------------------------------
+        // seek back-front-set:
+        if(  (WireCa[i]!=-1) && (WireCb[i]!=-1) &&    /* search a both-wire-connected wire, with a connection to a via (Via-Backtear candidate)*/ 
+            ((ViaCa [i]!=-1 && ViaCb [i]==-1) ||  
+             (ViaCa [i]==-1 && ViaCb [i]!=-1)) ) 
+        {          
+            if(ViaCa [i]==-1) /* is A not connected to via ? */
+            {
+              FrontI=WireCa[i];
+              tdradius=sqrt( pow(WireD[FrontI],2) + pow(WireD[i],2) );
+              if(  ( (User_Curved_Shaper==1 && (WireD[FrontI]<(User_Del_Factor*ViaDrill[ViaCb[i]])) &&  (WireCur[FrontI]!=0) ) ||
+                     (User_Curved_Shaper==0 && (WireD[FrontI]<(User_Del_Factor*ViaDrill[ViaCb[i]])) ||  (WireCur[FrontI]!=0) ) ) &&       
+                   (tdradius>(ViaDiam[ViaCb[i]]/2)) &&
+                  ((WireCa[FrontI]!=-1) || (WireCb[FrontI]!=-1)) )
+              {
+                WireDetTear[i]=1;      // backtear:
+                WireDetTear[FrontI]=2; // fronttear
+              }
+            }
+            if(ViaCb [i]==-1) /* is B not connected to via ? */
+            {
+              FrontI=WireCb[i];
+              tdradius=sqrt( pow(WireD[FrontI],2) + pow(WireD[i],2) );
+              if(  ( (User_Curved_Shaper==1 && (WireD[FrontI]<(User_Del_Factor*ViaDrill[ViaCa[i]])) &&  (WireCur[FrontI]!=0) ) ||
+                     (User_Curved_Shaper==0 && (WireD[FrontI]<(User_Del_Factor*ViaDrill[ViaCa[i]])) ||  (WireCur[FrontI]!=0) ) ) &&    
+                  (tdradius>(ViaDiam[ViaCa[i]]/2)) &&
+                  ((WireCa[FrontI]!=-1) || (WireCb[FrontI]!=-1)) )
+              {
+                WireDetTear[i]=1;      // backtear:
+                WireDetTear[FrontI]=2; // fronttear
+              }
+            }
+        }
+        // seek dangling-backtear:
+        if( User_Clean_Stub &&
+           ((WireCb[i]==-1) && (ViaCa [i]!=-1) && (ViaCb [i]==-1)) ||
+           ((WireCa[i]==-1) && (ViaCa [i]==-1) && (ViaCb [i]!=-1)) )
+        {          
+          WireDetTear[i]=5;      // dangling backtear
+        }
+      
+      // ----- Vias end --------------------------------------------------------------
+     }
+     
+     if(User_Pads)
+     {   
+        // ----- Pads: --------------------------------------------------------------        
+        if(  (WireCa[i]!=-1) && (WireCb[i]!=-1) &&   /* search a both-wire-connected wire, with a connection to a pad (Pad-Backtear candidate)*/ 
+            ((PadCa [i]!=-1 && PadCb [i]==-1) ||  
+             (PadCa [i]==-1 && PadCb [i]!=-1)) ) 
+        {
+            
+            if(PadCa [i]==-1) 
+            { 
+               tdradius=sqrt( pow(WireD[WireCa[i]],2) + pow(WireD[i],2) );
+               if( ( (User_Curved_Shaper==1 && (WireD[WireCa[i]]<((User_Del_Factor-0.5)*PadDrill[PadCb[i]])) &&  (WireCur[WireCa[i]]!=0) ) ||
+                  (User_Curved_Shaper==0 && (WireD[WireCa[i]]<((User_Del_Factor-0.5)*PadDrill[PadCb[i]])) ||  (WireCur[WireCa[i]]!=0) ) ) &&    
+                (tdradius>(PadDiam[PadCb[i]]/2)) &&
+                ((WireCa[WireCa[i]]!=-1) || (WireCb[WireCa[i]]!=-1)) )
+              {
+                WireDetTear[i]=1;         // backtear:
+                WireDetTear[WireCa[i]]=2; // fronttear
+              }
+            }
+            if(PadCb [i]==-1) 
+            {
+              tdradius=sqrt( pow(WireD[WireCb[i]],2) + pow(WireD[i],2) );
+              if(( (User_Curved_Shaper==1 && (WireD[WireCb[i]]<((User_Del_Factor-0.5)*PadDrill[PadCa[i]])) &&  (WireCur[WireCb[i]]!=0) ) ||
+                  (User_Curved_Shaper==0 && (WireD[WireCb[i]]<((User_Del_Factor-0.5)*PadDrill[PadCa[i]])) ||  (WireCur[WireCb[i]]!=0) ) ) && 
+                (tdradius>(PadDiam[PadCa[i]]/2)) &&
+                ((WireCa[WireCb[i]]!=-1) || (WireCb[WireCb[i]]!=-1)) )
+              {
+                WireDetTear[i]=1;         // backtear:
+                WireDetTear[WireCb[i]]=2; // fronttear
+              } 
+            }
+        }
+          
+        // seek dangling-backtear:
+        if( User_Clean_Stub &&
+           ((WireCb[i]==-1) && (PadCa [i]!=-1) && (PadCb [i]==-1)) ||
+           ((WireCa[i]==-1) && (PadCa [i]==-1) && (PadCb [i]!=-1)) )
+        {          
+          WireDetTear[i]=5;      // dangling backtear
+        }     
+        // ----- Pads end --------------------------------------------------------------
+     } 
+     
+      // ----- Insider Spot detection: -------------------------------------------------------        
+      if( (WireCa[i]!=-1) && (WireCb[i]!=-1) &&  
+          (WireCa[i]==WireCb[i]) )  WireDetTear[i]=3;   // insider wire spot artifact:
+      if( (ViaCa[i]!=-1) && (ViaCb[i]!=-1) &&  
+          (ViaCa[i]==ViaCb[i]))    WireDetTear[i]=4;   // insider via spot artifact:
+          
+      // ----- Spot end --------------------------------------------------------------
+    }  
+    else
+    {
+      // outsider cases: */
+      if( (WireCa[i]!=-1) && (WireCb[i]!=-1) && (WireCa[i]==WireCb[i]) )  WireDetTear[i]=20;   // same node indices wire
+      
+      if(u2mil(int(WireD[i]))<=User_Min_Wire) 
+      {
+        if((WireCa[i]==-1) && (WireCb[i]==-1))       WireDetTear[i]=21;   // not connected wire spot artifact
+        else if((WireCa[i]==-1) || (WireCb[i]==-1))  WireDetTear[i]=22;   // dangling wire spot artifact
+        else if(WireCa[i]==WireCb[i])                WireDetTear[i]=23;   // same node wire spot artifact
+      }
+    }
+    
+    // FS: look only those that are not connected to a via or pad and are inside a via perimeter:
+    if(  User_Vias && 
+       ((User_Curved_Shaper==0) || (WireCur[i]!=0)) && 
+       (ViaCa[i]==-1) && (ViaCb[i]==-1) )
+    {    
+      // -----  Dangling fronttears on vias:-------------------------------------------------------        
+      if(User_Clean_dangling_Shaper)
+      {
+        if( (WireCa[i]==-1) && (ViaDa[i]!=-1)  )  if (WireD[i]<(User_Del_Factor*ViaDrill[ViaDa[i]]))  WireDetTear[i]=6; 
+        if( (WireCb[i]==-1) && (ViaDb[i]!=-1)  )  if (WireD[i]<(User_Del_Factor*ViaDrill[ViaDb[i]]))  WireDetTear[i]=6; 
+      }
+      // ----- Dangling fronttears on vias end --------------------------------------------------------------
+      
+      // ----- Tangled fronttears on vias:-------------------------------------------------------        
+      if(User_Clean_tangled_Shaper)
+      {
+        if( (ViaDa[i]!=-1) )  if (WireD[i]<(User_Del_Factor*ViaDrill[ViaDa[i]])) WireDetTear[i]=7; 
+        if( (ViaDb[i]!=-1) )  if (WireD[i]<(User_Del_Factor*ViaDrill[ViaDb[i]])) WireDetTear[i]=7; 
+      }
+      // ----- tangled fronttears on vias end --------------------------------------------------------------
+    }
+    
+    if( User_Pads && 
+       ((User_Curved_Shaper==0) || (WireCur[i]!=0)) &&
+        (PadCa[i]==-1) && (PadCb[i]==-1) )
+    {
+      // -----  Dangling fronttears on pads:-------------------------------------------------------        
+      if(User_Clean_dangling_Shaper)
+      {
+        if( (WireCa[i]==-1) && (PadDa[i]!=-1) )  if (WireD[i]<((User_Del_Factor-0.5)*PadDrill[PadDa[i]])) WireDetTear[i]=6; 
+        if( (WireCb[i]==-1) && (PadDb[i]!=-1) )  if (WireD[i]<((User_Del_Factor-0.5)*PadDrill[PadDb[i]])) WireDetTear[i]=6; 
+      }
+      // ----- Dangling fronttears on pads end --------------------------------------------------------------
+      // ----- tangled fronttears on pads:-------------------------------------------------------        
+      if(User_Clean_tangled_Shaper)
+      {
+        if( (PadDa[i]!=-1) ) if (WireD[i]<((User_Del_Factor-0.5)*PadDrill[PadDa[i]])) WireDetTear[i]=7; 
+        if( (PadDb[i]!=-1) ) if (WireD[i]<((User_Del_Factor-0.5)*PadDrill[PadDb[i]])) WireDetTear[i]=7; 
+      }
+      // ----- tangled fronttears on pads end --------------------------------------------------------------
+    }
+  }
+  
+  
+  
+  // check connectors integrity :
+  for (i = 0; i < nWireCount; i ++)
+  {     
+    if(WireDetTear[i]==0)
+    {
+       // VIAS:
+       // loose connector on A: no wire, via connection in A, A in via perimeter, 
+       if( (WireCa[i]==-1)  && (ViaCa[i]==-1) && (ViaPa[i]!=-1) && 
+           ( (ViaPa[i]!=ViaPb[i]) || ((ViaPa[i]==ViaPb[i])&&(WireCb[i]!=-1)) ) )
+       {
+         WireDetTear[i]=12; // ivCONNa
+       }
+       // loose connector on B: no wire, via connection in B, B in via perimeter, 
+       if( (WireCb[i]==-1)  && (ViaCb[i]==-1) && (ViaPb[i]!=-1) && 
+           ( (ViaPa[i]!=ViaPb[i]) || ((ViaPa[i]==ViaPb[i])&&(WireCa[i]!=-1)) ) )
+       {
+         WireDetTear[i]=13; // ivCONNb
+       }
+       
+       // PADS:
+       // loose connector on A: no wire, pad connection in A, A in pad perimeter, 
+       if( (WireCa[i]==-1)  && (PadCa[i]==-1) && (PadPa[i]!=-1) && 
+           ( (PadPa[i]!=PadPb[i]) || ((PadPa[i]==PadPb[i])&&(WireCb[i]!=-1)) ) )
+       {
+         WireDetTear[i]=14; // ipCONNa
+       }
+       // loose connector on B: no wire, pad connection in B, B in pad perimeter, 
+       if( (WireCb[i]==-1)  && (PadCb[i]==-1) && (PadPb[i]!=-1) && 
+           ( (PadPa[i]!=PadPb[i]) || ((PadPa[i]==PadPb[i])&&(WireCa[i]!=-1)) ) )
+       {
+         WireDetTear[i]=15; // ipCONNb
+       }
+                     
+     }
+  }
+ 
+
+  status("Teardrop Analyse: Ready");
+}
+
+
+// search doubles and single ended wires
+void AnalyseData()
+{
+int k,i,j;
+real rv,rv_mil,rp_mil;
+
+  // 1. check wire-via connections per signal:
+  for (k = 0; k < nSigCount; k ++) // scan signal list
+  {
+    sprintf(vcount, "1. Analysing Via Connections: Signal %d ", k);     status(vcount);
+  
+    for (i = SignalWIndex[k]; i < SignalWIndex[k+1]; i ++) // scan wire list
+    {    
+      for (j = SignalVIndex[k]; j < SignalVIndex[k+1]; j ++)  // compare with via list of the same signal
+      {
+        rv    =ViaDiam[j]/2;
+        rv_mil=u2mil(int(rv));
+        //rp_mil=u2mil(int(ViaDrill[j]))*User_Del_Factor;
+        rp_mil=u2mil(int(rv))*User_Del_Factor;
+        
+        // check connections:    
+        if( chkdist(WireX1[i],WireY1[i],ViaX[j] ,ViaY[j] ,DMIN_VIA)==1 ) 
+        {           
+          ViaCa [i]=j; 
+          if(WireD[i]<=rv) WireInrad[i]=1;                     
+        }
+        if( chkdist(WireX2[i],WireY2[i],ViaX[j] ,ViaY[j] ,DMIN_VIA)==1 ) 
+        { 
+          ViaCb [i]=j;
+          if(WireD[i]<=rv) WireInrad[i]=1;                               
+        }
+        
+        // check if inside via diameter:
+        if( chkdist(WireX1[i],WireY1[i],ViaX[j] ,ViaY[j] ,rv_mil)==1 ) 
+        {           
+          ViaDa [i]=j;                     
+        }
+        if( chkdist(WireX2[i],WireY2[i],ViaX[j] ,ViaY[j] ,rv_mil)==1 ) 
+        { 
+          ViaDb [i]=j;   
+          if(ViaDa [i]==ViaDb [i]) WireInrad[i]=1;                   
+        }         
+        
+        // check if inside via perimeter:
+        if( chkdist(WireX1[i],WireY1[i],ViaX[j] ,ViaY[j] ,rp_mil)==1 ) 
+        {           
+          ViaPa [i]=j;                     
+        }
+        if( chkdist(WireX2[i],WireY2[i],ViaX[j] ,ViaY[j] ,rp_mil)==1 ) 
+        { 
+          ViaPb [i]=j;             
+        }         
+
+      }
+    }
+  }
+  
+ 
+  // 2. check wire-pad connections, per signal:
+  for (i = 0; i < nWireCount; i ++)             // loop all wires
+  {
+    sprintf(vcount, "2. Analysing Pad Connections: Wire %d ", i);     status(vcount);
+         
+    for (j = 0; j < nPadCount; j ++)      // loop all pads
+    {              
+      if(PadSignal[j]==WireName[i]) // check if pad and wire belong to the same signal!!
+      {
+        rv    =PadDiam[j]/2;
+        rv_mil=u2mil(int(rv));
+        //rp_mil=u2mil(int(PadDrill[j]))*(User_Del_Factor-0.5);    
+        rp_mil=u2mil(int(rv))*(User_Del_Factor);    
+
+        // check connection to pad:
+        if( chkdist(WireX1[i],WireY1[i],PadX[j],PadY[j],DMIN_PS )==1 ) 
+        { 
+          PadCa [i]=j; 
+          if( WireD[i]<=(PadDiam[j]/2) ) WireInrad[i]=1;                     
+        }
+
+        if( chkdist(WireX2[i],WireY2[i],PadX[j],PadY[j],DMIN_PS )==1 ) 
+        { 
+          PadCb [i]=j; 
+          if( WireD[i]<=(PadDiam[j]/2) ) WireInrad[i]=1;                               
+        }
+                 
+        // check if terminals are inside pad diameter:
+        if( chkdist(WireX1[i],WireY1[i],PadX[j] ,PadY[j] ,rv_mil)==1 ) 
+        {           
+          PadDa [i]=j;                     
+        }
+        if( chkdist(WireX2[i],WireY2[i],PadX[j] ,PadY[j] ,rv_mil)==1 ) 
+        { 
+          PadDb [i]=j;                      
+          if(PadDa [i]==PadDb [i]) WireInrad[i]=1; 
+        }  
+        
+        // check if terminals are inside pad perimeter:
+        if( chkdist(WireX1[i],WireY1[i],PadX[j] ,PadY[j] ,rp_mil)==1 ) 
+        {           
+          PadPa [i]=j;                     
+        }
+        if( chkdist(WireX2[i],WireY2[i],PadX[j] ,PadY[j] ,rp_mil)==1 ) 
+        { 
+          PadPb [i]=j;                                
+        }        
+      } 
+    }    
+  }
+
+
+
+  // search doubles inside wires of the same Signal:
+  // check wire-wire conectivity (first connection found is kept):
+  for (k = 0; k < nSigCount; k ++) // scan signal list
+  {
+    sprintf(vcount, "3. Analysing Wire doubles: Signal %d ", k);     status(vcount);
+
+    for (i = SignalWIndex[k]; i < SignalWIndex[k+1]; i ++) // scan wire list
+    {    
+      for (j = SignalWIndex[k]; j < SignalWIndex[k+1]; j ++)  // compare with rest of the vector segment
+      {
+        if(i!=j)
+        {
+          // find doubles, first using the checksum, then verifiyng each element:
+          if( (j>i) && (WireUnik[j]==-1) && (WireChksum[i]==WireChksum[j]))      // chksum check first
+          {
+            if( (WireX1 [i]==WireX1[j]) && 
+                (WireX2 [i]==WireX2[j]) &&
+                (WireY1 [i]==WireY1[j]) &&
+                (WireY2 [i]==WireY2[j]) &&
+                (WireLay[i]==WireLay[j]) &&
+                (WireCur[i]==WireCur[j]) )  // recheck   
+              WireUnik[j]=i;       
+          }
+          
+          // check connectivity between wires:
+          if(WireLay[i]==WireLay[j])
+          {
+            if( WireCa[i]==-1)
+            {
+              if( ((WireX1[i]==WireX1[j]) && (WireY1[i]==WireY1[j])) || 
+                  ((WireX1[i]==WireX2[j]) && (WireY1[i]==WireY2[j])) ) { WireCa[i]=j; }
+            }
+            if( WireCb[i]==-1)
+            {
+              if( ((WireX2[i]==WireX1[j]) && (WireY2[i]==WireY1[j])) || 
+                  ((WireX2[i]==WireX2[j]) && (WireY2[i]==WireY2[j])) ) { WireCb[i]=j; }
+            }
+          }                   
+        }        
+      }
+    }
+  }
+
+  Teardrop_detector();  
+  
+
+  // count the wire connection variants:
+  // count doubles:
+  // count stubies: (D lower than 1 mil)
+
+  nLooseWire_1=0; // not wired both ends
+  nLooseWire_2=0; // connected to via
+  nLooseWire_3=0; // connected to pad
+  nLooseWire_4=0; // possible smd conn
+  nInsider=0;     // insider wires
+  nBTears=0;      // teardrop back component
+  nFTears=0;      // teardrop front component
+  nWSpots=0;
+  nVSpots=0;
+  nDubWireCount=0;
+  nStubWireCount=0;
+  nWConn=0;
+
+  for (i = 0; i < nWireCount; i ++)
+  {
+    sprintf(vcount, "6. Counting found variants: Wire %d ", i);     status(vcount);
+
+    if( WireCa[i]==-1 || WireCb[i]==-1 ) nLooseWire_1++;    
+    if( ViaCa [i]!=-1 || ViaCb [i]!=-1 ) nLooseWire_2++;    
+    if( PadCa [i]!=-1 || PadCb [i]!=-1 ) nLooseWire_3++;    
+    if( (WireCa[i]==-1 || WireCb[i]==-1) &&
+        (ViaCa [i]==-1 || ViaCb [i]==-1) &&
+        (PadCa [i]==-1 || PadCb [i]==-1) ) nLooseWire_4++;    
+    if( WireInrad  [i]==1 ) nInsider++; 
+       
+    if( WireDetTear[i]==1 || WireDetTear[i]==5 ) nBTears++;    
+    if( WireDetTear[i]==2 || WireDetTear[i]==6 || WireDetTear[i]==7 ) nFTears++;  
+    if( WireDetTear[i]==3 || WireDetTear[i]==20 || WireDetTear[i]==21|| WireDetTear[i]==22 ) nWSpots++;  
+    if( WireDetTear[i]==12 || WireDetTear[i]==13 || WireDetTear[i]==14|| WireDetTear[i]==15 ) nWConn++;  
+    if( WireDetTear[i]==4 ) nVSpots++;  
+    
+    if(WireUnik[i]!=-1) nDubWireCount++;
+    //else if(WireD[i]<1) nStubWireCount++;
+  }  
+  status("Analyse: Ready");
+}
+
+string str_units(void)
+{
+  if(user_units==GRID_UNIT_MIC)      { return "[mic]";  }
+  else if(user_units==GRID_UNIT_MM)  { return "[mm]";   }  
+  else if(user_units==GRID_UNIT_MIL) { return "[mil]";  }   
+  else                               { return "[inch]"; }   
+}
+
+string str_funit(int x,string fmt)
+{
+string s;
+real   r;
+
+  if(user_units==GRID_UNIT_MIC)      { r=u2mic(x);  }
+  else if(user_units==GRID_UNIT_MM)  { r=u2mm(x);   }  
+  else if(user_units==GRID_UNIT_MIL) { r=u2mil(x);  }   
+  else                               { r=u2inch(x); }   
+  sprintf (s,fmt,r);
+  return s;
+}
+
+int Listmode=1;
+
+void ListHeader(void)
+{
+string u=str_units();
+
+  Lines[0]  = "Index" + "\t";
+  if(Listmode==0)
+  {
+    Lines[0] +="X1 "+u + "\t" + "Y1 "+u + "\t"+ "X2 "+u + "\t" + "Y2 "+u + "\t";
+    //if( show_D_in_MM==1 )  Lines[0] += "D [mm]";  else   Lines[0] += "D [mil]";
+    Lines[0] += "D "+u;
+    Lines[0] += "\t"+"Curve"+"\t"+"R "+u+"\t"+"Lay"+"\t"+"ChkSumme"+"\t"+"Uni"+"\t";
+    Lines[0] += "CA"+"\t"+"CB"+"\t";
+    Lines[0] += "VA"+"\t"+"VB"+"\t"+"dVA"+"\t"+"dVB"+"\t"+"pVA"+"\t"+"pVB"+"\t";
+    Lines[0] += "PA"+"\t"+"PB"+"\t"+"dPA"+"\t"+"dPB"+"\t"+"pPA"+"\t"+"pPB"+"\t";    
+  }
+  else
+  {
+    Lines[0] +="(X1 Y1) "+u + "\t"+ "(X2 Y2) "+u + "\t";
+    //if( show_D_in_MM==1 )  Lines[0] += "D [mm]";  else   Lines[0] += "D [mil]";
+    Lines[0] += "D "+u;
+    Lines[0] += "\t"+"Curve"+"\t"+"R "+u+"\t"+"Lay"+"\t"+"ChkSum"+"\t"+"Uni"+"\t";
+    Lines[0] += "[CA CB]"+"\t"+"[VA VB]"+"\t"+"[dVA dVB]"+"\t"+"[pVA pVB]"+"\t"+"[PA PB]"+"\t"+"[dPA dPB]"+"\t"+"[pPA pPB]"+"\t";
+  }
+  Lines[0] += "IR"+"\t" +"Artif"+"\t" + "Signal" + "\t";
+}
+
+
+string LabelHelp = 
+  "<p><b>Label Explanation</b><br>"       
+  "<p><b>Ind:</b> index of the wire at reading from eagle brd database."
+  "<p><b>(X1 Y1) (X2 Y2):</b> Coordinates of each node of the wire"
+  "<p><b>D:</b> length of the wire"
+  "<p><b>Curve:</b> if not 0, the wire is curved"
+  "<p><b>R:</b> if the wire is curved, this is the radius of the arc"
+  "<p><b>Lay:</b> Layer in which the wire is located."
+  "<p><b>ChkSum:</b> Checksum of the wire using (X1 Y1),(X2 Y2),Curve*100 and Lay."
+  "<p><b>Uni:</b> if -1 the wire is unique. If not, it shows the index of the doubled wire."
+  "<p><b>[CA CB]:</b> if not -1, they are the indices of the connected wires."
+  "<p><b>[VA VB]:</b> if not -1, they are the indices of the connected vias."
+  "<p><b>[dVA dVB]:</b> if not -1, the wire node is inside the via diameter"
+  "<p><b>[pVA pVB]:</b> if not -1, the wire node is inside the via teardrop perimeter"
+  "<p><b>[PA PB]:</b> if not -1, they are the indices of the connected pads."
+  "<p><b>[dPA dPB]:</b> if not -1, the wire node is inside the pad diameter"
+  "<p><b>[pPA pPB]:</b> if not -1, the wire node is inside the pad teardrop perimeter"
+  "<p><b>IR:</b> Shows if the wire is entirely inside a via/pad perimeter."
+  "<p><b>Artif:</b> Type of artifact."
+  "<ul>"
+  "<p>" 
+  "<li>1 :  BACK  : backshaper of the teardrop.</li><p> " 
+  "<li>2 :  FRONT : frontshaper of the teardrop.</li><p> "
+  "<li>3 :  iWSPOT : insider wire spot with same node indices.</li><p> "
+  "<li>4 :  iVSPOT : insider wire spot with same via/pad indices.</li><p> "
+  "<li>5 :  DBACK : dangling backshaper of the teardrop.</li><p> "  
+  "<li>6 :  DFRONT: dangling frontshaper of the teardrop.</li><p> " 
+  "<li>7 :  TFRONT: tangled frontshaper of the teardrop.</li><p> " 
+  "<li>11:  abCONN: one node of the wire is in the via/pad perimeter</li><p> "  
+  "<li>12:  ivCONNa: unconnected wire at node A in via perimeter</li><p> " 
+  "<li>13:  ivCONNb: unconnected wire at node B in via perimeter</li><p> " 
+  "<li>14:  ipCONNa: unconnected wire at node A in pad perimeter </li><p> " 
+  "<li>15:  ipCONNb: unconnected wire at node B in pad perimeter </li><p> " 
+  "<li>20:  oPSPOT: outsider wire with same node indices.</li><p> "
+  "<li>21:  oDSPOT: outsider dangling wire spot.</li><p> "
+  "<li>22:  oWSPOT: outsider same index wire spot.</li><p> "
+  "</ul>"
+  "<p><b>Signal:</b> Signal name of the wire."
+;
+
+
+
+void GenerateList(void)
+{
+  real d;
+  int NumLines   = 1;  
+  string StrIndex  ;
+  string StrWireX1,StrWireX2,StrWireY1,StrWireY2 ;
+  string StrWireD  ;
+  string StrWireCur;
+  string StrWireRad;
+  string StrT;
+  
+  //ListHeader();  
+  for (int i = 0; i < nWireCount; i ++)
+  {
+    sprintf(vcount, "7. Generating wire table: Wire %d ", i);     status(vcount);
+    
+    if(nWireCount<100)         sprintf (StrIndex   , "%02d" , i);
+    else if(nWireCount<1000)   sprintf (StrIndex   , "%03d" , i);
+    else if(nWireCount<10000)  sprintf (StrIndex   , "%04d" , i);
+    else if(nWireCount<100000) sprintf (StrIndex   , "%05d" , i);
+
+    StrWireX1 =str_funit(WireX1[i],"%8.2f"); 
+    StrWireX2 =str_funit(WireX2[i],"%8.2f"); 
+    StrWireY1 =str_funit(WireY1[i],"%8.2f"); 
+    StrWireY2 =str_funit(WireY2[i],"%8.2f"); 
+    StrWireD  =str_funit(WireD[i] ,"%9.3f");
+    //if( show_D_in_MM==1 )  sprintf (StrWireD    , "%9.3f", u2mm(int(WireD[i])));
+    //else                   sprintf (StrWireD    , "%9.3f", u2mil(int(WireD[i])));
+    sprintf (StrWireCur  , "%8.3f", WireCur[i]);    
+    StrWireRad=str_funit(WireRad[i],"%8.2f");   
+           
+    switch(WireDetTear[i])
+    {
+        default:
+        case 0:  StrT="";      break;
+        case 1:  StrT="BACK";  break;
+        case 2:  StrT="FRONT"; break;
+        case 3:  StrT="iWSPOT"; break;
+        case 4:  StrT="iVSPOT"; break;
+        case 5:  StrT="DBACK";  break;  
+        case 6:  StrT="DFRONT";  break;  
+        case 7:  StrT="TFRONT";  break;  
+        case 11: StrT="abCONN";  break;  
+       
+        case 12: StrT="ivCONNa";  break;  
+        case 13: StrT="ivCONNb";  break; 
+        case 14: StrT="ipCONNa";  break; 
+        case 15: StrT="ipCONNb";  break; 
+        
+        case 20: StrT="oPSPOT";  break;  
+        case 21: StrT="oDSPOT";  break;  
+        case 22: StrT="oWSPOT";  break;  
+    }
+    if(Listmode==0)
+    {    
+      sprintf(Lines[NumLines],"%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%02d\t%08X\t%d\t%d\t%dt%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t",
+              StrIndex, StrWireX1, StrWireY1, StrWireX2, StrWireY2, 
+              StrWireD, StrWireCur, StrWireRad, WireLay[i],WireChksum[i],WireUnik[i],
+              WireCa[i],WireCb[i],
+              ViaCa[i],ViaCb[i], ViaDa[i],ViaDb[i], ViaPa[i],ViaPb[i],
+              PadCa[i],PadCb[i], PadDa[i],PadDb[i], PadPa[i],PadPb[i],
+              WireInrad[i],StrT,WireName[i]);     
+    }
+    else
+    {
+      sprintf(Lines[NumLines],"%s\t(%s %s)\t(%s %s)\t\%s\t%s\t%s\t%02d\t%08X\t%d\t[%d %d]\t[%d %d]\t[%d %d]\t[%d %d]\t[%d %d]\t[%d %d]\t[%d %d]\t%d\t%s\t%s\t",
+              StrIndex, StrWireX1, StrWireY1, StrWireX2, StrWireY2, 
+              StrWireD, StrWireCur, StrWireRad, WireLay[i],WireChksum[i],WireUnik[i],
+              WireCa[i],WireCb[i],
+              ViaCa[i],ViaCb[i], ViaDa[i],ViaDb[i], ViaPa[i],ViaPb[i],
+              PadCa[i],PadCb[i], PadDa[i],PadDb[i], PadPa[i],PadPb[i],
+              WireInrad[i],StrT,WireName[i]);     
+    }
+    NumLines ++;
+  }
+  Lines[NumLines] = "";
+  
+  status("Table generation: Ready");
+}
+
+
+
+
+void save(void)
+{
+  int i;
+  string StrIndex;
+  string StrWireX1;
+  string StrWireX2;
+  string StrWireY1;
+  string StrWireY2;
+  string StrWireD ;
+  string StrT ;
+  string StrWireCur;
+  string u=str_units();
+
+  output(filesetext(Filename, "_wires_clean.txt")) {
+    printf("       Wire List generated by clean-wire\n");
+    printf("i     (X1 Y1) %s       (X2 Y2) %s       Length %s Curv  Signal-name  Layer     [CA CB]     [VA VB]     [dVA dVB]   [pVA pVB]   [PA PB]     [dPA dPB]   [pPA pPB]   Inrad Tear\n",u,u,u);
+    for (int i = 0; i < nWireCount; i ++)
+    {
+      if(nWireCount<100)         { sprintf (StrIndex   , "%02d" , i); }
+      else if(nWireCount<1000)   { sprintf (StrIndex   , "%03d" , i); }
+      else if(nWireCount<10000)  { sprintf (StrIndex   , "%04d" , i); }
+      else if(nWireCount<100000) { sprintf (StrIndex   , "%05d" , i); }
+
+      StrWireX1 =str_funit(WireX1[i],"%8.2f"); 
+      StrWireX2 =str_funit(WireX2[i],"%8.2f"); 
+      StrWireY1 =str_funit(WireY1[i],"%8.2f"); 
+      StrWireY2 =str_funit(WireY2[i],"%8.2f"); 
+      StrWireD  =str_funit(WireD[i] ,"%9.3f");
+      sprintf (StrWireCur  , "%8.4f", WireCur[i]);    
+      
+      switch(WireDetTear[i])
+      {
+        default:
+        case 0:  StrT="";      break;
+        case 1:  StrT="BACK";  break;
+        case 2:  StrT="FRONT"; break;
+        case 3:  StrT="iWSPOT"; break;
+        case 4:  StrT="iVSPOT"; break;
+        case 5:  StrT="DBACK";  break;  
+        case 6:  StrT="DFRONT";  break;  
+        case 7:  StrT="TFRONT";  break;  
+        case 11: StrT="abCONN";  break;  
+        
+        case 12: StrT="ivCONNa";  break;  
+        case 13: StrT="ivCONNb";  break; 
+        case 14: StrT="ipCONNa";  break; 
+        case 15: StrT="ipCONNb";  break; 
+        
+        case 20: StrT="oPSPOT";  break;  
+        case 21: StrT="oDSPOT";  break;  
+        case 22: StrT="oWSPOT";  break;  
+      }
+
+      printf("[%s] (%s %s) (%s %s) %s %s - %15s  %02d [%04d %04d] [%04d %04d] [%04d %04d] [%04d %04d] [%04d %04d] [%04d %04d] [%04d %04d] %d %s\n",
+              StrIndex, StrWireX1, StrWireY1, StrWireX2, StrWireY2, 
+              StrWireD, StrWireCur, WireName[i],WireLay[i],
+              WireCa[i],WireCb[i],
+              ViaCa[i],ViaCb[i], ViaDa[i],ViaDb[i], ViaPa[i],ViaPb[i],
+              PadCa[i],PadCb[i], PadDa[i],PadDb[i], PadPa[i],PadPb[i],
+              WireInrad[i],StrT);     
+    } 
+    printf("\nNumber of wires:%d\n", i);
+  }
+}
+
+
+
+
+int nLayer,VLayer[];
+
+// store all visible layers:
+void Save_Active_Layers(void)
+{
+  board(B) 
+  {
+    nLayer=0;
+    B.layers(L)  
+    {  
+      if (L.visible) { VLayer[L.number]=1; }  
+      nLayer++; 
+    }
+  }
+}
+
+string Restore_Active_Layers(void)
+{
+string s,tmp="DISPLAY ";
+int i;
+
+  for(i=0;i<nLayer;i++) if(VLayer[i]) { sprintf(s,"%d ",i);  tmp+=s;  }
+  tmp+=";";
+  return tmp;
+}
+
+
+// verify if the layer "lay" exists in the board:
+int Check_Layer(int lay)
+{
+int ret=0;
+
+  board(B) 
+  {
+    B.layers(L)  {  if (L.number == lay) { ret=1; }   }
+  }
+  return ret;
+}
+
+
+// execute a command at exit:
+void show(int sel) { 
+string cmd="",cmdtmp;
+string grid;
+real xm,ym,x1,y1,x2,y2,w,s;
+int cwidth=500,step=150;
+ 
+  sel--;
+ 
+  if(user_units==GRID_UNIT_MIC)      
+  { grid="MIC";   w=u2mic(cwidth); s=u2mic(step); 
+    xm=u2mic((WireX1[sel]+WireX2[sel])/2);  ym=u2mic((WireY1[sel]+WireY2[sel])/2);  
+    x1 =u2mic(WireX1[sel]);                 y1=u2mic(WireY1[sel]);  
+    x2 =u2mic(WireX2[sel]);                 y2=u2mic(WireY2[sel]); }
+  else if(user_units==GRID_UNIT_MM)  
+  { grid="MM";   w=u2mm(cwidth); s=u2mic(step); 
+    xm=u2mm((WireX1[sel]+WireX2[sel])/2);   ym=u2mm((WireY1[sel]+WireY2[sel])/2);   
+    x1 =u2mm(WireX1[sel]);                  y1=u2mm(WireY1[sel]);   
+    x2 =u2mm(WireX2[sel]);                  y2=u2mm(WireY2[sel]);    }
+  else if(user_units==GRID_UNIT_MIL) 
+  { grid="MIL";  w=u2mil(cwidth); s=u2mic(step); 
+    xm=u2mil((WireX1[sel]+WireX2[sel])/2);  ym=u2mil((WireY1[sel]+WireY2[sel])/2);  
+    x1 =u2mil(WireX1[sel]);                 y1=u2mil(WireY1[sel]);   
+    x2 =u2mil(WireX2[sel]);                 y2=u2mil(WireY2[sel]);   }   
+  else      
+  { grid="INCH"; w=u2inch(cwidth); s=u2mic(step); 
+    xm=u2inch((WireX1[sel]+WireX2[sel])/2); ym=u2inch((WireY1[sel]+WireY2[sel])/2); 
+    x1 =u2inch(WireX1[sel]);                y1 =u2inch(WireY1[sel]);    
+    x2 =u2inch(WireX2[sel]);                y2 =u2inch(WireY2[sel]);  }   
+
+  
+
+  if(User_Show_Mark) // use debug layer to show wire info
+  {
+    Save_Active_Layers();  
+    if(Check_Layer(DebugLayer)==1)
+    { // clear debuglayer:      
+      sprintf(cmd,"display none; display %d; LAYER %d; group all; delete (C> 0 0); \n",DebugLayer,DebugLayer);
+    }
+    else
+    { // create debug layer:
+      sprintf(cmd,"LAYER %d DebugClearTD;\n",DebugLayer);
+    }
+    sprintf(cmdtmp,"SET WIRE_BEND 2; LAYER %d; WIRE %f (%.9f %.9f) (%.9f %.9f); CHANGE SIZE 8;",DebugLayer, w, x1,y1,x2,y2 ); cmd+=cmdtmp;
+    sprintf(cmdtmp,"TEXT i=%d (%.9f %.9f);",sel, x1,y1-s ); cmd+=cmdtmp;
+    sprintf(cmdtmp,"TEXT D=%8.3f mil (%.9f %.9f);",u2mil(int(WireD[sel])), x1,y1-2*s ); cmd+=cmdtmp;
+    sprintf(cmdtmp,"TEXT Signal=%s (%.9f %.9f);",WireName[sel], x1,y1-3*s ); cmd+=cmdtmp;
+    cmd+=Restore_Active_Layers();  
+  }
+  
+  sprintf(cmdtmp,"GRID %s; WINDOW FIT; WINDOW %f; WINDOW (%f %f); GRID LAST; DISPLAY %d; SHOW '%s'", 
+          grid, Zoom, xm,ym, WireLay[sel], WireName[sel] );
+  cmd+=cmdtmp;
+          
+  exit(cmd);
+}
+
+
+
+void Create_Debug_Info(void)
+{
+int  i,di;
+real cwidth=0.02;
+int  TDradius;
+real PTradius=0.05;
+
+    Save_Active_Layers();  
+    // check if debug layer exists:    
+    if(Check_Layer(DebugLayer)==1)
+    { // clear debuglayer:            
+      printf("display none; display %d; LAYER %d; group all; delete (C> 0 0); \n",DebugLayer,DebugLayer);
+    }
+    else
+    { // create debug layer:
+      printf("LAYER %d DebugClearTD;\n",DebugLayer);
+    }
+    
+    // write on debug layer:
+    printf("LAYER %d;\n",DebugLayer);
+    printf("SET WIRE_BEND 2;\n");
+    for (i = 0; i < nViaCount; i ++)
+    {
+      TDradius=int(ViaDiam[i]/2.*User_Del_Factor);
+      printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth,                                    
+              u2mm(ViaX[i]), u2mm(ViaY[i]), u2mm(ViaX[i]+TDradius), u2mm(ViaY[i]) ); 
+    }
+    for (i = 0; i < nPadCount; i ++)
+    {
+      TDradius=int(PadDiam[i]/2.*User_Del_Factor);
+      printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth,                                    
+              u2mm(PadX[i]), u2mm(PadY[i]), u2mm(PadX[i]+TDradius), u2mm(PadY[i]) ); 
+    }
+    for (i = 0; i < nWireCount; i ++)
+    {
+      if(WireDetTear[i]==12 || WireDetTear[i]==14)
+      {
+        printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*2, u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(WireX2[i]), u2mm(WireY2[i]) ); 
+        printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(WireX1[i])+PTradius, u2mm(WireY1[i]) ); 
+        // show reconstruction-wire:
+        if(WireDetTear[i]==12) 
+        {
+          di=ViaPa[i];       
+          printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(ViaX[di]), u2mm(ViaY[di]), u2mm(ViaX[di])+PTradius, u2mm(ViaY[di]) ); 
+          printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*4, u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(ViaX[di]), u2mm(ViaY[di]) ); 
+        }
+        else
+        {
+          di=PadPa[i];       
+          printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(PadX[di]), u2mm(PadY[di]), u2mm(PadX[di])+PTradius, u2mm(PadY[di]) );         
+          printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*4, u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(PadX[di]), u2mm(PadY[di]) ); 
+        }
+        
+      }
+      if(WireDetTear[i]==13 || WireDetTear[i]==15)
+      {
+        printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*2, u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(WireX2[i]), u2mm(WireY2[i]) ); 
+        printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(WireX2[i]), u2mm(WireY2[i]), u2mm(WireX2[i])+PTradius, u2mm(WireY2[i]) ); 
+        // show reconstruction-wire:        
+        if(WireDetTear[i]==13)
+        {   
+          di=ViaPb[i];       
+          printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(ViaX[di]), u2mm(ViaY[di]), u2mm(ViaX[di])+PTradius, u2mm(ViaY[di]) ); 
+          printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*4, u2mm(WireX2[i]), u2mm(WireY2[i]), u2mm(ViaX[di]), u2mm(ViaY[di]) ); 
+        }
+        else
+        {
+          di=PadPb[i];       
+          printf("CIRCLE %f (%.9f %.9f) (%.9f %.9f);\n", cwidth  , u2mm(PadX[di]), u2mm(PadY[di]), u2mm(PadX[di])+PTradius, u2mm(PadY[di]) );     
+          printf("WIRE %f (%.9f %.9f) (%.9f %.9f);\n",   cwidth*4, u2mm(WireX2[i]), u2mm(WireY2[i]), u2mm(PadX[di]), u2mm(PadY[di]) );     
+        }        
+      }
+    }    
+    printf("%s",Restore_Active_Layers());
+}
+
+void Create_Debug_Script(void)
+{
+  if(nViaCount==0) 
+  {
+    dlgDialog("Attention") {
+    dlgLabel("Do Analyse first");
+    dlgPushButton("+OK") dlgAccept();};
+    return;
+  }
+  
+  fname    = filesetext(Filename, "_debug.scr");
+  output(fname, "wtD") 
+  { 
+    printf("SET UNDO_LOG OFF;\n"); 
+    printf("GRID MM;\n");
+    Create_Debug_Info();
+    printf("GRID LAST;\n");
+    printf("SET UNDO_LOG ON;\n"); 
+  }
+  exit ("script '" + fname + "';\n"); // run script at the end...
+}
+
+void Delete_Debug_Script(void)
+{
+  if(Check_Layer(DebugLayer)==1) // execute is the layer exists...
+  {
+    fname    = filesetext(Filename, "_debugdel.scr");
+    output(fname, "wtD") 
+    { 
+      printf("SET UNDO_LOG OFF;\n"); 
+      printf("display none; display %d; LAYER %d; group all; delete (C> 0 0); \n",DebugLayer,DebugLayer);
+      printf("LAYER -%d;\n",DebugLayer);
+      printf("display ");
+      for (i = 0; i < LayerCount; i ++) printf("%d ",LayerNum[i]);
+      printf(" 17 18 19 20;");
+      printf("SET UNDO_LOG ON;\n"); 
+    }
+    exit ("script '" + fname + "';\n"); // run script at the end...
+  }
+  else
+  {
+      dlgDialog("Attention") {
+      dlgLabel("There is no Debug Layer to delete");
+      dlgPushButton("+OK") dlgAccept();};
+  }
+}
+
+
+// save wires in scr style for reconstruction: 
+// filter setting: 0: no filter 
+//                 1: write only those with WireUnik=-1       -> only unique wires
+//                 2: write only those with WireTear=0        -> no teardrop structures 
+void do_wire_list_from_vector(int filter)
+{
+  for (int i = 0; i < nWireCount; i ++)
+  {
+    if( (filter==0) ||
+        (filter==1 && WireUnik[i]==-1) ||
+        (filter==2 && (WireDetTear[i]!=1 && WireDetTear[i]!=2 && WireDetTear[i]!=5 && WireDetTear[i]!=6 && WireDetTear[i]!=7) ) ||
+        //(filter==2 && (WireDetTear[i]!=1 && WireDetTear[i]!=2 && WireDetTear[i]!=5 && WireDetTear[i]!=6 && WireDetTear[i]!=7 && WireDetTear[i]!=11 && WireDetTear[i]!=15) ) ||
+        (filter==3 && (WireDetTear[i]!=3 && WireDetTear[i]!=4 && WireDetTear[i]!=20 && WireDetTear[i]!=21 && WireDetTear[i]!=22 ) ) )
+    { 
+      if(WireArc[i]==1)  // is an arc:  WIRE 'signal' width (x1 y1) @[sign(curve)]radius (x2 y2); 
+      {                
+        if(WireCur[i]>0)
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @+%.10f (%.10f %.10f);\n",                                     
+                  WireLay[i], WireName[i], u2mm(WireWidth[i]), u2mm(WireX1[i]),  u2mm(WireY1[i]), u2mm(WireRad[i]) , u2mm(WireX2[i]),  u2mm(WireY2[i]) );
+        else
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @-%.10f (%.10f %.10f);\n",                                     
+                  WireLay[i], WireName[i], u2mm(WireWidth[i]), u2mm(WireX1[i]),  u2mm(WireY1[i]), u2mm(WireRad[i]) , u2mm(WireX2[i]),  u2mm(WireY2[i]) );
+      }
+      else       // is a straight wire: WIRE 'signal' width (x1 y1) (x2 y2); 
+      {              
+        printf("LAYER %d;\tWIRE '%s' %.8f (%.9f %.9f) (%.9f %.9f);\n",                                     
+                WireLay[i], WireName[i], u2mm(WireWidth[i]), u2mm(WireX1[i]),  u2mm(WireY1[i]),  u2mm(WireX2[i]),  u2mm(WireY2[i])); 
+       }    
+     }
+  }
+  
+  if(User_Debug_Layer)
+  {
+    Create_Debug_Info();
+  }
+  return;
+}
+
+
+void Info(void)
+{
+string kiki;
+int n; 
+
+  strinfo="Units: "+str_units()+"\n";
+  sprintf(kiki,"[Total wires=%d]\n[Double wires=%d]\n[Unique wires=%d]\n[Stub wires=%d]\n\n[Straight wires=%d]\n[28-curved wires=%d]\n[45-curved wires=%d]\n[Disabled wires=%d]\n\nD sum=%f [mil]\nD sum=%f [mm]\n\n",
+  nWireCount,
+  nDubWireCount,    
+  nWireCount-nDubWireCount,
+  nStubWireCount,  
+  nWireCount_c0,
+  nWireCount_c28,
+  nWireCount_c45,
+  nTearWireCount,
+  u2mil(int(Dsum)),u2mm(int(Dsum))); strinfo+=kiki;
+  
+  sprintf(kiki,"Routing Quality number:\n");  strinfo+=kiki;
+  sprintf(kiki,"Qmm =(Dsum/nWires) =%f [mil/wire]\n"    ,u2mil(int(Dsum))/nWireCount);  strinfo+=kiki;
+  sprintf(kiki,"Qmil=(Dsum/nWires) =%f [mil/wire]\n\n"  ,u2mm (int(Dsum))/nWireCount);  strinfo+=kiki;
+  
+  sprintf(kiki,"Number of via =%d\n"  ,nViaCount);  strinfo+=kiki;
+  sprintf(kiki,"Number of pad =%d\n"  ,nPadCount);  strinfo+=kiki;
+  sprintf(kiki,"Number of smd =%d\n\n",nSmdCount);  strinfo+=kiki;
+  
+  sprintf(kiki,"Connections:\nNumber of not-wired-both-ends=%d\n"  ,nLooseWire_1);  strinfo+=kiki;
+  sprintf(kiki,"Number of wires-via     =%d\n",nLooseWire_2);       strinfo+=kiki;
+  sprintf(kiki,"Number of wires-pad     =%d\n",nLooseWire_3);       strinfo+=kiki;
+  sprintf(kiki,"Number of possible wire-smd =%d\n",nLooseWire_4);   strinfo+=kiki;
+  sprintf(kiki,"Number of insider wires =%d\n",nInsider);           strinfo+=kiki;
+  sprintf(kiki,"Number of teardrop back =%d\n",nBTears);            strinfo+=kiki;
+  sprintf(kiki,"Number of teardrop front=%d\n",nFTears);            strinfo+=kiki;
+  sprintf(kiki,"Number of wire spots    =%d\n",nWSpots);            strinfo+=kiki;
+  sprintf(kiki,"Number of via spots     =%d\n",nVSpots);          strinfo+=kiki;
+  sprintf(kiki,"Number of open connectors=%d\n\n",nWConn);          strinfo+=kiki;
+  
+
+  sprintf(kiki,"Wire and via index per signal=\n");  strinfo+=kiki;  
+  n=nSigCount;
+  if(n>20) n=20;
+  for(i=0;i<n;i++)
+  {
+    sprintf(kiki,"[%2d]  %05d %05d %s\n",i,SignalWIndex[i],SignalVIndex[i],SignalName [i]);
+    strinfo+=kiki;
+  }
+}
+
+
+void Refresh(void)
+{
+  Init();
+  if(nWireCount==0)  CollectData();  
+  AnalyseData();       
+  GenerateList();
+  Info();
+}
+
+
+//the insider Stubbie length is dependant of the width: length=diam/2-trace/2
+
+
+
+//---- reconstructors feeding directly from brd database ----------------------------------------------------------------------------------------
+
+// make a list of all vias: 
+void do_via_list(UL_SIGNAL S) {
+string viatyp;
+  
+    S.vias(V) 
+    {           
+       if(V.shape[1]==0)      viatyp="square";
+       else if(V.shape[1]==1) viatyp="round";
+       else                   viatyp="octagon";
+       printf("CHANGE DRILL  %.5f; VIA  '%s' %.5f %s %d-%d (%.9f %.9f) ;\n", 
+              u2mm(V.drill), S.name, u2mm(V.diameter[V.start]), viatyp, V.start,V.end, u2mm(V.x), u2mm(V.y) );                          
+       viacnt++;
+    }  
+  return;
+}
+
+// make a list of all wires: calculate the length of each one
+void do_wire_list(UL_SIGNAL S) {
+
+  S.wires(W) 
+  {      
+    if(W.layer!=19)
+    {
+      if(W.arc)  // is an arc:  WIRE 'signal' width (x1 y1) @[sign(curve)]radius (x2 y2); 
+      {                
+        if(W.curve>0)
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @+%.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+        else
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @-%.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+      }
+      else       // is a straight wire: WIRE 'signal' width (x1 y1) (x2 y2); 
+      {              
+        printf("LAYER %d;\tWIRE '%s' %.8f (%.9f %.9f) (%.9f %.9f);\n",                                     
+                W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1),  u2mm(W.x2),  u2mm(W.y2)); 
+      }    
+    }
+  }    
+  return;
+}
+
+
+/* save all brd routing in a scr-file */
+void dobackup(void)
+{
+  board(B) 
+  {
+    // save the routing before cleaning:
+    fname    = filesetext(B.name, "_backup_routing.scr");
+    output(fname, "wtD") 
+    { 
+      printf("SET UNDO_LOG OFF;\n");
+      printf("SET WIRE_BEND 2;\n"); // straight lines for drawing our teardrop wires.
+      printf("GRID MM;\n");
+      printf("RIPUP *;\n");
+
+      B.signals(S) { do_via_list(S);  }
+      B.signals(S) { do_wire_list(S); }
+
+      printf("RATSNEST;\n");
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");      
+    }
+  }
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+// make a list of all wires: calculate the length of each one
+void do_wire_list_plus(UL_SIGNAL S) {
+int  i;
+real d;
+
+  S.wires(W) 
+  {      
+    d=sqrt( pow(u2mm(W.x1-W.x2),2) + pow(u2mm(W.y1-W.y2),2) )*W.layer;  
+
+    printf("[%d] [d=%.10f] ",i,d);
+    i++;
+   
+    if(W.layer!=19)
+    {
+      if(W.arc)  // is an arc:  WIRE 'signal' width (x1 y1) @[sign(curve)]radius (x2 y2); 
+      {                
+        if(W.curve>0)
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @+%.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+        else
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @-%.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+      }
+      else       // is a straight wire: WIRE 'signal' width (x1 y1) (x2 y2); 
+      {              
+        printf("LAYER %d;\tWIRE '%s' %.8f (%.9f %.9f) (%.9f %.9f); \n",                                     
+                W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1),  u2mm(W.x2),  u2mm(W.y2)); 
+      }    
+    }
+  }    
+  return;
+}
+
+
+
+
+
+
+
+
+//**** Main Function: ****************************************************************************
+
+
+      
+
+
+void clean_double_wires(void) 
+{
+  if(nDubWireCount==0) 
+  {
+    dlgDialog("Attention") {
+    dlgLabel("No double wires to delete");
+    dlgPushButton("+OK") dlgAccept();};
+    return;
+  }
+  
+  dobackup();
+
+  board(B) 
+  {
+    // new routing script, using vector info:
+    fname    = filesetext(B.name, "_nodoubles.scr");
+    output(fname, "wtD") 
+    { 
+      printf("SET UNDO_LOG OFF;\n");    
+      printf("GRID MM;\n");
+      printf("SET WIRE_BEND 2;\n"); // straight lines for drawing our teardrop wires.
+      printf("RIPUP *;\n");
+
+      B.signals(S) { do_via_list(S);  }   // keep the same VIAS
+      do_wire_list_from_vector(1);        // reconstruct wires from vector info, taking only the unique marked (no doubles)
+
+      printf("RATSNEST;\n");
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");      
+    }
+  }
+  
+  //exit ("window fit;\n");    
+  exit ("script '" + fname + "';\n"); // run script at the end...
+  return;
+}
+
+
+void clean_teardrops(void) 
+{
+  if(nBTears+nFTears==0)  
+  {
+    dlgDialog("Attention") {
+    dlgLabel("No teardrop artifacts to delete");
+    dlgPushButton("+OK") dlgAccept();};
+    return;
+  }
+  
+  dobackup();
+
+  board(B) 
+  {
+    // new routing script, using vector info:
+    fname    = filesetext(B.name, "_noteardrops.scr");
+    output(fname, "wtD") 
+    { 
+      printf("SET UNDO_LOG OFF;\n");    
+      printf("GRID MM;\n");
+      printf("SET WIRE_BEND 2;\n"); // straight lines for drawing our teardrop wires.
+      printf("RIPUP *;\n");
+
+      B.signals(S) { do_via_list(S);  }   // keep the same VIAS
+      do_wire_list_from_vector(2);        // reconstruct wires from vector info, filtering the teardrop-identified wires
+
+      printf("RATSNEST;\n");
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");      
+    }
+  }
+  
+  //exit ("window fit;\n");    
+  exit ("script '" + fname + "';\n"); // run script at the end...
+  return;
+}
+
+
+void clean_spots(void) 
+{
+  if(nWSpots+nVSpots==0) 
+  {
+    dlgDialog("Attention") {
+    dlgLabel("No spots to delete");
+    dlgPushButton("+OK") dlgAccept();};
+    return;
+  }
+  dobackup();
+
+  board(B) 
+  {
+    // new routing script, using vector info:
+    fname    = filesetext(B.name, "_noteardrops.scr");
+    output(fname, "wtD") 
+    { 
+      printf("SET UNDO_LOG OFF;\n");    
+      printf("GRID MM;\n");
+      printf("SET WIRE_BEND 2;\n"); // straight lines for drawing our teardrop wires.
+      printf("RIPUP *;\n");
+
+      B.signals(S) { do_via_list(S);  }   // keep the same VIAS
+      do_wire_list_from_vector(3);        // reconstruct wires from vector info, filtering the teardrop-identified wires
+
+      printf("RATSNEST;\n");
+      printf("GRID LAST;\n");
+      printf("SET UNDO_LOG ON;\n");      
+    }
+  }
+  
+  //exit ("window fit;\n");    
+  exit ("script '" + fname + "';\n"); // run script at the end...
+  return;
+}
+
+
+/* add the wires needed to connect wiretypes: 12,13,14,15: */
+void reconstruct(void)
+{
+string fname;
+int  i,di;
+
+  if(nWConn==0) 
+  {
+    dlgDialog("Attention") {
+    dlgLabel("No unconnected wires type 12,13,14,15 found.");
+    dlgPushButton("+OK") dlgAccept();};
+    return;
+  }
+
+  fname    = filesetext(Filename, "_reconstruct.scr");
+  output(fname, "wtD") 
+  {    
+    printf("SET UNDO_LOG OFF;\n");    
+    printf("GRID MM;\n");
+    printf("SET WIRE_BEND 2;\n");      
+    
+    // search for the wires to reconstruct from: 
+    for (i = 0; i < nWireCount; i ++)
+    {
+      switch(WireDetTear[i])       
+      {
+        case 12:
+          di=ViaPa[i];       
+          printf("LAYER %d; WIRE %f (%.9f %.9f) (%.9f %.9f);\n", WireLay[i], u2mm(WireWidth[i]), u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(ViaX[di]), u2mm(ViaY[di]) ); 
+          break;
+        case 13:
+          di=ViaPb[i];       
+          printf("LAYER %d; WIRE %f (%.9f %.9f) (%.9f %.9f);\n", WireLay[i], u2mm(WireWidth[i]), u2mm(WireX2[i]), u2mm(WireY2[i]), u2mm(ViaX[di]), u2mm(ViaY[di]) ); 
+          break;
+        case 14:
+          di=PadPa[i];       
+          printf("LAYER %d; WIRE %f (%.9f %.9f) (%.9f %.9f);\n", WireLay[i], u2mm(WireWidth[i]), u2mm(WireX1[i]), u2mm(WireY1[i]), u2mm(PadX[di]), u2mm(PadY[di]) ); 
+          break;
+        case 15:
+          di=PadPb[i];       
+          printf("LAYER %d; WIRE %f (%.9f %.9f) (%.9f %.9f);\n", WireLay[i], u2mm(WireWidth[i]), u2mm(WireX2[i]), u2mm(WireY2[i]), u2mm(PadX[di]), u2mm(PadY[di]) );     
+          break;
+      }
+    }    
+    printf("RATSNEST;\n");
+    printf("GRID LAST;\n");
+    printf("SET UNDO_LOG ON;\n");      
+  }
+  
+  exit ("script '" + fname + "';\n"); // run script at the end...
+  return;
+}
+
+
+
+string settarget(string sellayer) 
+{  // 2012-04-04
+  string no_change  = sellayer;
+  string l[];
+  strsplit(l, sellayer, '\t');
+  string s[];
+  strsplit(s, l[0], '-');
+  int activ;
+  if (l[2] == "yes") activ = 1;
+
+  int sel = strtol(l[1]) -1;
+  dlgDialog("Target Layer") {
+    dlgLabel("New layer for " + l[0]);
+    dlgGroup("Layer activ") {
+      dlgRadioButton("&no", activ);
+      dlgRadioButton("&yes", activ);
+    }
+    dlgComboBox(TargetLayer, sel) {
+      sellayer = s[0] + "\t" + TargetLayer[sel];
+      if (activ) sellayer += "\t" + "yes";
+      else  sellayer += "\t" + "no";
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") {
+        sellayer = s[0] + "\t" + TargetLayer[sel];
+        if (activ) sellayer += "\t" + "yes";
+        else  sellayer += "\t" + "no";
+        dlgAccept();
+      }
+      dlgPushButton("-Cancel") {
+        dlgReject();
+        sellayer = no_change;
+      }
+    }
+  };
+  return sellayer;
+}
+
+
+//***** DIALOG Box **********************************************************************************************
+
+  
+dlgDialog(ULPname + Release) {
+
+  if (!board) {
+      dlgMessageBox("You should run this ULP from an open board design.");
+      exit(-1);
+  }
+  
+  board(B) {
+      user_units=B.grid.unit;
+      B.layers(L) {
+        if (L.number <= 16) { // 2012-04-04
+          string lname;
+          if (L.used) {
+            sprintf(lname, "%d-%s\t%d-%s\tyes", L.number, L.name, L.number, L.name);
+            LayerName[LayerCount] = lname;
+            LayerNum[LayerCount]  = L.number;
+            ++LayerCount;
+          }
+        }
+        sprintf(TargetLayer[tCount], "%d-%s", L.number, L.name);
+        tCount++;
+      }
+  }
+  
+  Default_Settings();
+  Restore_Settings();
+
+  ListHeader();  
+  if(User_Auto_Analyse)
+  {
+    CollectData();  
+    AnalyseData();       
+    GenerateList();
+    Info();
+  }
+
+  dlgHBoxLayout  
+  {  
+    // TAB block ---- start ------------------------------------------------------------------------------------------
+    dlgTabWidget 
+    {   
+      // TAB 1 -------------------------------------------------------------------------------------------------------
+      dlgTabPage("Parameters") 
+      {        
+        dlgVBoxLayout 
+        {            
+          dlgPushButton("+&Analyse")
+          {
+            Init();
+            Save_Settings();
+            CollectData();  
+            AnalyseData();       
+            GenerateList();
+            Info();
+          }
+          
+          dlgSpacing(10);
+          dlgHBoxLayout 
+          {             
+            dlgPushButton("&De-teardrop")            clean_teardrops();
+            dlgPushButton("Eliminate Doubles")       clean_double_wires();
+            dlgPushButton("Eliminate Spots")         clean_spots();
+            dlgPushButton("Reconstruct Connections") reconstruct();
+          }  
+        }
+             
+          dlgHBoxLayout 
+          {
+            dlgGroup("Settings") 
+            {
+              dlgGridLayout 
+              {            
+                dlgCell( 1, 0)  dlgLabel("Delete Perimeter Factor");
+                dlgCell( 1, 1)  dlgRealEdit(User_Del_Factor, 1, 4);
+
+                dlgCell( 2, 0)  dlgLabel("Minimal wire stub to delete");
+                dlgCell( 2, 1)  dlgRealEdit(User_Min_Wire, 0.0, 10);
+                dlgCell( 2, 2)  dlgLabel("[mm]");
+                
+                dlgCell( 3, 0)  dlgLabel("Delete Curve Factor");
+                dlgCell( 3, 1)  dlgRealEdit(User_Curv_Factor, -180, 180);
+                
+                dlgCell( 4, 0)  dlgLabel("Delete Curve Factor Error");
+                dlgCell( 4, 1)  dlgRealEdit(User_Curv_Factor_Err, -10, 10);
+                                
+                dlgCell( 5, 0)  dlgLabel("  ");
+                dlgCell( 6, 0)  dlgLabel("<b>Teardrop Shape variants:</b>");
+                dlgCell( 6, 1)  dlgLabel("<i>2 Backshapers,2 Frontshapers</i>");
+                
+                dlgCell( 7, 0)  dlgLabel("A. Complete Teardrop shape:");
+                dlgCell( 7, 1)  dlgLabel("<img src=tear.png>");
+                dlgCell( 7, 2)  dlgLabel("Detection:\nThe backshaper are located first and then\nits connectedfrontshaper.\nIf there are frontshapers without a connected\nbackshaper, it will be not detected (see Case B.)");
+                
+                dlgCell( 8, 0)  dlgLabel("B. Teardrop without backshapers:");
+                dlgCell( 8, 1)  dlgLabel("<img src=tearfront.png>");
+                dlgCell( 8, 2)  dlgLabel("Detection:\n>Activate dangling frontshapers cleaning.\nDangling frontshapers are easy to find if curved;\nif not curved, a lot of false detections will be found.");
+                
+                dlgCell( 9, 0)  dlgLabel("C. Teardrop without frontshapers:");
+                dlgCell( 9, 1)  dlgLabel("<img src=tearback.png>");  
+                dlgCell( 9, 2)  dlgLabel("Detection:\n>Activate dangling backshapers cleaning.\nCase A. needs the backshaper to be connected\nto a frontshaper to complete a whole set detection.");                
+              }
+              dlgSpacing(30);
+              dlgPushButton("&Refresh")           Refresh();
+              dlgPushButton("&Restore Default Settings") 
+              {          
+                Default_Settings();
+                Save_Settings();
+              }
+            }
+
+            dlgGroup("Options") 
+            {
+              dlgCheckBox("&Check Vias", User_Vias);
+              dlgCheckBox("&Check Pads", User_Pads);
+              //dlgCheckBox("&Check Smd" , User_Smds);
+              //dlgCheckBox("&Check Wire", User_Wire);
+              dlgSpacing(10);
+              dlgCheckBox("&Clean Wires in Via/Pad Perimeter" , User_Clean_Perimeter);
+              dlgCheckBox("&Clean dangling Backshaper"        , User_Clean_Stub);
+              dlgCheckBox("&Clean dangling Frontshapers (with inside-perimeter-end is unconnected)"  , User_Clean_dangling_Shaper);
+              dlgCheckBox("&Clean tangled Frontshapers (with wire connection at both ends)"   , User_Clean_tangled_Shaper);
+              dlgCheckBox("&Seek only curved Frontshapers", User_Curved_Shaper);
+              dlgSpacing(10);
+              dlgCheckBox("&Create debug layer when de-teardropping", User_Debug_Layer);
+              dlgCheckBox("&Auto-Analyse at startup", User_Auto_Analyse);
+              dlgCheckBox("&Show info in debug layer", User_Show_Mark);
+              
+              dlgSpacing(8);
+              dlgLabel("Click on layer to select :");
+              dlgListView("Layer Source\tTeardrop Target\tactiv", LayerName, LayerSel) 
+              {
+                LayerName[LayerSel] = settarget(LayerName[LayerSel]);
+              }
+            }  
+          }        
+      }
+      
+      // TAB 2 -------------------------------------------------------------------------------------------------------
+      dlgTabPage("Wire-List") 
+      {
+        dlgGroup("Double-Click on wire to select :") 
+        {                
+          dlgListView("", Lines, Selected, Sort) show(Selected) ;            
+        }          
+      }
+      
+      // TAB 3 -------------------------------------------------------------------------------------------------------
+      dlgTabPage("Label Help") 
+      {
+        dlgTextView(LabelHelp);
+      }
+      
+      // TAB 4 -------------------------------------------------------------------------------------------------------
+      dlgTabPage("Overview") 
+      { 
+        dlgGroup("Info") 
+        {
+          dlgTextView(HelpText);  
+        }
+        dlgGroup("Routing Tips") 
+        {
+          dlgGridLayout 
+          {  
+            dlgCell( 1, 0)  dlgLabel("D. Via/Pad approaches:\n-leave enough landing space for the frontshapers.\n-don't bend traces inside the via/pad.");
+            dlgCell( 1, 1)  dlgLabel("avoid:<img src=badentry.png>");                
+            dlgCell( 1, 2)  dlgLabel("better:<img src=goodentry.png>");       
+          }
+        }
+        dlgGroup("Procedures") 
+        {
+          dlgTextView(ProcedureText);  
+        }
+      }
+      
+      // TAB 5 -------------------------------------------------------------------------------------------------------
+      dlgTabPage("History") 
+      {
+        dlgTextView("Version " + Release + " " + ReleaseDate + " " + HistoryText2);
+      }
+    }    // TAB block ---- end-----------------------------------------------------------------------------------------
+    
+    dlgVBoxLayout dlgSpacing(80);  
+    dlgVBoxLayout 
+    {
+      dlgTextView(strinfo); 
+      dlgPushButton("&Save Wirelist")     save();
+      dlgPushButton("Create Debug Layer")    Create_Debug_Script();  
+      dlgPushButton("Eliminate Debug Layer") Delete_Debug_Script();  
+      dlgPushButton("-&Quit")             dlgReject();  
+    }                 
+  }
+};

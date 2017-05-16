@@ -1,0 +1,462 @@
+#usage "<b>Create evenly spaced vias along a line of zero width drawn in the Milling layer.</b>\n"
+       "<p>"
+       "<ul>"
+       "<li>Start by drawing a line of width 0 and in the milling layer.  The line has to be continuous"
+       "    but does not have to be closed at the ends."
+       "    All the bends of a wire can be used, but the ULP will have problems if a curved wire is drawn"
+       "    and then later moved."
+       "<li>This ULP will not work correctly with Circles and Arcs, so use only the wire command."
+       "<li>Notes:"
+       "    If signal_name is not defined, then vias will be created without signal option and Eagle will"
+       "    assign signal names automatically.  If signal_name is anything but blank, the vias created"
+       "    and copper (if defined) will be assigned the signal_name as well."
+       "<p>"
+       "</ul>"
+       "<p>"
+       "<b> Version 1.21 </b>"
+       "<p>"
+       "<author>Author: jamessconnors@yahoo.com</author>"
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+//Note: If an arc is drawn off of a wire, and then that wire is moved, the program may not function correctly.
+
+string version = "1.21";
+
+int opt_outline_layer = 0;
+int opt_hole_type = 2;
+int opt_outline = 0;
+int opt_outline_stop;
+int opt_hole_dist = 0;
+int opt_via_shape;
+int units = 0;
+
+int outline_layers[];
+int num_outline_layers = 0;
+int numHoles = 50;
+int guidLayer = 46;
+real hole_dia = 10;
+real radius = 1000;
+real outline_width = 35.0;
+real hole_dist = 150;
+string string_layers = "1 2 3 16";
+string signal_name = "GND";
+string error_text = "";
+
+int num_layers = 0;
+int layer_number[];
+string layer_name[];
+
+string parseStringLayer(string layers)
+{
+	int s = 0;
+	int i = 0;
+	for(i = 0;i<strlen(layers);i++)
+	{
+		if(layers[i] == ' ')
+		{
+			break;
+		}
+	}
+	i++;
+	return strsub(layers, i, (strlen(layers) - i));
+}
+
+int LayerIsDefined(int layer)
+{
+	int i = 0;
+	for(i=0;i<num_layers;i++)
+	{
+		if(layer == layer_number[i])return 1;
+	}
+	return 0;
+}
+
+void createArray()
+{
+	int stop_layer = 0;
+	char bkslash = '/';
+	int pos = strrchr(argv[0], bkslash);
+	string ulp_path;
+	real x = 0.0;
+	real y = 0.0;
+	real perimeter = 0.0;
+	real extra_mask_width = 0.0; //Figure out how to get this from DRC in the future.
+	string opt_via_shape_string = "Round";
+	real dist_btw_vias = 0.0;
+	real rem_dist = 0.0;
+	real curr_length = 0.0;
+	real length_limit = 0.0;
+	real curr_angle = 0.0;
+	real temp_x =0;
+	real temp_y=0;
+
+	real wire_x1[];
+	real wire_y1[];
+	real wire_x2[];
+	real wire_y2[];
+	real wire_length[];
+	real wire_cir_center_x[];
+	real wire_cir_center_y[];
+	real wire_cir_radius[];
+	real wire_cir_angle[];
+	real wire_cir_start_angle[];
+	real wire_cir_end_angle[];
+	int wire_num[];
+	int num_wires;
+
+	real curr_x = 0.0;
+	real curr_y = 0.0;
+	real slope = 0.0;
+	int sign_x = 0;
+	int sign_y = 0;
+	int arc_ccw = 1;
+
+	if (pos >= 0)
+	{	// split path from filename
+		ulp_path = strsub(argv[0], 0, pos + 1);
+	}
+
+	output(ulp_path + "via_line_array.scr", "wDt")
+	{
+		switch (units)
+		{
+			case 0: printf("GRID mil 50 ON;\n");
+				extra_mask_width = 8.0;
+				break;
+			case 1: printf("GRID mm 5 ON;\n");
+				extra_mask_width = 0.2032;
+				break;
+			case 2: printf("GRID inch 0.05 ON;\n");
+				extra_mask_width = 0.008;
+				break;
+			default:break;
+		}
+		switch (opt_via_shape)
+		{
+			case 0: opt_via_shape_string = "Round"; break;
+			case 1: opt_via_shape_string = "Square"; break;
+			case 2: opt_via_shape_string = "Octagon"; break;
+			default: break;
+		}
+		printf("CHANGE DRILL %f;\n", hole_dia);
+		printf("CHANGE DIAMETER auto;\n");
+		printf("SET WIRE_BEND 2;\n");
+		if(!(signal_name == ""))
+		{
+			signal_name = "'" + signal_name + "'";
+		}
+
+		//Gather wire information from board file.
+		board(B)
+		{
+			int x = 0;
+			B.wires(W)
+			{
+				if(W.layer == guidLayer && u2mil(W.width) == 0)
+				{
+					switch (units)
+					{
+						case 0:
+							wire_x1[x] = u2mil(W.x1);
+							wire_y1[x] = u2mil(W.y1);
+							wire_x2[x] = u2mil(W.x2);
+							wire_y2[x] = u2mil(W.y2);
+							wire_length[x] = sqrt(pow(u2mil(abs(W.x2 - W.x1)), 2) + pow(u2mil(abs(W.y2 - W.y1)), 2));
+							break;
+						case 1:
+							wire_x1[x] = u2mm(W.x1);
+							wire_y1[x] = u2mm(W.y1);
+							wire_x2[x] = u2mm(W.x2);
+							wire_y2[x] = u2mm(W.y2);
+							wire_length[x] = sqrt(pow(u2mm(abs(W.x2 - W.x1)), 2) + pow(u2mm(abs(W.y2 - W.y1)), 2));
+							break;
+						case 2:
+							wire_x1[x] = u2inch(W.x1);
+							wire_y1[x] = u2inch(W.y1);
+							wire_x2[x] = u2inch(W.x2);
+							wire_y2[x] = u2inch(W.y2);
+							wire_length[x] = sqrt(pow(u2inch(abs(W.x2 - W.x1)), 2) + pow(u2inch(abs(W.y2 - W.y1)), 2));
+							break;
+						default:break;
+					}
+					wire_cir_center_x[x] = 0;
+					wire_cir_center_y[x] = 0;
+					wire_cir_radius[x] = 0;
+					wire_cir_angle[x] = 0;
+					if(W.arc)
+					{
+						switch (units)
+						{
+							case 0:
+								wire_cir_center_x[x] = u2mil(W.arc.xc);
+								wire_cir_center_y[x] = u2mil(W.arc.yc);
+								wire_cir_radius[x] = u2mil(W.arc.radius);
+								break;
+							case 1:
+								wire_cir_center_x[x] = u2mm(W.arc.xc);
+								wire_cir_center_y[x] = u2mm(W.arc.yc);
+								wire_cir_radius[x] = u2mm(W.arc.radius);
+								break;
+							case 2:
+								wire_cir_center_x[x] = u2inch(W.arc.xc);
+								wire_cir_center_y[x] = u2inch(W.arc.yc);
+								wire_cir_radius[x] = u2inch(W.arc.radius);
+								break;
+							default:break;
+						}
+						wire_cir_angle[x] = W.curve;
+						wire_cir_start_angle[x] = W.arc.angle1;
+						wire_cir_end_angle[x] = W.arc.angle2;
+						wire_length[x] = (wire_cir_angle[x]/57.2957795)*wire_cir_radius[x];
+					}
+					perimeter = perimeter + abs(wire_length[x]);
+					x++;
+				}
+			}
+			num_wires = x;
+		}
+		if(num_wires == 0)
+		{
+			sprintf(error_text,"Error: No zero-width path information was found on layer %d.  Exiting!\n", guidLayer);
+			dlgMessageBox(error_text, "&0K");
+			exit(1);
+		}
+		if(opt_hole_dist)
+		{
+			dist_btw_vias = hole_dist;
+			numHoles = perimeter/dist_btw_vias;
+		}
+		else
+		{
+			dist_btw_vias = perimeter/numHoles;
+		}
+		if(opt_outline)
+		{
+			switch(opt_outline_layer)
+			{
+				case 0: outline_layers[0] = 20; num_outline_layers = 1; break;
+				case 1: outline_layers[0] = 1; num_outline_layers = 1; break;
+				case 2: outline_layers[0] = 16; num_outline_layers = 1; break;
+				case 3: while(strtol(string_layers) != 0 && string_layers != "")
+					{
+						outline_layers[num_outline_layers] = strtol(string_layers);
+						num_outline_layers++;
+						string_layers = parseStringLayer(string_layers);
+					}
+					stop_layer = 0;
+					break;
+			}
+			printf("CHANGE STYLE Continuous\n");
+			for(int i=0;i<num_outline_layers;i++)
+			{
+				if((outline_layers[i] == 1 || outline_layers[i] == 16) && opt_outline_stop == 1)
+				{
+					if(outline_layers[i] == 1)
+					{
+						stop_layer = 29;
+					}
+					else
+					{
+						stop_layer = 30;
+					}
+					printf("CHANGE LAYER %d\n", stop_layer);
+					printf("CHANGE WIDTH %f;\n",(outline_width + extra_mask_width));
+					for(int y = 0;y<num_wires;y++)
+					{
+						if(wire_cir_angle[y] == 0)
+						{
+							printf("SET WIRE_BEND 2;\n");
+							printf("WIRE %s %f (%f %f) (%f %f);\n", signal_name, outline_width + extra_mask_width, wire_x1[y], wire_y1[y], wire_x2[y], wire_y2[y]);
+						}
+						else
+						{
+							printf("SET WIRE_BEND 7;\n");
+							printf("WIRE %s %f (%f %f) (%f %f);\n", signal_name, outline_width + extra_mask_width, wire_x1[y], wire_y1[y], wire_x2[y], wire_y2[y]);
+							printf("SET WIRE_BEND 2;\n");
+						}
+					}
+				}
+				printf("CHANGE LAYER %d\n", outline_layers[i]);
+				printf("CHANGE WIDTH %f;\n",outline_width);
+				for(int y = 0;y<num_wires;y++)
+				{
+					if(wire_cir_angle[y] == 0)
+					{
+						printf("SET WIRE_BEND 2;\n");
+						printf("WIRE %s %f (%f %f) (%f %f);\n", signal_name, outline_width, wire_x1[y], wire_y1[y], wire_x2[y], wire_y2[y]);
+					}
+					else
+					{
+						printf("SET WIRE_BEND 7;\n");
+						printf("WIRE %s %f (%f %f) (%f %f);\n", signal_name, outline_width, wire_x1[y], wire_y1[y], wire_x2[y], wire_y2[y]);
+						printf("SET WIRE_BEND 2;\n");
+					}
+				}
+			}
+		}
+		for(int c = 0;c< num_wires;c++)
+		{
+			curr_x = wire_x1[c];
+			curr_y = wire_y1[c];
+			//Draws first hole or via at beginning of first line.
+			if(c == 0)
+			{
+				switch (opt_hole_type)
+				{
+					case 0: printf("HOLE  %f (%f %f);\n", hole_dia, curr_x, curr_y);break;
+					case 1: printf("VIA %s %s 1-16 STOP (%f %f)\n", signal_name, opt_via_shape_string, curr_x, curr_y);break;
+					case 2: printf("VIA %s %s 1-16 (%f %f)\n", signal_name, opt_via_shape_string, curr_x, curr_y);break;
+					default: break;
+				}
+			}
+			if((wire_x2[c] - wire_x1[c]) != 0){slope = (wire_y2[c] - wire_y1[c])/(wire_x2[c] - wire_x1[c]);}
+			else
+			{
+				//Because you can't divide by 0, slope is set to a large number.
+				if((wire_y2[c] - wire_y1[c]) > 0){slope = 100000;}
+				else{slope = -100000;}
+			}
+			length_limit = abs(wire_length[c]);
+			if(wire_cir_angle[c] != 0)
+			{
+				//All the lengths are scalars, and as such, the signs must be calculated based off of the geometry of the current line.
+				if(wire_length[c] < 0){wire_cir_start_angle[c] = wire_cir_end_angle[c];arc_ccw = -1;}
+				else{arc_ccw = 1;}
+			}
+			else
+			{
+				//Determines the direction (sign x and sign y) of the difference between one hole to the next using the points of a line.
+				if(((wire_x2[c] - wire_x1[c]) < 0) && ((wire_y2[c]) - wire_y1[c] < 0)){sign_x = -1;sign_y = -1;}
+				if(((wire_x2[c] - wire_x1[c]) < 0) && ((wire_y2[c]) - wire_y1[c] >= 0)){sign_x = -1;sign_y = -1;} //done
+				if(((wire_x2[c] - wire_x1[c]) >= 0) && ((wire_y2[c]) - wire_y1[c] < 0)){sign_x = 1;sign_y = 1;}
+				if(((wire_x2[c] - wire_x1[c]) >= 0) && ((wire_y2[c]) - wire_y1[c] >= 0)){sign_x = 1;sign_y = 1;}
+			}
+			curr_angle = wire_cir_start_angle[c]/57.2957795;
+			curr_length = dist_btw_vias - rem_dist;
+			while((curr_length) <= length_limit)
+			{
+				if(wire_cir_angle[c] == 0)
+				{
+					temp_y = sign_y*(slope * curr_length/sqrt(pow(slope,2)+1)) + curr_y;
+					temp_x = sign_x*(curr_length/sqrt(pow(slope,2)+1)) + curr_x;
+				}
+				else
+				{
+					curr_angle = arc_ccw*(curr_length/(wire_cir_radius[c])) + wire_cir_start_angle[c]/57.2957795;
+					temp_x = wire_cir_radius[c] * cos(curr_angle) + wire_cir_center_x[c];
+					temp_y = wire_cir_radius[c] * sin(curr_angle) + wire_cir_center_y[c];
+				}
+				switch (opt_hole_type)
+				{
+					case 0: printf("HOLE  %f (%f %f);\n", hole_dia, temp_x, temp_y);break;
+					case 1: printf("VIA %s %s 1-16 STOP (%f %f)\n", signal_name, opt_via_shape_string, temp_x, temp_y);break;
+					case 2: printf("VIA %s %s 1-16 (%f %f)\n", signal_name, opt_via_shape_string, temp_x, temp_y);break;
+					default: break;
+				}
+				curr_length = dist_btw_vias + curr_length;
+			}
+			rem_dist = length_limit - (curr_length - dist_btw_vias); //Remainder of what is left over between wires.
+		}
+		printf("GRID LAST\n");
+	}
+	exit("; SCR '" + ulp_path + "via_line_array.scr';\n");
+}
+
+void main() {
+
+	if (!board) {
+		dlgMessageBox(usage + "<hr><b>ERROR: No board file!</b><p>\nThis program can only work in the layout editor.");
+		exit(1);
+	}
+	int result = dlgDialog("Drill Array Creator Ver: " + version) {
+		dlgHBoxLayout {
+			dlgStretch(1);
+			dlgLabel("Hole Line Array");
+			dlgStretch(1);
+		}
+		dlgHBoxLayout {
+			dlgGroup("Units") {
+				dlgRadioButton("m&il", units);
+				dlgRadioButton("&mm", units);
+				dlgRadioButton("&Inch", units);
+			}
+			dlgGroup("Hole Type") {
+				dlgRadioButton("&Through Hole", opt_hole_type);
+				dlgRadioButton("&Via (force solder stop)", opt_hole_type);
+				dlgRadioButton("Vi&a (DRC determines stop)", opt_hole_type);
+			}
+			dlgGroup("Via Options") {
+				dlgRadioButton("&Round", opt_via_shape);
+				dlgRadioButton("&Square", opt_via_shape);
+				dlgRadioButton("&Octogon", opt_via_shape);
+			}
+		}
+		dlgHBoxLayout {
+			dlgLabel("<IMG src=\"via-line-array.bmp\"/>");
+			dlgGroup("Main Parameters") {
+				dlgGridLayout {
+					dlgCell(0, 0)dlgHBoxLayout{
+						dlgLabel("Guide Layer: ");
+						dlgIntEdit(guidLayer);
+						dlgLabel("46 (milling) is default\n");
+					}
+					dlgCell(1, 0) dlgHBoxLayout {
+						dlgLabel("Drill Diameter: ");
+						dlgRealEdit(hole_dia);
+					}
+					dlgCell(2, 0) dlgHBoxLayout {
+						dlgLabel("Number of Holes: ");
+						dlgIntEdit(numHoles);
+					}
+					dlgCell(3, 0)dlgHBoxLayout {
+						dlgLabel("Signal Name: ");
+						dlgStringEdit(signal_name);
+					}
+					dlgCell(4, 0)
+					dlgVBoxLayout {
+						dlgHBoxLayout {
+							dlgCheckBox("Enter hole Pitch:", opt_hole_dist);
+							dlgRealEdit(hole_dist);
+						}
+						dlgLabel("(note: Automatically determines # of holes)");
+					}
+				}
+			}
+		}
+		dlgHBoxLayout{
+			dlgGroup("Outline Options"){
+				dlgCheckBox("&Apply Outline", opt_outline);
+				dlgHBoxLayout {
+					dlgLabel("Outline Width:");
+					dlgRealEdit(outline_width);
+				}
+				dlgCheckBox("Apply Stop", opt_outline_stop);
+				dlgLabel("Note: Outline creates a trace that follows the path of the milling layer.");
+			}
+			dlgGroup("Outline Layer"){
+				dlgRadioButton("Dimension", opt_outline_layer);
+				dlgRadioButton("Top Layer", opt_outline_layer);
+				dlgRadioButton("Bop Layer", opt_outline_layer);
+				dlgHBoxLayout {
+					dlgRadioButton("Other:", opt_outline_layer);
+					dlgStringEdit(string_layers);
+					dlgLabel("  ex: 1 2 16 20");
+				}
+			}
+		}
+		dlgLabel("Note: To use this ULP, first draw a continuous WIRE outline (closed or open)");
+		dlgLabel("using the milling layer (default), and a width of 0.  Then run this ULP with the desired options.");
+		dlgSpacing(10);
+		dlgHBoxLayout {
+			dlgStretch(1);
+			dlgPushButton("+Start")    dlgAccept();
+			dlgPushButton("Cancel") dlgReject();
+		}
+	};
+
+	if (result > 0) {
+		createArray();
+	}
+	else {
+		exit(0);
+	}
+}

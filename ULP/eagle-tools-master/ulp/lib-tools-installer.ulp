@@ -1,0 +1,35 @@
+#usage	"<h1>Lib Tools Installer</h1>"
+		"<p>Lib Tools Installer</p>"
+		"Author: <author>Simon Reuter</author>"
+		
+string ulpDir = filedir(argv[0]);
+if (strxstr(cfgget("EAGLE:Directories.Ulp"), ulpDir) == -1 && strxstr(cfgget("EAGLE:Directories.Ulp"), strsub(ulpDir,0,strlen(ulpDir)-1)) == -1) {
+	cfgset("EAGLE:Directories.Ulp",cfgget("EAGLE:Directories.Ulp")+";"+ulpDir);
+}
+
+string searchAndReplace = "MENU '[" + ulpDir + "icons/search-and-replace.svg] Search and Replace : RUN search-replace-device.ulp';\n";
+string importExportCsv = "MENU '[" + ulpDir + "icons/csv-export-import.svg] Export/Import CSV Files { Export: RUN export-dev-variants.ulp; | Import: RUN import-dev-variants.ulp;}';\n";
+string contextSearchAndReplace = "SET CONTEXT INSTANCE 'Search and Replace' 'RUN search-replace-device.ulp GROUP';\n";
+string exportIdf = "MENU '[" + ulpDir + "icons/idf-export.svg] Export board to IDF : RUN export-idf.ulp';\n";
+string resizeIconCmd = "RUN '" + ulpDir + "common/resize-icons.ulp' '" + ulpDir + "icons/master/' '" + ulpDir + "icons/';\n";
+string ipcWizardCmd = "MENU '[" + ulpDir + "ipc-wizard/icons/ipc_wizard_new.svg] IPC Wizard : RUN ipc-wizard.ulp';\n";
+string ipcEditCmd = "MENU '[" + ulpDir + "ipc-wizard/icons/ipc_wizard_edit.svg] IPC Edit : RUN ipc-edit.ulp';\n";
+string resizeIconCmdIpc = "RUN '" + ulpDir + "common/resize-icons.ulp' '" + ulpDir + "ipc-wizard/icons/master/' '" + ulpDir + "ipc-wizard/icons/';\n";
+
+string outScr = "";
+outScr += "RUN add-to-eagle-scr.ulp SCH " + resizeIconCmd;
+outScr += "RUN add-to-eagle-scr.ulp DEV " + resizeIconCmd;
+outScr += "RUN add-to-eagle-scr.ulp DEV " + importExportCsv;
+outScr += "RUN add-to-eagle-scr.ulp SCH " + searchAndReplace;
+outScr += "RUN add-to-eagle-scr.ulp SCH " + contextSearchAndReplace;
+outScr += "RUN add-to-eagle-scr.ulp BRD " + exportIdf;
+outScr += "RUN add-to-eagle-scr.ulp LBR " + resizeIconCmdIpc;
+outScr += "RUN add-to-eagle-scr.ulp PAC " + resizeIconCmdIpc;
+outScr += "RUN add-to-eagle-scr.ulp LBR " + ipcWizardCmd;
+outScr += "RUN add-to-eagle-scr.ulp PAC " + ipcWizardCmd;
+outScr += "RUN add-to-eagle-scr.ulp PAC " + ipcEditCmd;
+outScr += contextSearchAndReplace;
+
+exit (outScr);
+
+

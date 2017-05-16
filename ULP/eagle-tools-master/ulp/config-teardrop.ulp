@@ -1,0 +1,22 @@
+string outScript;
+real tdlength = strtod(cfgget("teardrop.length","1.0"));
+real tddia = strtod(cfgget("teardrop.diameter","0.9"));
+
+dlgDialog("Settings") {
+	dlgLabel("Length");
+	dlgRealEdit(tdlength, 0.0, 10.0);
+	dlgLabel("Diameter");
+	dlgRealEdit(tddia, 0.0, 10.0);
+	dlgPushButton("OK") {
+		string temp;
+		sprintf(temp,"%.3f",tdlength);
+		cfgset("teardrop.length", temp); 
+		sprintf(temp,"%.3f",tddia);
+		cfgset("teardrop.diameter", temp); 
+		dlgAccept();
+	};
+}; 
+
+outScript="SET CONTEXT wire 'Teardrop' 'RUN create-teardrop.ulp'";
+outScript+="SET CONTEXT via 'Teardrop' 'RUN create-teardrop.ulp'";
+exit(outScript);

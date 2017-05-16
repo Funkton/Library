@@ -1,0 +1,247 @@
+#usage "<qt><nobr>Offers a selection to open (one of) the respective Library Editor window(s) of the currently edited DEVice/PACkage/SYMbol.<p>"
+       "It is also possible to edit a DEVice, PACkage, or SYMbol from Schematic or Board directly.<p>"
+       "Example:<br>"
+       "RUN edit-used-dev-pac-sym<br>"
+       "RUN edit-used-dev-pac-sym partname gatename<br>"
+       "RUN edit-used-dev-pac-sym partname @<br>"
+       "If the Device consits of one Gate only, use the option '@' for the gatename.<br>"
+       "In case of using @ for a device with more than one Gate, the first Gate used by the Device will be opened.<p>"
+       "<b>Attention:</b> If the used Library is not available in the given path, see - Options - Directory - Library - in the Control Panel,<br>"
+       "a new Schematic/Bord with the Device/Symbole/Package name will be opened!<br>"
+       "<author>Author: support@cadsoft.de</author></nobr></qt>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+
+string Help = "<qt><nobr>Öffnet in der Bibliothek das Editorfenster das mit dem gerade editierten DEVice/SYMbol/PACkage verknüpft ist.<p>" +
+              "Vom Schaltplan bzw. Board muss es mit den Optionen Bauteilname Gatename aufgerufen werden.<p>" +
+              "Beispiel:<br>" +
+              "RUN edit-used-dev-pac-sym<br>" +
+              "RUN edit-used-dev-pac-sym Bauteilname Gatename<br>" +
+              "RUN edit-used-dev-pac-sym Bauteilname @<br>" +
+              "Besitzt das Bauteil nur ein Symbol (Gate) kann mit @ das Symbol aufgerufen werden.<br>" +
+              "Wird @ bei einem Bauteil mit mehreren Symbolen (Gates) angewendet, so wird das erste benutzte Symbol aufgerufen<br>" +
+              "<b>Achtung</b>: Ist die benutzte Bibliothek nicht im Pfad im Menü - Optionen -- Verzeichnisse - Bibliotheken<br>" +
+              "enthalten, so wird ein Schaltplan bzw. Board mit dem Bauteil/Symbol/Package-Namen angelegt.<br>" +
+              "<author>Author: support@cadsoft.de</author></nobr></qt>";
+
+// Version 1.0 -- 19.05.2005 support@cadsoft.de
+//         1.1 -- 29.06.2006 support@cadsoft.de
+//         1.2 -- 05.12.2012 alf@cadsoft.de  checkapostroph() in Symbol- und Device-Name
+
+if (language() != "de") Help = usage;
+
+string devList[];
+string pacList[];
+string symList[];
+string pac_name;
+string sym_name;
+int cntDev, cntPac, cntSym;
+
+string use_in;
+
+string Object = strupr(argv[1]); // use in schematic (Device) or board (Element)
+string Gate   = strupr(argv[2]); // only in schematic can use
+
+string checkapostroph(string s) {  // da der ganze String in ' eingeschlossen wird,
+                                   // müssen die Apostrophen verdoppelt werden.
+  string t[];
+  int cnt;
+  cnt = strsplit(t, s, '\''); // check Apostroph
+  if (cnt > 1) {
+    s = "";
+    for (int i = 0; i < cnt; i++) {
+      if (i == 0) {
+        if (t[i]) s += t[i];
+      }
+      else if (i) s += "''" + t[i];
+    }
+  }
+ return s;
+}
+
+int newDevice(string DS_name) {
+  int new = 1;
+  for (int n = 0; n < cntDev; n++) {
+    if (devList[n] == DS_name) {
+      new = 0;
+      break;
+    }
+  }
+  return new;
+}
+
+
+int newSymbol(string S_name) {
+  int new = 1;
+  for (int n = 0; n < cntSym; n++) {
+    if (symList[n] == S_name) {
+      new = 0;
+      break;
+    }
+  }
+  return new;
+}
+
+
+if (schematic) {
+  schematic(SCH) {
+    SCH.sheets(S) {
+      S.parts(PA) {
+        if (PA.name == Object) {
+          if (Gate) {
+            int foundgates = 0;
+            PA.instances(I) {
+              foundgates++;
+              if (Gate == "@") {
+                exit("OPEN " + PA.deviceset.library + ";\nEDIT '" + checkapostroph(I.gate.symbol.name) + ".SYM'");
+              }
+              if (I.name == Object+Gate) {
+                exit("OPEN " + PA.deviceset.library + ";\nEDIT '" + checkapostroph(I.gate.symbol.name) + ".SYM'");
+              }
+            }
+            if (foundgates)
+              if (dlgMessageBox("! Gate '" + Gate + "' from Device '" + Object + "' not found.\n" +
+                                "Use INVOKE to see available Gates.", "Yes", "No") != 0) exit(0);
+            exit("INVOKE " + Object);
+          }
+          else {
+            exit("OPEN '" + PA.deviceset.library + "';\nEDIT '" + PA.deviceset.name + ".DEV'");
+          }
+        }
+      }
+    }
+  }
+  dlgMessageBox(Help, "OK");
+}
+
+else if (board) board(B) {
+  B.elements(E) {
+    if (E.name == Object) {
+      exit("OPEN " + E.package.library + "; EDIT '" + E.package.name + ".PAC'");
+    }
+  }
+  dlgMessageBox(Help, "OK");
+}
+
+else if (library) {
+
+  if (deviceset) {
+    deviceset(DS) {
+      DS.devices(D) {
+        if (D.package) {
+          pacList[cntPac] = D.package.name;
+          cntPac++;
+        }
+      }
+      DS.gates(G) {
+        if (newSymbol(G.symbol.name)) {
+          symList[cntSym] = G.symbol.name;
+          cntSym++;
+        }
+      }
+    }
+    dlgDialog("EDIT selected Package or Symbol") {
+      int selectPac = cntPac+1, selectSym = cntSym+1;
+      dlgHBoxLayout dlgSpacing(400);
+      dlgHBoxLayout {
+        dlgVBoxLayout {
+          dlgLabel("Used p&ackages");
+          dlgListView("Packages", pacList, selectPac) {
+            dlgAccept();
+            exit("EDIT '" + pacList[selectPac] + ".PAC'");
+          }
+          dlgHBoxLayout {
+            dlgPushButton("Edit &Package") {
+              dlgAccept();
+              exit("EDIT '" + pacList[selectPac] + ".PAC'");
+            }
+            dlgStretch(1);
+          }
+        }
+        dlgVBoxLayout {
+          dlgLabel("Used s&ymbols");
+          dlgListView("Symbols", symList, selectSym) {
+            dlgAccept();
+            exit("EDIT '" + checkapostroph(symList[selectSym]) + ".SYM'");
+          }
+          dlgHBoxLayout {
+            dlgPushButton("Edit &Symbol") {
+              dlgAccept();
+              exit("EDIT '" + checkapostroph(symList[selectSym]) + ".SYM'");
+            }
+            dlgStretch(1);
+          }
+        }
+        dlgVBoxLayout dlgSpacing(200);
+      }
+      dlgLabel("Double click on listed Package or Symbol to edit.");
+      dlgHBoxLayout {
+        dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+        dlgStretch(1);
+      }
+    };
+    exit(0);
+  }
+
+  if (package || symbol) {
+    if (package) {
+      package(P) pac_name = P.name;
+      devList[0] = "!No Devices use this package";
+      use_in = "Package used in";
+      library(L) {
+        L.devicesets(DS) {
+          DS.devices(D) {
+            if (D.package) {
+              if (D.package.name == pac_name) {
+                devList[cntDev] = DS.name;
+                cntDev++;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (symbol) {
+      symbol(S) sym_name = S.name;
+      devList[0] = "!No Devices use this symbol";
+      use_in = "Symbol used in";
+      library(L) {
+        L.devicesets(DS) {
+          DS.gates(G) {
+            if (G.symbol.name == sym_name) {
+              if (newDevice(DS.name)) {
+                devList[cntDev] = DS.name;
+                cntDev++;
+              }
+            }
+         }
+        }
+      }
+    }
+  }
+  if (cntDev) {
+    if (cntDev > 1) {                       // 2006.06.29
+      dlgDialog("EDIT selected Device") {
+        int select;
+        dlgLabel(use_in);
+        dlgHBoxLayout {
+          dlgListView("Devices", devList, select) {
+            dlgAccept();
+            exit("EDIT '" + checkapostroph(devList[select]) + ".DEV';");
+          }
+         dlgVBoxLayout dlgSpacing(200);
+        }
+        dlgLabel("Double click on listed device to edit.");
+        dlgHBoxLayout {
+         dlgPushButton("+OK") { dlgAccept(); exit("EDIT '" + checkapostroph(devList[select]) + ".DEV';"); }
+         dlgPushButton("-Cancel") dlgReject();
+          dlgStretch(1);
+        }
+      };
+    }
+    else exit("EDIT '" + checkapostroph(devList[0]) + ".DEV';");
+  }
+  else dlgMessageBox(devList[0], "Ok");
+}

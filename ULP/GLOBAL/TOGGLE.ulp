@@ -1,0 +1,150 @@
+//EAGLE ULP "toggle-layer.ulp" v1.1
+//(C) 2013-07-30 Cory Henderson, Simple Media Networks
+// cory@simplemedianetworks.com
+
+// CHANGES:
+// 07/30/2013: v1.1 Add Smart mode
+// 02/21/2013: v1.0 Initial ULP
+
+#usage "en: <b>Toggle Layer</b><p>"
+			"This program toggles the layers given as arguments<p>"
+			"Usage:<br>"
+			"<tt>RUN toggle-layer [-US] LAYER [LAYER] [LAYER]</tt> ...<p>"
+			"Options:"
+			"<table>"
+			"<tr><td><i>-U</i></td><td>Unison Mode: If multiple <tt>LAYER</tt> "
+			"arguments are included, all are forced to follow the toggle of the "
+			"first argument. If only one argument listed, then no effect."
+			"</td></tr>"
+			"<tr><td><i>-S</i></td><td>Smart Mode: In board or package mode:"
+			"tLayers and bLayers (ex. <i>tPlace</i> or <i>bStop</i>) only display "
+			"if the respective copper layer (either <i>Top</i> or <i>Bottom</i>) is "
+			"visible. If both are visible, or both are hidden, then the argument is "
+			"ignored and functionality returns to normal. If smart mode is active, "
+			"unison mode is disabled."
+			"</td></tr>"
+			"</table><p><hr>"
+			"<b>Notes:</b><ul>"
+			"<li>The <tt>LAYER</tt> argument can be either the layer "
+			"number or the layer name"
+			"<li>Unison mode and smart mode can be used together, but smart mode "
+			"will take preference</ul><p>"
+			"<author>Author:<br>Cory Henderson, Simple Media Networks<br>"
+			"cory@simplemedianetworks.com</author>"
+
+//Declarations and functions
+int ToggleLayer;
+int argi = 1; //Current index of argv[]
+int unison = 0; //Unison mode
+int smart = 0; //Smart mode
+int topon = 0;
+int boton = 0;
+string layers_on[]; //List of layers to be turned on
+string layers_off[]; //List of layers to be turned off
+int n_on = 0; //Current count of layers_on[]
+int n_off = 0; //Current count of layers_off[]
+string toplayers = " -tPlace -tOrigins -tNames -tValues -tStop -tCream -tFinish -tGlue -tTest -tKeepout -tRestrict -tDocu";
+string botlayers = " -bPlace -bOrigins -bNames -bValues -bStop -bCream -bFinish -bGlue -bTest -bKeepout -bRestrict -bDocu";
+string command="DISPLAY "; //Output command
+
+void inspect(UL_LAYER La) {
+	if (La.number == 1) topon = La.visible; // Check if top layer is on
+	if (La.number == 16) boton = La.visible; // Check if bottom layer is on
+	if (ToggleLayer != 0) { //If toggle layer is a number
+		if (La.number == ToggleLayer) {
+			int visible = La.visible;
+			if (visible == 1) {
+				n_off++;
+				layers_off[n_off] = La.name;
+			}
+			else if (visible == 0) {
+				n_on++;
+				layers_on[n_on] = La.name;
+			}
+			if (unison == 1) unison = 2 + visible; //unison=2: Turn all on    unison=3: Turn all off
+		}
+	}
+	else { //If toggle layer is a string
+		if (strlwr(La.name) == strlwr(argv[argi])) {
+			int visible = La.visible;
+			if (visible == 1) {
+				n_off++;
+				layers_off[n_off] = La.name;
+			}
+			else if (visible == 0) {
+				n_on++;
+				layers_on[n_on] = La.name;
+			}
+			if (unison == 1) unison = 2 + visible; //unison=2: Turn all on    unison=3: Turn all off
+		}
+	}
+}
+
+{ //Main Function
+	// Check flags/arguments:
+	if (argc == 0) exit(1); //Exit with errors if no arguments given
+	string arg1 = argv[0];
+	if (argv[1][0] == '-') { //Check for flags
+		for (int a=1; a<=strlen(argv[1]); a++) {
+			switch (argv[1][a]) {
+			case 'U':
+				unison = 1; //Unison mode active
+				break;
+			case 'S':
+				smart = 1; //Smart mode active
+				break;
+			}
+		}
+		argi++;
+		if (argc == 1) exit(1); //If only one argument given (flags), exit with errors
+	}
+	for (argi;argi <= argc;argi++) { //For each argument...
+		ToggleLayer = strtol(argv[argi]);
+		if (schematic) {
+			schematic(S)
+				S.layers(La)
+					inspect(La);
+		}
+		else if (board) {
+			board(B)
+				B.layers(La)
+					inspect(La);
+		}
+		else if (library) {
+			library(L)
+				L.layers(La)
+					inspect(La);
+		}
+	}
+	if (smart == 1) {
+		// If neither top or bottom, or both top and bottom, then ignore smart mode
+		// aka XOR top.visible and bottom.visible
+		if ( topon != boton ) unison = 0; // disable unison mode if smart mode applies
+		else smart = 0; // else disable smart mode and let unison take over
+		}
+	string s_on, s_off;
+	if (unison == 0) {
+		for (int i = 1;i <= n_on;i++) s_on = s_on + " " + layers_on[i];
+		for (i = 1;i <= n_off;i++) s_off = s_off + " -" + layers_off[i];
+	}
+	else if (unison == 2) {
+		for (int i = 1;i <= n_on;i++) s_on = s_on + " " + layers_on[i];
+		for (i = 1;i <= n_off;i++) s_on = s_on + " " + layers_off[i];
+	}
+	else if (unison == 3) {
+		for (int i = 1;i <= n_on;i++) s_off = s_off + " -" + layers_on[i];
+		for (i = 1;i <= n_off;i++) s_off = s_off + " -" + layers_off[i];
+	}
+	if (smart == 1) {
+		if ( topon == 1) s_off = s_off + botlayers;
+		else s_off = s_off + toplayers;
+	}
+	
+	// For debugging
+	//output("TOGGLE.txt") {
+    //printf("DISPLAY " + s_on + s_off +";");
+	//}
+	
+	command = "DISPLAY " + s_on + s_off +";";
+	exit(command);
+}

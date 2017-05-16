@@ -1,0 +1,241 @@
+//CAPAE	Capacitor, Aluminum Electrolytic 	Capacitor, Aluminum Electrolytic
+//<p>This will allow you to generate Aluminum Electrolytic Molded Capacitor</p><\br><center><img width=256 src="ipc-wizard/capae-01.png"></center>
+
+#include "common.h"
+
+//Wizard Description
+wizardName = "Capacitor, Aluminum Electrolytic";
+wizardDescription = "<img src=\"capae-02.png\">";
+wizardImage = "capae-01.png";
+
+// ComboBox Parameter
+int k=0;
+
+string materialConditionStr[] = {"L","N","M"};
+string materialConditionLongStr[] = {"Least","Nominal","Most"};
+
+// UI Parameter Elements
+addParameterHeader("Body Dimensions");
+	addParameterMinMax("A","Height (A)", 0, 0);
+	addParameterMinMax("D1","Width (D1)", 0, 0);
+addParameterHeader("Terminal Dimensions");
+	addParameterMinMax("b","Width (b)", 0, 0);
+	addParameterMinMax("L","Length (L)", 0, 0);
+	addParameterMinMax("D2","Gap (D2)", 0, 0);
+	addParameterMinMax("D","Overall Length (D)", 0, 0);
+	addParameterText("<i>For L, D2 and D only two of the three parameters has to be specified.</i>");
+
+runWizard();
+
+int materialCondition = getParameterListBox("materialCondition");
+
+real Amin = getParameterMin("A");
+real Amax = getParameterMax("A");
+
+real D1min = getParameterMin("D1");
+real D1max = getParameterMax("D1");
+
+real bmin = getParameterMin("b");
+real bmax = getParameterMax("b");
+
+real Lmin = getParameterMin("L");
+real Lmax = getParameterMax("L");
+
+real D2min = getParameterMin("D2");
+real D2max = getParameterMax("D2");
+
+real Dmin = getParameterMin("D");
+real Dmax = getParameterMax("D");
+
+string lengthCode = "HMAX";
+
+if (Amax <= 10) lengthCode = "H10";
+
+string index = lengthCode + materialConditionStr[materialCondition];
+
+string path = filedir(argv[0]);
+string tableContent[];
+fileread(tableContent, path + "/UnderBodyOutwardL.data");
+real Jt = strtod(lookup(tableContent, index, "Jtoe"));
+real Jh = strtod(lookup(tableContent, index, "Jheel"));
+real Js = strtod(lookup(tableContent, index, "Jside"));
+real Ddiff = 0;
+real Dtol = 0;
+
+if (Dmin == 0 && Dmax == 0) {
+	Dmin = 2*Lmin + D2min;
+	Dmax = 2*Lmax + D2max;
+	
+	real D2tol = D2max-D2min;
+	real Ltol = Lmax-Lmin;
+	Dtol = D2tol + 2.0*Ltol;
+	real DtolRMS = sqrt(D2tol*D2tol + 2*Ltol*Ltol)/2;
+	Ddiff = Dtol - DtolRMS;
+	
+	Dmin = Dmin + Ddiff/2;
+	Dmax = Dmax - Ddiff/2;
+	
+}
+
+if (Lmin == 0 && Lmax == 0) {
+	Lmin = (Dmin - D2min)/2;
+	Lmax = (Dmax - D2max)/2;
+}
+
+// Draw Pads
+real Zmax = calcZmax(Dmin, Dmax, Jt);
+real Gmin = calcGmin(Dmin, Dmax, Lmin, Lmax, Jh);
+real Xmax = calcXmax(bmin, bmax, Js);
+
+if (D2min > 0 && D2max > 0) {
+	real F = getLibraryParameterValueReal("fabTol");
+	real P = getLibraryParameterValueReal("placeTol");
+	Gmin = D2max - 2.0*Jh - sqrt(pow(D2min-D2max,2) + 4.0*F*F + 4.0*P*P);
+}
+//string temp;
+//sprintf(temp,"Dmin: %f; Dmax: %f; DtolRMS: %f\nJt: %f; Jh: %f; Js: %f\nZmax: %f; Gmin: %f, Xmax: %f", Dmin, Dmax, Dtol-Ddiff, Jt, Jh, Js, Zmax, Gmin, Xmax);
+//dlgMessageBox(temp);
+
+real padSizeRoundOff = getLibraryParameterValueReal("padSizeRoundOff");
+real padPlaceRoundOff = getLibraryParameterValueReal("padPlaceRoundOff");
+
+real dx = ipcCeil((Zmax-Gmin)/2.0, padSizeRoundOff);
+real dy = ipcCeil(Xmax,padSizeRoundOff);
+real xPos = ipcRound(Zmax/2.0-dx/2.0, padPlaceRoundOff);
+
+beginSmd(dx, dy);
+	name("1");
+	position(-xPos,0);
+	name("2");
+	position(xPos,0);
+end();
+
+// Draw Legend
+real clearance = getLibraryParameterValueReal("legendClearance");
+real legendLineWidth = getLibraryParameterValueReal("legendLineWidth");
+real legendRoundOff = getLibraryParameterValueReal("legendRoundOff");
+
+real lx = D1max/2+legendLineWidth/2;
+real ly = Xmax/2+clearance+legendLineWidth/2;
+lx = ipcCeil(lx, legendRoundOff);
+ly = ipcCeil(ly, legendRoundOff);
+
+for (k=0;k<2;k++) {
+	real sign = 1-2*k;
+	beginLegendOutline(LAYER_TPLACE);
+		position(-lx, sign*ly);
+		position(-lx, sign*(0.6*lx));
+		position(-(0.6*lx), sign*(lx));
+		position(lx, sign*(lx));
+		position(lx, sign*(ly));
+	end();
+}
+
+
+setLayer(LAYER_TNAMES);
+changeSize(getLibraryParameterValueReal("legendFontHeight"));
+changeRatio(getLibraryParameterValueReal("legendFontRatio"));
+changeAlign("CENTER");
+changeFont("VECTOR");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+// Draw Courtyard
+real CourtyardExcess = strtod(lookup(tableContent, index, "CourtyardExcess"));
+real CourtyardRoundOff = strtod(lookup(tableContent, index, "CourtyardRoundOff"));
+real courtyardLineWidth = getLibraryParameterValueReal("courtyardLineWidth");
+
+real cyD = ipcCeil(Zmax/2+CourtyardExcess-courtyardLineWidth/2, courtyardLineWidth);
+real cyD1 = ipcCeil(D1max/2+CourtyardExcess-courtyardLineWidth/2, courtyardLineWidth);
+real cyX = ipcCeil(Xmax/2+CourtyardExcess-courtyardLineWidth/2, courtyardLineWidth);
+
+beginCourtyard(LAYER_TKEEPOUT);
+	position(-cyD1,cyD1);
+	position(cyD1,cyX);
+	position(cyD,-cyX);
+	position(cyD1,-cyD1);
+	position(-cyD1,-cyX);
+	position(-cyD,cyX);
+	position(-cyD1,cyD1);
+end();
+
+// Draw Component Outline
+lx = D1max/2;
+
+for (k=0;k<2;k++) {
+	real sign = 1-2*k;
+	beginComponentOutline(LAYER_TDOCU);
+		position(-lx, 0);
+		position(-lx, sign*(0.6*lx));
+		position(-(0.6*lx), sign*(lx));
+		position(lx, sign*(lx));
+		position(lx, 0);
+	end();
+
+	begin("RECT");
+		position(sign*Dmax/2,bmax/2);
+		position(sign*(Dmax/2-Lmax),-bmax/2);
+	end();
+}
+
+begin("CIRCLE");
+	position(0,0);
+	position(0,D1max/2*0.95);
+end();
+
+changeSize(getLibraryParameterValueReal("componentFontHeight"));
+changeAlign("CENTER");
+changeFont("PROPORTIONAL");
+begin("TEXT");
+	name(">Name");
+	position(0,0);
+end();
+
+sprintf(packageDescription, "<b>CAPAE Capacitors, Aluminum Electrolytic</b><i>%s Material Condition</i><br>Body (LxWxH): %.2fmm x %.2fmm x %.2fmm<br>Lead (LxW): %.2fmm x %.2fmm<br>", materialConditionLongStr[materialCondition], D1min+(D1max-D1min)/2, D1min+(D1max-D1min)/2, Amin+(Amax-Amin)/2, Lmin+(Lmax-Lmin)/2, bmin+(bmax-bmin)/2);
+sprintf(packageName, "CAPAE%dX%dL%dX%d%s_%dX%dL%dX%d", 
+	int(round((D1min+(D1max-D1min)/2)*100)), int(round((Amin+(Amax-Amin)/2)*100)), int(round((Lmin+(Lmax-Lmin)/2)*100)),int(round((bmin+(bmax-bmin)/2)*100)), materialConditionStr[materialCondition],
+	int(round((D1max-D1min)/2*100)), int(round((Amax-Amin)/2*100)), int(round((Lmax-Lmin)/2*100)), int(round((bmax-bmin)/2*100)));
+
+/*
+
+// Draw Component Outline
+real cX = Lmax/2.0;
+real cY = W2max/2.0;
+real tW = Tmax;
+beginComponentOutline(LAYER_TDOCU);
+	position(-cX,cY);
+	position(cX,cY);
+	position(cX,-cY);
+	position(-cX,-cY);
+	position(-cX,cY);
+end();
+
+real componentLineWidth = getLibraryParameterValueReal("componentLineWidth");
+begin("CIRCLE");
+	lineWidth(componentLineWidth);
+	position(-(cX-tW) + 0.2*min(cX-tW,cY), -cY + 0.2*min(cX-tW,cY));
+	position(-(cX-tW) + 0.2*min(cX-tW,cY), -cY + 0.2*min(cX-tW,cY) + componentLineWidth/2);
+end();
+
+cY = Wmax/2.0;
+begin("RECT");
+	position(-cX,cY);
+	position(-cX+tW,-cY);
+end();
+begin("RECT");
+	position(cX,cY);
+	position(cX-tW,-cY);
+end();
+
+
+
+
+
+sprintf(packageDescription, "<b>%s, Molded </b><i>%s Material Condition</i><br>Body (LxWxH): %.2fmm x %.2fmm x %.2fmm<br>Lead (LxW): %.2fmm x %.2fmm<br>", familyNames[family],materialConditionLongStr[materialCondition], Lmin+(Lmax-Lmin)/2, W2min+(W2max-W2min)/2, Hmin+(Hmax-Hmin)/2, Tmin+(Tmax-Tmin)/2, Wmin+(Wmax-Wmin)/2);
+sprintf(packageName, "%s%dX%dX%dL%dX%d%s_%dX%dX%dL%dX%d", 
+	namingPrefix[family], int(round((Lmin+(Lmax-Lmin)/2)*100)), int(round((W2min+(W2max-W2min)/2)*100)), int(round((Hmin+(Hmax-Hmin)/2)*100)), int(round((Tmin+(Tmax-Tmin)/2)*100)),int(round((Wmin+(Wmax-Wmin)/2)*100)), materialConditionStr[materialCondition],
+	int(round((Lmax-Lmin)/2*100)), int(round((W2max-W2min)/2*100)), int(round((Hmax-Hmin)/2*100)), int(round((Tmax-Tmin)/2*100)), int(round((Wmax-Wmin)/2*100)));
+*/
+exitWizard();

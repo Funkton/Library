@@ -1,0 +1,136 @@
+
+#usage "<b>Check for differences between parts in schematic and libraries</b>\n"
+       "<p>"
+       "This ULP calls an external program (eaglelibcheck)<br>"
+       "that performs a \"diff\" between the parts in the schematic and the libraries.<br>"
+       "It searches for differences in devicesets, symbols and packages.<br>"
+       "If it finds any differences, it shows the details.<br>"
+       "It does not modify anything.<br>"
+       "Version: 1.00   March 2015<br>"
+       "<p>"
+       "<author>Author: Teunis van Beelen  Email: teuniz@gmail.com</author>"
+
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+
+
+if(schematic) schematic(S)
+{
+  int i, err, n;
+
+  string str_cmd,
+         path_out,
+         file_out;
+
+  str_cmd = "\"";
+
+  str_cmd += filedir(EAGLE_PATH);
+
+  str_cmd += "eaglelibcheck\" \"";
+
+  str_cmd += S.name;
+
+  for(i=0; i<16; i++)
+  {
+    if(strlen(path_lbr[i]) < 2)
+    {
+      break;
+    }
+
+    str_cmd += "\" \"";
+
+    str_cmd += path_lbr[i];
+  }
+
+  str_cmd += "\" > \"";
+
+  str_cmd += filedir(S.name);
+
+  str_cmd += "libcheck.out\"";
+
+  err = system(str_cmd);
+  if(err)
+  {
+    dlgDialog("Error")
+    {
+      dlgVBoxLayout
+      {
+        dlgTextView("<p><br>    An error occurred while executing external program.<br>"
+                    "    Make sure you have installed the executable \"eaglelibcheck\"<br>"
+                    "<nobr>    You can download it from <a href=\"http://www.teuniz.net/eagle/eaglelibcheck/\">http://www.teuniz.net/eagle/eaglelibcheck/</a>   </nobr><br></p>");
+
+        dlgSpacing(10);
+
+        dlgHBoxLayout
+        {
+          dlgSpacing(10);
+
+          dlgPushButton("Close") dlgReject();
+
+          dlgSpacing(400);
+
+          dlgStretch(1);
+        }
+
+        dlgSpacing(10);
+      }
+    };
+
+    exit(1);
+  }
+
+  path_out = filedir(S.name);
+
+  path_out += "libcheck.out";
+
+  n = fileread(file_out, path_out);
+
+  if(n > 0)
+  {
+    dlgDialog("Differences found")
+    {
+      dlgVBoxLayout
+      {
+        dlgTextView(file_out);
+
+        dlgSpacing(10);
+
+        dlgHBoxLayout
+        {
+          dlgSpacing(10);
+
+          dlgPushButton("Close") dlgReject();
+
+          dlgSpacing(800);
+
+          dlgStretch(1);
+        }
+
+        dlgSpacing(10);
+      }
+    };
+
+    exit(0);
+  }
+  else
+  {
+    dlgMessageBox("\n    No differences found    \n");
+
+    exit(0);
+  }
+
+  exit(0);
+}
+else
+{
+  dlgMessageBox("\n    Start this ULP in a schematic    \n");
+
+  exit(0);
+}
+
+
+
+
+
+

@@ -1,0 +1,617 @@
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * <atelszewski@gmail.com> wrote this file. As long as you retain this notice you
+ * can do whatever you want with this stuff. If we meet some day, and you think
+ * this stuff is worth it, you can buy me a beer in return Andrzej Telszewski
+ * ----------------------------------------------------------------------------
+ */
+
+
+#usage "<b>Check schematic against libraries.</b><br /><br />\n"
+       "Compares parts from the schematic against the libraries found in the libraries' path.<br />\n"
+       "Uses the Eagle's XML file format as data source.<br /><br />\n"
+       "<i>Author: Andrzej Telszewski &lt;atelszewski@gmail.com&gt;</i>"
+
+int EAGLE_VERSION_MINIMUM = 6;
+if( EAGLE_VERSION < EAGLE_VERSION_MINIMUM )
+{
+    string v;
+    sprintf( v, "%d", EAGLE_VERSION_MINIMUM );
+    dlgMessageBox( "This program requires Eagle version " + v + " or above!" );
+    exit( EXIT_FAILURE );
+}
+
+
+if( !schematic )
+{
+    dlgMessageBox( "This program should be run from the schematic editor!" );
+    exit( EXIT_FAILURE );
+}
+
+
+// Constants.
+
+string gHelpText = ""
+"This program is intended to check if the parts in the schematic are the same as in the corresponding libraries. "
+"<b>The schematic and the libraries must be saved before performing the test.</b><br /><br />"
+"The parts are assumed to be the same if:"
+"<ul>"
+"<li>the <i>library</i> that the part belongs to can be actually found</li>"
+"<li>the <i>deviceset</i> of the part can be found</li>"
+"<li>the <i>device/variant</i> of the part can be found</li>"
+"<li>the found device/variant has the same <i>package name</i> both in the schematic and in the library</li>"
+"<li>the <i>technology</i> of the part can be found</li>"
+"</ul>"
+"The part checking procedure checks for the correctness in the order mentioned in the list above. "
+"If there is a mismatch, the part is assumed to be incomplete and the checking stops at the item that was actually "
+"found to be mismatching. <b>The mismatched item is marked with '!!' (double exclamation mark).</b> Keep in mind that the "
+"values that are filled in the columns come from the schematic's part and only the first mismatching value is "
+"marked with '!!'."
+"<br /><br />"
+"Initially the program only displays the parts that are incomplete. You can display all parts by unchecking the "
+"'Incomplete parts only' checkbox. At the first run, the parts are sorted by the 'Complete' column, but you can change "
+"the sort order by clicking on the columns' name."
+"<br /><br />"
+"It is possible to save the checking result to CSV file (the columns are delimited by tabs). "
+"The file will contain the values you see in table, that is if the 'Incomplete parts only' checkbox is checked, "
+"then only incomplete parts will go to the file. The sort order is also preserved. Saving to file allows you to open "
+"the results in a different program (e.g. as a spreadsheet), because when the ULP's window is active, it is impossible to "
+"work with other components of the program (e.g. schematic or library editor)."
+"<br /><br />"
+"Report bugs and suggestions to:<br /><i>Andrzej Telszewski &lt;atelszewski@gmail.com&gt;</i>";
+
+// "Save..." proposed file name.
+string gOutputSaveFileName = "library-search-results.csv";
+
+// Names of the columns of the part details to be presented to the user.
+string gDetailsList = "Part\tLibrary\tDeviceset\tDevice\tPackage\tTechnology\tComplete";
+
+
+// Global variables.
+
+// Schematic XML (read once at program startup).
+string gSchematicXML;
+
+// XML of libraries included in the schematic (read once at program startup).
+string gSchematicLibrariesXML[];
+
+// XML of the parts from the schematic.
+// One part's XML per array index (read once at program startup).
+string gPartsXML[];
+
+// Number of parts in the schematic.
+int gNumOfParts = 0;
+
+// Tells which parts are exactly the same as in the corresponding library.
+int gCompleteParts[];
+
+// Array of parts to be displayed or saved.
+numeric string gDisplayedParts[];
+
+// How many parts there are to be displayed.
+int gNumOfPartsDisplayed = 0;
+
+// Details about each part in the schematic.
+numeric string gPartDetails[];
+
+// Array of all available library files [full paths] (read once at program startup).
+numeric string gAvailableLibs[];
+
+// Number of available library files.
+int gLibsNum = 0;
+
+// The path of the library we are working with at the moment.
+string gLibraryPath;
+
+// XML of the library we are working with at the moment.
+string gLibraryXML;
+
+// XML of all devicesets in the library we are currently working with.
+string gLibraryDevicesetsXML[];
+
+// XML of all devices (variants) in the deviceset of the library we are currently working with.
+string gLibraryDevicesXML[];
+
+// XML of all technologies of the device of the deviceset of the library we are currently working with.
+string gLibraryTechnologiesXML[];
+
+
+// Functions.
+
+/**@brief Reads the schematic XML into gSchematicXML global string.
+ */
+void getSchematicXML()
+{
+    string schFileName;
+
+    schematic( sch )
+    {
+        schFileName = sch.name;
+    }
+
+    fileread( gSchematicXML, schFileName );
+}
+
+
+/**@brief Reads the libraries XML from the schematic XML.
+ *
+ * The resultant array contains one library XML per index.
+ */
+void getSchematicLibrariesXML()
+{
+    xmlelements( gSchematicLibrariesXML, gSchematicXML, "eagle/drawing/schematic/libraries/library" );
+}
+
+
+/**@brief Reads the parts XML from the schematic XML.
+ *
+ * The resultant array contains one part XML per index.
+ */
+void getPartsXML()
+{
+    gNumOfParts = xmlelements( gPartsXML, gSchematicXML, "eagle/drawing/schematic/parts/part" );
+}
+
+
+/**@brief Gets part name.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Part name.
+ */
+string getPartName( int pPartIdx )
+{
+    return xmlattribute( gPartsXML[pPartIdx], "part", "name" );
+}
+
+
+/**@brief Gets library name that given part belongs to.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Library name.
+ */
+string getPartLibrary( int pPartIdx )
+{
+    return xmlattribute( gPartsXML[pPartIdx], "part", "library" );
+}
+
+
+/**@brief Gets deviceset name that given part belongs to.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Deviceset name.
+ */
+string getPartDeviceset( int pPartIdx )
+{
+    return xmlattribute( gPartsXML[pPartIdx], "part", "deviceset" );
+}
+
+
+/**@brief Gets device (variant) name of given part.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Device (variant) name.
+ */
+string getPartDevice( int pPartIdx )
+{
+    return xmlattribute( gPartsXML[pPartIdx], "part", "device" );
+}
+
+
+/**@brief Gets technology name of given part.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Technology name.
+ */
+string getPartTechnology( int pPartIdx )
+{
+    return xmlattribute( gPartsXML[pPartIdx], "part", "technology" );
+}
+
+
+/**@brief Gets package name of given part.
+ *
+ * @param pPartIdx Part index in the parts' array.
+ *
+ * @return Package name.
+ */
+string getPartPackage( int pPartIdx )
+{
+    string partLibrary   = getPartLibrary( pPartIdx );
+    string partDeviceset = getPartDeviceset( pPartIdx );
+    string partDevice    = getPartDevice( pPartIdx );
+
+    // Find library that given part belongs to.
+    for( int i = 0; "" != gSchematicLibrariesXML[i]; i++ )
+    {
+        if( xmlattribute( gSchematicLibrariesXML[i], "library", "name" ) == partLibrary )
+        {
+            string schematicDevicesetsXML[];
+            xmlelements( schematicDevicesetsXML, gSchematicLibrariesXML[i], "library/devicesets/deviceset" );
+
+            // Find deviceset that given part belong to.
+            for( int j = 0; "" != schematicDevicesetsXML[j]; j++ )
+            {
+                if( xmlattribute( schematicDevicesetsXML[j], "deviceset", "name" ) == partDeviceset )
+                {
+                    string devicesXML[];
+                    xmlelements( devicesXML, schematicDevicesetsXML[j], "deviceset/devices/device" );
+
+                    // Find the device (variant) of given part and then the package name.
+                    for( int k = 0; "" != devicesXML[k]; k++ )
+                    {
+                        if( xmlattribute( devicesXML[k], "device", "name" ) == partDevice )
+                        {
+                            return xmlattribute( devicesXML[k], "device", "package" );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return "";
+}
+
+
+/**@brief Gets the list of libraries available in the search path.
+ *
+ * The list is stored in gAvailableLibs[] as a full path to the library.
+ */
+void getAvailableLibs()
+{
+    for( int i = 0; "" != path_lbr[i]; i++ )
+    {
+        string libsInCurrentPath[];
+        int    numOfLibsInCurrentPath;
+
+        // path_lbr[] is array of user defined paths to libraries.
+        // Here we return array of all libraries in given path.
+        numOfLibsInCurrentPath = fileglob( libsInCurrentPath, path_lbr[i] + "/*.lbr" );
+
+        // Fill in global array with full paths to all found library files.
+        for( int j = 0; j < numOfLibsInCurrentPath; j++ )
+        {
+            gAvailableLibs[gLibsNum] = libsInCurrentPath[j];
+            gLibsNum++;
+        }
+    }
+}
+
+
+/**
+ */
+int checkLibraryPresence( string pLibName )
+{
+    pLibName += ".lbr";
+
+    for( int i = 0; "" != gAvailableLibs[i]; i++ )
+    {
+        // The filename() function returns the file name without the path prefix.
+        if( filename( gAvailableLibs[i] ) == pLibName ) return i;
+    }
+
+    return -1;
+}
+
+
+/**
+ */
+void getLibraryXML( string pLibraryPath )
+{
+    fileread( gLibraryXML, pLibraryPath );
+}
+
+
+// Library XML structure:
+// eagle/drawing/library/devicesets/deviceset/devices/device/technologies/technology
+
+
+/**
+ */
+void getLibraryDevicesetsXML()
+{
+    if( "" == gLibraryXML ) return;
+
+    xmlelements( gLibraryDevicesetsXML, gLibraryXML, "eagle/drawing/library/devicesets/deviceset" );
+}
+
+
+/**
+ */
+int checkDevicesetPresence( string pDevicesetName )
+{
+    for( int i = 0; "" != gLibraryDevicesetsXML[i]; i++ )
+    {
+        string devicesetName;
+
+        devicesetName = xmlattribute( gLibraryDevicesetsXML[i], "deviceset", "name" );
+        if ( pDevicesetName == devicesetName ) return i;
+    }
+
+    return -1;
+}
+
+
+/**
+ */
+void getLibraryDevicesXML( int pDevicesetIdx )
+{
+    if( "" == gLibraryDevicesetsXML[pDevicesetIdx] ) return;
+
+    xmlelements( gLibraryDevicesXML, gLibraryDevicesetsXML[pDevicesetIdx], "deviceset/devices/device" );
+}
+
+
+/**
+ */
+int checkDevicePresence( string pDeviceName )
+{
+    for( int i = 0; "" != gLibraryDevicesXML[i]; i++ )
+    {
+        string deviceName;
+
+        deviceName = xmlattribute( gLibraryDevicesXML[i], "device", "name" );
+        if ( pDeviceName == deviceName ) return i;
+    }
+
+    return -1;
+}
+
+
+/**
+ */
+int checkPackagePresence( int pDeviceIdx, string pPackageName )
+{
+    if( xmlattribute( gLibraryDevicesXML[pDeviceIdx], "device", "package" ) == pPackageName )
+    {
+        return pDeviceIdx;
+    }
+
+    return -1;
+}
+
+
+/**
+ */
+void getLibraryTechnologiesXML( int pDeviceIdx )
+{
+    if( "" == gLibraryDevicesXML[pDeviceIdx] ) return;
+
+    xmlelements( gLibraryTechnologiesXML, gLibraryDevicesXML[pDeviceIdx], "device/technologies/technology" );
+}
+
+
+/**
+ */
+int checkTechnologyPresence( string pTechnologyName )
+{
+    for( int i = 0; "" != gLibraryTechnologiesXML[i]; i++ )
+    {
+        string technologyName;
+
+        technologyName = xmlattribute( gLibraryTechnologiesXML[i], "technology", "name" );
+        if ( pTechnologyName == technologyName ) return i;
+    }
+
+    return -1;
+}
+
+
+/**@brief Gets details about all parts in the schematic.
+ */
+void getPartDetails()
+{
+    int displayedPartCounter = 0;
+
+    for( int i = 0; i < gNumOfParts; i++ )
+    {
+        string partName        = getPartName( i );
+        string libraryName     = getPartLibrary( i );
+        string devicesetName   = getPartDeviceset( i );
+        string packageName     = getPartPackage( i );
+        string deviceName      = getPartDevice( i );
+        string technologyName  = getPartTechnology( i );
+        int    libraryFound    = 1;
+        int    devicesetFound  = 1;
+        int    deviceFound     = 1;
+        int    packageFound    = 1;
+        int    technologyFound = 1;
+        int    partComplete    = 0;
+        int    res             = 0;
+
+
+        res = checkLibraryPresence( libraryName );
+        if( -1 != res )
+        {
+            getLibraryXML( gAvailableLibs[res] );
+
+            getLibraryDevicesetsXML();
+            res = checkDevicesetPresence( devicesetName );
+            if( -1 != res )
+            {
+                getLibraryDevicesXML( res );
+                res = checkDevicePresence( deviceName );
+                if( -1 != res )
+                {
+                    if( -1 != checkPackagePresence( res, packageName ) )
+                    {
+                        getLibraryTechnologiesXML( res );
+                        res = checkTechnologyPresence( technologyName );
+                        if( -1 != res )
+                        {
+                            partComplete = 1;
+                            gCompleteParts[i] = 1;
+                        }
+                        else
+                        {
+                            technologyFound = 0;
+                        }
+                    }
+                    else
+                    {
+                        packageFound = 0;
+                    }
+                }
+                else
+                {
+                    deviceFound = 0;
+                }
+            }
+            else
+            {
+                devicesetFound = 0;
+            }
+        }
+        else
+        {
+            libraryFound = 0;
+        }
+
+
+        gPartDetails[i] =
+            partName       +                                      "\t" +
+            libraryName    + ( (libraryFound)    ? "" : " !!" ) + "\t" +
+            devicesetName  + ( (devicesetFound)  ? "" : " !!" ) + "\t" +
+            deviceName     + ( (deviceFound)     ? "" : " !!" ) + "\t" +
+            packageName    + ( (packageFound)    ? "" : " !!" ) + "\t" +
+            technologyName + ( (technologyFound) ? "" : " !!" ) + "\t" +
+                             ( (partComplete)    ? "Yes" : "No" );
+
+        if( 0 == partComplete )
+        {
+            gDisplayedParts[displayedPartCounter] = gPartDetails[i];
+            displayedPartCounter++;
+        }
+    }
+
+    gNumOfPartsDisplayed = displayedPartCounter;
+}
+
+
+void saveDetails( string pFileName, int pSortColumn )
+{
+    int sortIndex[];
+    numeric string sortArray[];
+
+
+    for( int i = 0; i < gNumOfPartsDisplayed; i++ )
+    {
+        string details[];
+        strsplit( details, gDisplayedParts[i], '\t' );
+        sortArray[i] = details[abs( pSortColumn ) - 1];
+    }
+
+
+    sort( gNumOfPartsDisplayed, sortIndex, sortArray );
+
+
+    output( pFileName, "wt" )
+    {
+        for( int i = 0; "" != sortArray[i]; i++ )
+        {
+            int currentIndex = sortIndex[i];
+            if( pSortColumn < 0 ) currentIndex = sortIndex[gNumOfPartsDisplayed - i - 1];
+            printf( "%s\n", gDisplayedParts[currentIndex] );
+        }
+    }
+}
+
+
+/**@brief Displays the dialog with the parts details.
+ */
+void dlgShowDialog()
+{
+    dlgDialog( "Check schematic against libraries" )
+    {
+        int selectedItem = -1;
+        int sortColumn = 1;
+
+        // Get the columns count (they are separated by tabs).
+        for( int i = 0; i < strlen( gDetailsList ); i++ )
+        {
+            if( '\t' == gDetailsList[i] ) sortColumn++;
+        }
+
+        dlgTabWidget
+        {
+            dlgTabPage( "Results" )
+            {
+                dlgVBoxLayout
+                {
+                    dlgListView( gDetailsList, gDisplayedParts, selectedItem, sortColumn );
+
+                    dlgHBoxLayout
+                    {
+                        int onlyIncompleteParts = 1;
+
+                        dlgCheckBox( "Incomplete parts only", onlyIncompleteParts )
+                        {
+                            int displayedPartCounter = 0;
+
+                            for( int i = 0; i < gNumOfParts; i++ )
+                            {
+                                if( onlyIncompleteParts )
+                                {
+                                    if( !gCompleteParts[i] )
+                                    {
+                                        gDisplayedParts[displayedPartCounter] = gPartDetails[i];
+                                        displayedPartCounter++;
+                                    }
+                                }
+                                else
+                                {
+                                    gDisplayedParts[i] = gPartDetails[i];
+                                    displayedPartCounter++;
+                                }
+                            }
+
+                            // Indicate array end by placing empty string, because the array can be longer when displaying
+                            // all parts and shorter when displaying only incomple parts.
+                            gDisplayedParts[displayedPartCounter] = "";
+                            gNumOfPartsDisplayed = displayedPartCounter;
+                        }
+
+                        dlgStretch( 1 );
+
+                        dlgPushButton( "Save to CSV" )
+                        {
+                            string fileName = dlgFileSave( "Save search results to CSV file", gOutputSaveFileName, "Comma Separated Values (*.csv)" );
+                            if( fileName )
+                            {
+                                // Check if file should be overwritten if it exists.
+                                string dummy[];
+                                if( (0 == fileglob( dummy, fileName ))
+                                    || (0 == dlgMessageBox( "File: " + fileName + " exists!\nOverwrite?", "+&Yes", "-&No" )) )
+                                {
+                                    saveDetails( fileName, sortColumn );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            dlgTabPage( "Help" )
+            {
+                dlgTextView( gHelpText );
+            }
+        }
+    };
+}
+
+
+getSchematicXML();
+getSchematicLibrariesXML();
+getPartsXML();
+getAvailableLibs();
+getPartDetails();
+dlgShowDialog();
+
+
+exit( EXIT_SUCCESS );

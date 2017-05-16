@@ -1,0 +1,290 @@
+#usage "<qt><nobr><b>MOUNT TRACE</b> shows all parts on the top layer with the same values of a board for manual assembling.</nobr><p>"
+       "RUN mount-trace (<i>this help page</i>)<br>"
+       "RUN mount-trace <b>-L</b> <i>generate a trace list from current board.</i><br>"
+       "RUN mount-trace <b>0</b> <i>set pointer to zero.</i><br>"
+       "RUN mount-trace <b>+</b> <i>pointer+1, show the next value(s).</i><br>"
+       "RUN mount-trace <b>++</b> <i>pointer+1, show a dialog with the counts, value and package.</i><br>"
+       "RUN mount-trace <b>-</b> <i>pointer-1, show the previous value(s).</i><br>"
+       "RUN mount-trace <b>--</b> <i>pointer-1, show a dialog with the counts, value and package.</i><br>"
+       "RUN mount-trace <b>-M</b> <i>mirror the whole board [make Bottom to Top] "
+       " save board with an extended name and generate trace list from this side.</i><p>"
+       "<b>Tip</b>: Define function key(s) with ASSIGN for easier use of this ULP.<p>"
+       "<author>Author: support@cadsoft.de</author></qt>"
+
+string Hilfe = "<qt><b>MOUNT TRACE</b> zeigt alle Bauteile auf der Top-Seite mit gleichem Value für manuelles Bestücken.<p>" +
+               "RUN mount-trace (<i>diese Hilfeseite</i>)<br>" +
+               "RUN mount-trace <b>-L</b> <i>generiert die Trace-Liste des aktuellen Boards.</i><br>" +
+               "RUN mount-trace <b>0</b> <i>setzt den Zeiger auf null.</i><br>" +
+               "RUN mount-trace <b>+</b> <i>Zeiger+1, zeige die Bauteile mit dem nächsten Wert an.</i><br>" +
+               "<nobr>RUN mount-trace <b>++</b> <i>Zeiger+1, zeige die Anzahl, den Wert und das Package der Bauteile in einem Dialog.</i><nobr><br>" +
+               "RUN mount-trace <b>-</b> <i>Zeiger-1, zeige die Bauteile mit dem vorhergehenden Wert an.</i><br>" +
+               "<nobr>RUN mount-trace <b>--</b> <i>Zeiger-1, zeige die Anzahl, den Wert und das Package der Bauteile in einem Dialog.</i><nobr><br>" +
+               "RUN mount-trace <b>-M</b> <i>Spiegelt das ganze Board [Unten nach Oben], speichert das Board mit<br>" +
+               "Namenserweiterung und generiert dafür eine Liste der Bauteile auf der Oberseite.</i><p>" +
+               "<nobr><b>Tip</b>: Setzen Sie sich Funktionstasten [ASSIGN] mit den Optionen für eine einfachere Bedienung.</nobr><p>" +
+               "<author>Author: support@cadsoft.de</author></qt>";
+
+#require 5.1000;
+
+string Version = "Version 1.3.0"; // 2006-04-27
+                                  // 2008-04-10 changed GROUP ... (>x y); alf@cadsoft.de
+                                  // 2008-11-03 correct SHOW comand Version 5.x
+                                  // 2010-09-06 Tippfehler in Description berichtigt
+                                  //            Mit Option ++ -- um auch die Stückzahl anzuzeigen.
+                                  //            Der SHOW-Befehl kann nur Bauteile anzeigen, deshalb
+                                  //            muß die Anzahl und der Wert gesondert angezeigt werden,
+                                  //            was nur mit dem entsprechenden ulpmessage.ulp durchführbar ist.
+                                  //            Das aber eine weitere Bestätigung (Testendruck) benötigt.
+                                  // 2010-09-08 Packagevarianten werden berücksichtigt npackage[];
+                                  //
+
+numeric string nshow[], nvalue[], npackage[];
+int    ncnt[];
+int    cnt;
+int    lcnt;
+string empty = "~/empty/~";
+
+int    optshow   = 0;         // Only board. Option to manually placing 2006.04.25
+
+string mirrorext = "-~~mirror"; // file extension if Board mirrored
+
+string traceext = "~~trace.trc";
+string tracefile = "~~trace.cnt";
+string fname, mname, ftrace;
+string cmd;
+
+
+void test(void) {
+  dlgDialog("test") {
+    int sel = 0;
+    dlgListView("Element", nshow, sel);
+    dlgPushButton("+OK") dlgAccept();
+  };
+  return;
+}
+
+
+void add_list(string name, string value, string pac) {
+  if (!value) {
+    string s;
+    sprintf(s, "!Element <b>%s</b> has no value.<br>Add to view list?", name);
+    if (dlgMessageBox(s, "YES", "NO") != 0) return;
+    value = empty;
+  }
+  int new = 1;
+  for (int n = 0; n < cnt; n++) {
+    if (nvalue[n] == value && npackage[n] == pac) {
+      nshow[n] += " " + name + "";
+      ncnt[n]++;
+      return;
+    }
+  }
+  nvalue[cnt] = value;
+  npackage[cnt] = pac;
+  nshow[cnt] += " " + name + "";
+  ncnt[cnt] = 1;
+  cnt++;
+  return;
+}
+
+
+void set_trace_zero(void) {
+  output(ftrace, "wt") {
+    printf("0");
+  }
+  return;
+}
+
+void generate_list(void) {
+  board(B) {
+    B.elements(E) {
+      E.package.contacts(S) {  // only Packages with Pads or Smds
+        if (!E.mirror) add_list(E.name, E.value, E.package.name);  // only packages on Top : 2010-09-06 case sensitive
+        break;
+      }
+    }
+    int index[];
+    sort( cnt, index, nvalue, npackage);
+    output(fname, "wt") {
+      for (int n = 0; n < cnt; n++) {
+        printf("%d\t%s\t%s\t%s\n", ncnt[index[n]], nvalue[index[n]], npackage[index[n]], nshow[index[n]]);
+      }
+    }
+    set_trace_zero();
+  }
+  cmd = "DISPLAY NONE 21 -23 25 27 51;\nRUN '" + argv[0] + "' +;\n";
+  exit(cmd);
+}
+
+
+void read(void) {
+  string l[];
+  lcnt = fileread(l, fname);
+  for (int n = 0; n < lcnt; n++) {
+    string s[];
+    int x = strsplit(s, l[n], '\t');
+    ncnt[n] = strtol(s[0]);
+    nvalue[n] = s[1];
+    npackage[n] = s[2];
+    nshow[n] = s[3];
+  }
+  string t;
+  cnt = fileread(t, ftrace);
+  cnt = strtol(t);
+  return;
+}
+
+
+void checkfile(void) {  // check exist trace-list of this board
+  string s[];
+  int n = fileglob(s, ftrace);
+  if (!n) {
+    generate_list();
+  }
+  return;
+}
+
+
+void traceplus() {
+  if (argv[1] == "+") sprintf(cmd, "SHOW %s", nshow[cnt]);
+  else if (argv[1] == "++") {
+    if (language() == "de") {
+      sprintf(cmd, "RUN ulpmessage '%d Stück <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+    }
+    else {
+      sprintf(cmd, "RUN ulpmessage '%d part(s) <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+    }
+  }
+  cnt++;
+  if (cnt < lcnt) {
+    output(ftrace, "wt") {
+      printf("%d", cnt);
+    }
+  }
+  else {
+    if (language() == "de") {
+      dlgMessageBox("Letzter Eintrag!" , "OK");
+    }
+    else {
+      dlgMessageBox("Last entry!" , "OK");
+    }
+  }
+  exit(cmd);
+}
+
+
+void traceminus() {
+  cnt--;
+  if (cnt < 0) {
+    cnt = 0;
+    if (language() == "de") {
+      dlgMessageBox("Erster Eintrag!", "OK");
+    }
+    else {
+      dlgMessageBox("First entry!", "OK");
+    }
+  }
+  if (argv[1] == "-") sprintf(cmd, "SHOW %s", nshow[cnt]);
+  if (argv[1] == "--") {
+    if (language() == "de") {
+      sprintf(cmd, "RUN ulpmessage '%d Stück <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+    }
+    else {
+      sprintf(cmd, "RUN ulpmessage '%d part(s) <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+    }
+  }
+  output(ftrace, "wt") {
+    printf("%d", cnt);
+  }
+  exit(cmd);
+}
+
+
+void opt_Mirror(void) {  // 2006.04.25
+  string cmd;
+  int pos = strstr(mname , mirrorext);
+  if (pos > 0) {
+    if (language() == "de") {
+      if (dlgMessageBox("<qt><nobr>Board ist gespiegelt! Siehe Dateiname.<br>Möchten Sie das <b>nicht-gespiegelte</b> Board laden?</qt>", "JA", "NEIN") != 0) exit(0);
+      set_trace_zero();
+      sprintf(cmd, "EDIT '%s.brd';\nDISPLAY NONE 21 -23 25 27;\n", strsub(mname, 0, pos));
+      exit(cmd);
+    }
+    else {
+      if (dlgMessageBox("<qt>Board is mirrored! See file name.<br>Do you want load the <b>non-mirrored</b> board?</qt>", "YES", "NO") != 0) exit(0);
+    }
+    set_trace_zero();
+    sprintf(cmd, "EDIT '%s';\nDISPLAY NONE 21 -23 25 27;\n", mname);
+    exit(cmd);
+  }
+  else {
+    fname = filesetext(mname, mirrorext+".brd");
+    string f[];
+    int cnt = fileglob(f, fname);
+    if (cnt) {
+      set_trace_zero();
+      sprintf(cmd, "EDIT '%s';\nDISPLAY NONE 21 -23 25 27;\n", fname);
+    }
+    else {
+      if (language() == "de") {
+        if (dlgMessageBox("<nobr>Das Board wird mit der Namenserweiteung <b>" + mirrorext + "</b> gespiegelt gespeichert!</nobr>", "OK" , "ABBRUCH") != 0) exit(0);
+      }
+      else {
+        if (dlgMessageBox("<nobr>Save board with extended name <b>" + mirrorext + "</b>!</nobr>", "OK" , "CANCEL") != 0) exit(0);
+      }
+      set_trace_zero();
+      sprintf(cmd, "WRITE '%s';\nEDIT '%s';\n" +
+                   "DISPLAY ALL;\n" +
+                   "GRID MM;\n" +
+                   "GROUP (-800 -800) (800 -800) (800 800) (-800 800) (>-800 -800);\n" +
+                   "MIRROR (> 0 0);\n" +
+                   "WIN FIT;\n" +
+                   "DISPLAY NONE 21 -23 25 27;\nWRITE;\nRUN '%s' -L;\n", fname, fname, argv[0]);
+    }
+    exit(cmd);
+  }
+}
+
+
+
+if (board) {
+  board(B) {
+    mname = B.name;
+    fname = filesetext(B.name, traceext);
+    ftrace = filesetext(B.name, tracefile);
+  }
+  if (!argv[1]) {
+    if (language() == "de") {
+      dlgMessageBox(Hilfe + Version, "OK");
+    }
+    else {
+      dlgMessageBox(usage + Version, "OK");
+    }
+    exit(0);
+  }
+  if (argv[1] == "-M") opt_Mirror();   // Mirror option
+  else if (argv[1] == "-L") generate_list();
+  else if (argv[1] == "+" || argv[1] == "++" || argv[1] == "-" || argv[1] == "--" || argv[1] == "0") {
+    checkfile();
+    read();
+    if (argv[1] == "+" || argv[1] == "++") traceplus();
+    if (argv[1] == "-" || argv[1] == "--") traceminus();
+    if (argv[1] == "0") {
+      set_trace_zero();
+      exit(";"); // view nothing
+    }
+  }
+  else {
+    if (language() == "de") {
+      dlgMessageBox("Unbekannte Option " + argv[1], "OK");
+      dlgMessageBox(Hilfe + Version, "OK");
+    }
+    else {
+      dlgMessageBox("Unknown option " + argv[1], "OK");
+      dlgMessageBox(usage + Version, "OK");
+    }
+    exit(-2);
+  }
+}
+
+else dlgMessageBox("!Start this ULP from a Board", "OK");
