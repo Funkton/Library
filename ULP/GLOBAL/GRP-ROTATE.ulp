@@ -32,7 +32,8 @@ To-Do Feature List:
 */
 
 #usage 	"Rotate group by increment.<p>"
-		"When launched from shortcut, rotates around origin at mouse cursor. Clear mark using 'mark ;'"
+		"When launched from shortcut, rotates around origin at mouse cursor. Clear mark using 'mark ;'<p>"
+		"Example: ASSIGN (key) 'RUN GRP-ROTATE 45'"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
 		
@@ -59,7 +60,7 @@ cmd += " (> @);";
 if (!error) {
 
 //DEBUG
-output ("GRP-ROTATE.txt", "wt") { printf("%s\n", cmd); }// Debug (uncomment output {} section) }
+//output ("GRP-ROTATE.txt", "wt") { printf("%s\n", cmd); }// Debug (uncomment output {} section) }
 
 
 exit(cmd);

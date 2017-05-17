@@ -1,0 +1,91 @@
+EAGLE Bugs:
+- PDF PRINTER: Vector font in PDF prints is not selectable or searchable. (proportional font is searchable, not VECTOR)
+	From Help: Texts in a PDF file can be searched in a PDF viewer, as long as they are not using the vector font.
+- Save selection as Design Block does not open dialog.
+- Routing (bend 1) Shift-Click does not add via.
+- Right clicking through bend styles does not cycle from follow-me to regular.
+- Eagle.scr change font to vector does not work on startup, but does when rerunning from scr button.
+- Follow-Me router does not go into vias centered. Messes up teardrop script.
+- No way to select BRD/SCH (button) from cmd or shortcut. Works entering 'BOARD' from schematic, but not the other way.
+	Yes: 'EDIT .brd' and 'EDIT .sch' works. Also Windows automatically get 'ALT+1,2,3' shortcuts created.
+- Copying groups of vias changes the net. (GND -> GND1) but copying one at a time does not. Do not change net.
+- Project directories (ULP, SCR) do not include sub folders. Add option to include.
+- Main toolbar (Command Buttons) only snaps to right and left sides, nowhere else. Can change location from eaglerc.usr, so it is possible.
+- SHOW Group does not work. When group is selected in SCHEMATIC, it is highlighted in sch not brd. It should also highlight the group in BOARD.
+- FOLLOW-ME: Switching from standard bend style to Follow-Me (8 or 9) places route where mouse was hovering.
+REPORTED - FOLLOW-ME: Does not want to place very simple track. Possibly due to routing out of QFP pack next to net class with larger clearance.
+- ROUTE: Spacebar does not enable bottom layer while middle click does.
+- TOOLBARS: Enabling views of toolbars is global. Separate for editors.
+EAGLE HELP:
+	- Cannot increase text size. Ctrl+/- does nothing.
+	- Cannot switch to Eagle Help while other eagle dialog is open.
+8.2.0
+- Group tool now snaps to grid. I do not want group to snap, hard to go between nets in schematic.
+- Route latches onto hidden airwires.
+
+
+
+Suggestions:
+- TOUCHSCREEN: Add functions to modernize for touch input.
+- ACTIVE RATSNEST: When rip is used on a series of lines, runs automatic ratsnest on line as it goes. Like using ripup on airwires, snapping them to the nearest point.
+	ACTIVE AIRWIRE: Snaps airwire to current route or as ripup is used. Airwire rubberbands like when moving element. 
+- VIAS: Hide blind vias if layer is not visible.
+- Set tool default layers. (Measures when selecting dimension, tNames when selecting text) Set from eagle.scr?
+- Enable ASSIGN for punctuation. Currently only a-z, 0-9, F1-F12, and backspace. Very limiting.
+- Hide tools that error when selecting.
+	BOARD:	Signal - Can't backannotate
+		Delete - Suppress backannotate error, just do nothing instead.
+- Smart Drag / Angle Lock. Trace keeps angle while moving endpoint of 45° trace. This would be more useful to me than the entirety of the follow-me router.
+- Add official Teardrop.
+- Add Layer Stack ULP, like Drillegend that takes into account the thickness settings in DRC. (show Layer-Stack library part as example)
+	Add Layer stack image export from DRC layers menu.
+- DRC: Make setting up blind/buried vias easier.
+- DRC: Enable adding rigid-flex options to layer stack.
+- DRC: Ignore all errors created by routes inside of pad. Pads are closer together on package than clearance of net class, throws a ton of errors for routing into a part.
+- NET CLASSES: Independent clearance settings for routes, pads, vias, rectangle. 
+- Add TRUELEY global attributes, or at least rename them to board and schematic attributes.
+- EDIT menu: Remove the tool commands and move them to 'TOOLS' Duh.
+- Move User interface elements from 'SET -> MISC' to User Interface. (display options of vias, signals, etc)
+- MENU: Change 'Set...' To 'Settings'. Musch easier for a new comer to understand.
+- Import / Export shortcuts.
+- SETTINGS: Move the lonely 1 DRC item to MISC. Or add additional settings, such as what kind of warnings to suppress.
+- UI: Enable the ability to customize icon locations. Similar to Firefox's. Right click on toolbars, 'Customize'. Drag and drop and remove.
+- UI: Remove bottom unused status bar. Only Icon is a green lightning bolt. Move to upper right.
+- UI: Allow command buttons toolbar to snap to bottom and top.
+- UI: Add HTML (WYSIWYG) editor controls to description editor. List what tags are supported.
+- VARIANTS: When part is not populated, leave silkscreen on board. I want variant to only be reflected in schematic. 
+- VARIANTS: Allow option to select 'populated' from properties dialog.
+- FEATURE: Add ability to use up and down arrows to change width at set increments. WIDTH_MENU has them, just need to be able to navigate them with arrows.
+- FORUM REQUEST: Development Section - Currently in progress bugs or features.
+- FORUM REQUEST: Feature section, with vote system to see what feature is most important to users. (Altium has this)
+- CAM Processor: Allow changing section order. Currently have to modify .cam in text to reorder them.
+REPORTED - SCHEMATIC FEATURE: Independent controls for 'Group command default on'(group auto on in sch, but not brd). https://forums.autodesk.com/t5/eagle-forum/suggestion-separate-settings-for-group-default-on/td-p/6942933
+- SCHEMATIC FEATURE: Stop treating switching sheets as a command that deactivates tools, or at least restore tool or operation after switching.
+- SCHEMATIC FEATURE: Add lock option like brd version.
+- DRC FEATURE: Add separate manufacturing limits design rules (separate clearance error checking, what it should pour vs how close it can be manufactured. DFM Check.
+- ATTRIBUTES: List of all parts' attributes, bulk edit. Allow movement with attributes dialog open, with option of clicking other components. 
+- FEATURE ULP: Stitch ulp to fill empty areas with vias, without colliding. (follow drc clearances)
+- ROTATE: When click and rotate, snap to angle step. Currently roatates to 3+ digits.
+- SHOW: Add option for auto highlight when hovering over tracks (Altium has this)
+- DISPLAY: Hide tracks. Able to see pads only.
+- LIBRARY:
+	- Add draw tool, rectangle (like kicad)
+- DRAWING: Rectangles, ability to enter height width and then origin. Would really help while drawing things from datasheets.
+- INFO/PROPERTIES: Labels for coordinate boxes. X1, X2, Y1, Y2
+
+TIPS TO SHOW:
+- MITER: Click and drag to dynamically set radius.
+- Windows folder, hide backup file extensions (attrib +h *.L#1 /s)
+
+
+
+Settings from eaglerc.usr to investigate:
+
+Option.ActivateItemOnSingleClick = "0"
+Option.DisplayMode = "1"
+
+Option.PadNames = "0"
+Option.SignalNames = "0"
+Option.SignalNamesOnPads = "0"
+Option.SignalNamesOnTraces = "0"
+

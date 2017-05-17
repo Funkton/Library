@@ -31,128 +31,129 @@
 #----------------------------------#
 
 BRD:
-	ASSIGN A+A ATTRIBUTE;
-	ASSIGN A+R RATSNEST;
-	ASSIGN A+S SIGNAL;
-	ASSIGN C+E ERRORS;
-	ASSIGN C+G GROUP;
-	ASSIGN C+H HOLE;
-	ASSIGN C+I INFO;
-	ASSIGN CA+I SHOW;
-	ASSIGN CSA+I 'RUN showgroup';
-	ASSIGN C+M MOVE;
-	ASSIGN CA+M 'RUN MOVEBY';
-	ASSIGN CSA+M 'RUN GRP-ROTATE 45'
-	ASSIGN C+L 'SET WIRE_BEND 1; MITER 0; ROUTE';
-	ASSIGN CA+L 'LINE; CHANGE LAYER 21; LINE';
-	ASSIGN CSA+L 'SET WIRE_BEND 8; ROUTE';
-	ASSIGN C+T TEXT;
-	ASSIGN C+T PASTE;
-	ASSIGN C+X CHANGE;
-	ASSIGN C+Y REDO;
-	ASSIGN C+Z UNDO;
-	ASSIGN CA+G 'Display';
-	ASSIGN SC+A ADD;
-	ASSIGN SC+C COPY;
-	ASSIGN SC+D DRC;
-	ASSIGN SC+N NAME;
-	ASSIGN SC+P POLYGON;
-	ASSIGN C+R RIPUP;
-	ASSIGN CA+R DELETE;
-	ASSIGN CSA+R SLICE;
-	ASSIGN SC+S SMASH;
-	ASSIGN SC+V VALUE;
-	ASSIGN C+F 'RUN find.ulp';
-	ASSIGN ALT+BS 'edit .sch';
+	ASSIGN A+A 		ATTRIBUTE;
+	ASSIGN A+R 		RATSNEST;
+	ASSIGN A+S 		SIGNAL;
+	ASSIGN C+E 		ERRORS;
+	ASSIGN C+G 		GROUP; #mouse
+	ASSIGN CA+G 	'Display'; #mouse
+	ASSIGN CS+G 	''; #mouse mimmick old shift+click to place via. Must be in ROUTE
+	ASSIGN C+H 		HOLE;
+	ASSIGN C+I 		INFO; #mouse
+	ASSIGN CA+I 	SHOW; #mouse
+	ASSIGN CSA+I 	'RUN SHOWGROUP'; #mouse
+	ASSIGN C+M 		MOVE; #mouse
+	ASSIGN CA+M 	'RUN MOVEBY'; #mouse
+	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse
+	ASSIGN C+L 		'SET WIRE_BEND 1; MITER 0; ROUTE'; #mouse
+	ASSIGN CA+L 	'LINE; CHANGE LAYER 21; LINE'; #mouse
+	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse
+	ASSIGN C+T 		TEXT;
+	ASSIGN C+T 		PASTE;
+	ASSIGN C+X 		CHANGE;
+	ASSIGN C+Y 		REDO;
+	ASSIGN C+Z 		UNDO;
+	ASSIGN SC+A 	ADD;
+	ASSIGN SC+C 	COPY;
+	ASSIGN SC+D 	DRC;
+	ASSIGN SC+N 	NAME;
+	ASSIGN SC+P 	POLYGON;
+	ASSIGN C+R 		RIPUP; #mouse
+	ASSIGN CA+R		DELETE; #mouse
+	ASSIGN CSA+R 	SLICE; #mouse
+	ASSIGN SC+S 	SMASH;
+	ASSIGN SC+V 	VALUE;
+	ASSIGN C+F 		'RUN find.ulp';
+	ASSIGN ALT+BS 	'edit .sch';
 
-	ASSIGN F2 'run toggle -U Top tOrigins';
-	ASSIGN A+F2 'run toggle -S tPlace';
-	ASSIGN S+F2 'run toggle -S tStop tRestrict';
-	ASSIGN C+F2 'run toggle -s tNames';
-	ASSIGN CA+F2 'run toggle -s tDocu';
-	ASSIGN CS+F2 '';
-	ASSIGN SA+F2 '';
+	ASSIGN F2 		'run toggle -U Top tOrigins';
+	ASSIGN A+F2 	'run toggle -S tPlace';
+	ASSIGN S+F2 	'run toggle -S tStop tRestrict';
+	ASSIGN C+F2 	'run toggle -s tNames';
+	ASSIGN CA+F2 	'run toggle -s tDocu';
+	ASSIGN CS+F2 	'';
+	ASSIGN SA+F2 	'';
 
-	ASSIGN F3 'run toggle -U Bottom bOrigins';
-	ASSIGN A+F3 'run toggle -S bPlace';
-	ASSIGN S+F3 'run toggle -S bStop bRestrict';
-	ASSIGN C+F3 'run toggle -s bNames';
-	ASSIGN CA+F3 'run toggle -s bDocu';
-	#ASSIGN CS+F3 '';
-	#ASSIGN SA+F3 '';
+	ASSIGN F3 		'run toggle -U Bottom bOrigins';
+	ASSIGN A+F3 	'run toggle -S bPlace';
+	ASSIGN S+F3 	'run toggle -S bStop bRestrict';
+	ASSIGN C+F3 	'run toggle -s bNames';
+	ASSIGN CA+F3 	'run toggle -s bDocu';
+	#ASSIGN CS+F3 	'';
+	#ASSIGN SA+F3 	'';
 
-	ASSIGN F4 'run toggle pads vias unrouted dimension'
-	ASSIGN A+F4 'run toggle milling measures document Outline DrillLegend';
-	ASSIGN S+F4 'run toggle -S reference tDocu bDocu ';
-	#ASSIGN C+F4 '';
-	#ASSIGN CA+F4 '';
-	#ASSIGN CS+F4 '';
-	#ASSIGN SA+F4 '';
+	ASSIGN F4 		'run toggle pads vias unrouted dimension'
+	ASSIGN A+F4 	'run toggle milling measures document Outline DrillLegend';
+	ASSIGN S+F4 	'run toggle -S reference tDocu bDocu ';
+	#ASSIGN C+F4 	'';
+	#ASSIGN CA+F4 	'';
+	#ASSIGN CS+F4 	'';
+	#ASSIGN SA+F4 	'';
 
-	ASSIGN F5 'RATSNEST * ! GN*';
-	ASSIGN A+F5 run hide-airwires.ulp;
-	ASSIGN S+F5 'SET POLYGON_RATSNEST OFF';
-	#ASSIGN C+F5 'RATSNEST *';
-	#ASSIGN CA+F5 '';
-	ASSIGN CS+F5 'SET POLYGON_RATSNEST ON';
-	#ASSIGN SA+F5 '';
+#	ASSIGN F5 		'RATSNEST * ! GN*';
+	ASSIGN F5 		'RATS';
+	ASSIGN A+F5 	'run hide-airwires';
+	ASSIGN S+F5 	'SET POLYGON_RATSNEST OFF';
+	#ASSIGN C+F5 	'RATSNEST *';
+	#ASSIGN CA+F5 	'';
+	ASSIGN CS+F5 	'SET POLYGON_RATSNEST ON';
+	#ASSIGN SA+F5 	'';
 
-	#ASSIGN F6 ''
-	#ASSIGN A+F6 '';
-	#ASSIGN S+F6 '';
-	#ASSIGN C+F6 '';
+	#ASSIGN F6 		'';
+	#ASSIGN A+F6 	'';
+	#ASSIGN S+F6 	'';
+	#ASSIGN C+F6 	'';
 
-
-	#ASSIGN F6 '';
-	#ASSIGN A+F6 '';
-	#ASSIGN S+F6 '';
-	#ASSIGN C+F6 '';
-	#ASSIGN CA+F6 '';
-	#ASSIGN CS+F6 '';
-	#ASSIGN SA+F6 '';
+	#ASSIGN F6 		'';
+	#ASSIGN A+F6 	'';
+	#ASSIGN S+F6 	'';
+	#ASSIGN C+F6 	'';
+	#ASSIGN CA+F6 	'';
+	#ASSIGN CS+F6 	'';
+	#ASSIGN SA+F6 	'';
 
 #----------------------------------#
 #------- SCHEMATIC EDITOR ---------#
 #----------------------------------#
 
 SCH:
-	ASSIGN A+A ATTRIBUTE
-	ASSIGN A+F2 'Window fit;';
-	ASSIGN A+N NET;
-	ASSIGN C+C COPY;
-	ASSIGN C+E ERRORS;
-	ASSIGN C+F 'RUN find.ulp';
-	ASSIGN C+G GROUP;
-	ASSIGN C+I INFO;
-	ASSIGN CA+I SHOW;
-	ASSIGN CSA+I 'run SHOW-SCH-GROUP';
-	ASSIGN C+M MOVE;
-	ASSIGN CA+M 'RUN MOVEBY';
-	ASSIGN CSA+M 'RUN GRP-ROTATE 90'
-	ASSIGN C+N NAME;
-	ASSIGN C+L NET;
-	ASSIGN CA+L LINE;
-	ASSIGN C+T TEXT;
-	ASSIGN C+V PASTE;
-	ASSIGN C+W LINE;
-	ASSIGN C+X CHANGE;
-	ASSIGN C+Y REDO;
-	ASSIGN C+Z UNDO;
-	ASSIGN CA+G 'Display';
-	ASSIGN F3 'Window 2';
-	ASSIGN F4 'Window 0.5';
-	ASSIGN F5 'Window (@);';
-	ASSIGN SC+A ADD;
-	ASSIGN SC+E ERC;
-	ASSIGN SC+I INVOKE;
-	ASSIGN SC+P POLYGON;
-	ASSIGN C+R DELETE;
-	ASSIGN CA+R DELETE;
-	ASSIGN CSA+R SLICE;
-	ASSIGN SC+S SMASH;
-	ASSIGN SC+V VALUE;
+	ASSIGN A+A 		ATTRIBUTE
+	ASSIGN A+F2 	'Window fit;';
+	ASSIGN A+N 		NET;
+	ASSIGN C+C 		COPY;
+	ASSIGN C+E 		ERRORS;
+	ASSIGN C+F 		'RUN find.ulp';
+	ASSIGN C+G 		GROUP;
+	ASSIGN C+I 		INFO;
+	ASSIGN CA+I 	SHOW;
+	ASSIGN CSA+I 	'run SHOW-SCH-GROUP';
+	ASSIGN C+M 		MOVE;
+	ASSIGN CA+M 	'RUN MOVEBY';
+	ASSIGN CSA+M 	'RUN GRP-ROTATE 90'
+	ASSIGN C+N 		NAME;
+	ASSIGN C+L 		NET;
+	ASSIGN CA+L 	LINE;
+	ASSIGN C+T 		TEXT;
+	ASSIGN C+V 		PASTE;
+	ASSIGN C+W 		LINE;
+	ASSIGN C+X 		CHANGE;
+	ASSIGN C+Y 		REDO;
+	ASSIGN C+Z 		UNDO;
+	ASSIGN CA+G 	'Display';
+	ASSIGN F3 		'Window 2';
+	ASSIGN F4 		'Window 0.5';
+	ASSIGN F5 		'Window (@);';
+	ASSIGN SC+A 	ADD;
+	ASSIGN SC+E 	ERC;
+	ASSIGN SC+I 	INVOKE;
+	ASSIGN SC+P 	POLYGON;
+	ASSIGN C+R 		DELETE; #Ripup muscle memory from board editor
+	ASSIGN CA+R 	DELETE;
+	ASSIGN CSA+R 	SLICE;
+	ASSIGN SC+S 	SMASH;
+	ASSIGN SC+V 	VALUE;
 
-	ASSIGN ALT+BS 'edit .brd';
+	ASSIGN ALT+BS 	'edit .brd';
 
 #----------------------------------#
 #--------- LIBRARY EDITOR ---------#
@@ -160,50 +161,50 @@ SCH:
 
 LBR:
 
-	ASSIGN A+C CONNECT;
-	ASSIGN A+P PAD;
-	ASSIGN A+S SMD;
-	ASSIGN C+D DELETE;
-	ASSIGN C+E EDIT;
-	ASSIGN C+F 'RUN find.ulp';
-	ASSIGN C+G GROUP;
-	ASSIGN CA+G 'Display';
-	ASSIGN C+H HOLE;
-	ASSIGN C+I INFO;
-	ASSIGN CA+I SHOW;
-	ASSIGN C+M MOVE;
-	ASSIGN CA+M 'RUN MOVEBY';
-	ASSIGN C+N NAME;
-	ASSIGN C+T TEXT;
-	ASSIGN C+V Paste;
-	ASSIGN C+L LINE;
-	ASSIGN C+Y REDO;
-	ASSIGN C+Z UNDO;
-	ASSIGN F2 'run EDITPREV';
-	ASSIGN F3 'run EDITNEXT';
-	ASSIGN SC+A ADD;
-	ASSIGN SC+C COPY;
-	ASSIGN SC+N NAME;
-	ASSIGN SC+P POLYGON;
-	ASSIGN CA+R DELETE;
-	ASSIGN CSA+R SLICE;
+	ASSIGN A+C 		CONNECT;
+	ASSIGN A+P 		PAD;
+	ASSIGN A+S 		SMD;
+	ASSIGN C+D 		DELETE;
+	ASSIGN C+E 		EDIT;
+	ASSIGN C+F 		'RUN find.ulp';
+	ASSIGN C+G 		GROUP;
+	ASSIGN CA+G 	'Display';
+	ASSIGN C+H 		HOLE;
+	ASSIGN C+I 		INFO;
+	ASSIGN CA+I 	SHOW;
+	ASSIGN C+M 		MOVE;
+	ASSIGN CA+M 	'RUN MOVEBY';
+	ASSIGN C+N 		NAME;
+	ASSIGN C+T 		TEXT;
+	ASSIGN C+V 		Paste;
+	ASSIGN C+L 		LINE;
+	ASSIGN C+Y 		REDO;
+	ASSIGN C+Z 		UNDO;
+	ASSIGN F2 		'run EDITPREV';
+	ASSIGN F3 		'run EDITNEXT';
+	ASSIGN SC+A 	ADD;
+	ASSIGN SC+C 	COPY;
+	ASSIGN SC+N 	NAME;
+	ASSIGN SC+P 	POLYGON;
+	ASSIGN CA+R 	DELETE;
+	ASSIGN CSA+R 	SLICE;
 
 PAC:
 
-	#ASSIGN F2 'run toggle Top tOrigins';
-	ASSIGN A+F2 'display all';
-	#ASSIGN S+F2 'run toggle -S tStop tRestrict';
-	#ASSIGN C+F2 'run toggle -s tPlace';
-	#ASSIGN CA+F2 'run toggle -s tDocu';
-	#ASSIGN CS+F2 '';
-	#ASSIGN SA+F2 '';
+	#ASSIGN F2 		'run toggle Top tOrigins';
+	ASSIGN A+F2 	'display all';
+	#ASSIGN S+F2 	'run toggle -S tStop tRestrict';
+	#ASSIGN C+F2 	'run toggle -s tPlace';
+	#ASSIGN CA+F2 	'run toggle -s tDocu';
+	#ASSIGN CS+F2 	'';
+	#ASSIGN SA+F2 	'';
 
-	#ASSIGN F3 'run toggle Bottom bOrigins';
-	ASSIGN A+F3 'display none; display';
-	#ASSIGN S+F3 'run toggle -S bStop bRestrict';
-	#ASSIGN C+F3 'run toggle -s bPlace';
-	#ASSIGN CA+F3 'run toggle -s bDocu';
-	#ASSIGN CS+F3 '';
-	#ASSIGN SA+F3 '';
+	#ASSIGN F3 		'run toggle Bottom bOrigins';
+	ASSIGN A+F3 	'display none; display';
+	#ASSIGN S+F3 	'run toggle -S bStop bRestrict';
+	#ASSIGN C+F3 	'run toggle -s bPlace';
+	#ASSIGN CA+F3 	'run toggle -s bDocu';
+	#ASSIGN CS+F3 	'';
+	#ASSIGN SA+F3 	'';
 
 SYM:
