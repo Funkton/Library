@@ -1,34 +1,29 @@
-EAGLE Bugs:
-- PDF PRINTER: Vector font in PDF prints is not selectable or searchable. (proportional font is searchable, not VECTOR)
-	From Help: Texts in a PDF file can be searched in a PDF viewer, as long as they are not using the vector font.
-- Save selection as Design Block does not open dialog.
-- Routing (bend 1) Shift-Click does not add via.
-- Right clicking through bend styles does not cycle from follow-me to regular.
-- Eagle.scr change font to vector does not work on startup, but does when rerunning from scr button.
-- Follow-Me router does not go into vias centered. Messes up teardrop script.
-- No way to select BRD/SCH (button) from cmd or shortcut. Works entering 'BOARD' from schematic, but not the other way.
-	Yes: 'EDIT .brd' and 'EDIT .sch' works. Also Windows automatically get 'ALT+1,2,3' shortcuts created.
-- Copying groups of vias changes the net. (GND -> GND1) but copying one at a time does not. Do not change net.
-- Project directories (ULP, SCR) do not include sub folders. Add option to include.
-- Main toolbar (Command Buttons) only snaps to right and left sides, nowhere else. Can change location from eaglerc.usr, so it is possible.
-- SHOW Group does not work. When group is selected in SCHEMATIC, it is highlighted in sch not brd. It should also highlight the group in BOARD.
-- FOLLOW-ME: Switching from standard bend style to Follow-Me (8 or 9) places route where mouse was hovering.
-REPORTED - FOLLOW-ME: Does not want to place very simple track. Possibly due to routing out of QFP pack next to net class with larger clearance.
-- ROUTE: Spacebar does not enable bottom layer while middle click does.
-- TOOLBARS: Enabling views of toolbars is global. Separate for editors.
-EAGLE HELP:
-	- Cannot increase text size. Ctrl+/- does nothing.
-	- Cannot switch to Eagle Help while other eagle dialog is open.
-8.2.0
-- Group tool now snaps to grid. I do not want group to snap, hard to go between nets in schematic.
-- Route latches onto hidden airwires.
-
-
+EAGLE MISC
+- Note: While using ROUTE, tab is an open modifier key
 
 Suggestions:
+
+Add ability to save template as default for the new menu in control panel.
+
+- NEW: Using MOVE, ctrl click can arc a line and move rectangle ends. Suggest Shift+click changes width. Moving up or down to grow and shrink. For rectangles it could be a resize center aligned.
+
+- NEW: GRID: AUTO WIDTH feature to link width to grid size.
+	- Steps per grid size. ex: grid = 1mm, steps = 10 , width increment = 1/10 = 0.1mm. Percentage or step input.
+	- NEW: using ROUTE, Shift + mousewheel to change width by step increment. Increase/decrease width by holding shift and scrolling. Option to use width menu or AUTO WIDTH step.
+- NEW: GRID: orthogonal grid (rotate grid by 45). Snaps to grid, plus the center point between them.
+	
+- NEW: Drawing: Mouse axis lock. Hold shift, then mouse only moves on axis. Start drawing a direction and hold to lock mouse direction. Add diagonal snap to orthogonal axis (45° increments).
+- NEW: Transpose tool (row to column)
+- Add way to remove joints in routes like deleting part of polygons.
+- SMASH: Split into smash text and smash device. Silkscreen and other parts would then be editable.
+
+- ROUTING: VIA: Suggest shift is momentary via on end. Down to have it at cursor, up regular routing.
+- PROPERTIES: 
+	Length: Enable user input. ALIGN buttons, left/center/right. Allows you to enter a length and have it calculate coordinates based on align.
 - TOUCHSCREEN: Add functions to modernize for touch input.
 - ACTIVE RATSNEST: When rip is used on a series of lines, runs automatic ratsnest on line as it goes. Like using ripup on airwires, snapping them to the nearest point.
-	ACTIVE AIRWIRE: Snaps airwire to current route or as ripup is used. Airwire rubberbands like when moving element. 
+	ACTIVE AIRWIRE: Snaps airwire to current route or as ripup is used. Airwire rubberbands like when moving element.
+- ACTIVE ALIGN: A snap to grid align feature. Something like Cycling 74's MAX visual programming environment. One of the best user interfaces I've ever used.
 - VIAS: Hide blind vias if layer is not visible.
 - Set tool default layers. (Measures when selecting dimension, tNames when selecting text) Set from eagle.scr?
 - Enable ASSIGN for punctuation. Currently only a-z, 0-9, F1-F12, and backspace. Very limiting.
@@ -70,12 +65,44 @@ REPORTED - SCHEMATIC FEATURE: Independent controls for 'Group command default on
 - DISPLAY: Hide tracks. Able to see pads only.
 - LIBRARY:
 	- Add draw tool, rectangle (like kicad)
-- DRAWING: Rectangles, ability to enter height width and then origin. Would really help while drawing things from datasheets.
+	- Add right click menu to items in table of contents.
+		- Add 'Rename' and 'remove' to item right click (pac, sym, dev) selection. Add 'New' to blank space right click.  
+- DRAWING: Rectangles, ability to enter height width and then origin. Would really help while drawing things from datasheets. (enhanced box.ulp)
 - INFO/PROPERTIES: Labels for coordinate boxes. X1, X2, Y1, Y2
+- ROUTE: Along with loop removal, have a stub removal. (might get tricky if you have open ends on other routes of net, maybe set the stub removal to only look to 1 or 2 joints deep.)
+- NET CLASSES: Allow clearance values to be % of width.
 
 TIPS TO SHOW:
 - MITER: Click and drag to dynamically set radius.
 - Windows folder, hide backup file extensions (attrib +h *.L#1 /s)
+- Windows mouse axis lock using autohotkey.
+
+
+EAGLE Bugs:
+- PDF PRINTER: Vector font in PDF prints is not selectable or searchable. (proportional font is searchable, not VECTOR)
+	From Help: Texts in a PDF file can be searched in a PDF viewer, as long as they are not using the vector font.
+- Save selection as Design Block does not open dialog.
+- Right clicking through bend styles does not cycle from follow-me to regular.
+- Eagle.scr change font to vector does not work on startup, but does when rerunning from scr button.
+- Follow-Me router does not go into vias centered. Messes up teardrop script.
+- No way to select BRD/SCH (button) from cmd or shortcut. Works entering 'BOARD' from schematic, but not the other way.
+	Yes: 'EDIT .brd' and 'EDIT .sch' works. Also Windows automatically get 'ALT+1,2,3' shortcuts created.
+- Copying groups of vias changes the net. (GND -> GND1) but copying one at a time does not. Do not change net.
+- Project directories (ULP, SCR) do not include sub folders. Add option to include.
+- Main toolbar (Command Buttons) only snaps to right and left sides, nowhere else. Can change location from eaglerc.usr, so it is possible.
+- SHOW Group does not work. When group is selected in SCHEMATIC, it is highlighted in sch not brd. It should also highlight the group in BOARD.
+- FOLLOW-ME: Switching from standard bend style to Follow-Me (8 or 9) places route where mouse was hovering.
+REPORTED - FOLLOW-ME: Does not want to place very simple track. Possibly due to routing out of QFP pack next to net class with larger clearance.
+- ROUTE: Spacebar does not enable bottom layer while middle click does.
+- TOOLBARS: Enabling views of toolbars is global. Separate for editors.
+EAGLE HELP:
+	- Cannot increase text size. Ctrl+/- does nothing.
+	- Cannot switch to Eagle Help while other eagle dialog is open.
+8.2.0
+- SLICE: Stars with mouse up event, instead of mouse down. Click and hold doesn't start it. Doesn't stay on grid (got 31.29798125 instead of 31.3)
+- Group tool now snaps to grid. I do not want group to snap, hard to go between nets in schematic.
+- Route latches onto hidden airwires.
+- ROUTE: Automatic traces (obstacle avoid) do not get placed on grid.
 
 
 

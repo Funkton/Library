@@ -66,25 +66,26 @@ BRD:
 	ASSIGN C+F 		'RUN find.ulp';
 	ASSIGN ALT+BS 	'edit .sch';
 
-	ASSIGN F2 		'run toggle -U Top tOrigins';
-	ASSIGN A+F2 	'run toggle -S tPlace';
-	ASSIGN S+F2 	'run toggle -S tStop tRestrict';
-	ASSIGN C+F2 	'run toggle -s tNames';
-	ASSIGN CA+F2 	'run toggle -s tDocu';
+					# Toggle needs some work, enables more that
+	ASSIGN F2 		'run toggle -S 1 23'; #Top tOrigins
+	ASSIGN A+F2 	'run toggle -S 21'; #tPlace
+	ASSIGN S+F2 	'run toggle -S 29 41'; #tStop tRestrict
+	ASSIGN C+F2 	'run toggle -s 25'; #tNames
+	ASSIGN CA+F2 	'run toggle -s 51'; #tDocu
 	ASSIGN CS+F2 	'';
 	ASSIGN SA+F2 	'';
 
-	ASSIGN F3 		'run toggle -U Bottom bOrigins';
-	ASSIGN A+F3 	'run toggle -S bPlace';
-	ASSIGN S+F3 	'run toggle -S bStop bRestrict';
-	ASSIGN C+F3 	'run toggle -s bNames';
-	ASSIGN CA+F3 	'run toggle -s bDocu';
+	ASSIGN F3 		'run toggle -S 16 24'; #Bottom bOrigins
+	ASSIGN A+F3 	'run toggle -S 22'; #bPlace
+	ASSIGN S+F3 	'run toggle -S 30 42'; #bStop bRestrict
+	ASSIGN C+F3 	'run toggle -s 26';
+	ASSIGN CA+F3 	'run toggle -s 52';
 	#ASSIGN CS+F3 	'';
 	#ASSIGN SA+F3 	'';
 
 	ASSIGN F4 		'run toggle pads vias unrouted dimension'
 	ASSIGN A+F4 	'run toggle milling measures document Outline DrillLegend';
-	ASSIGN S+F4 	'run toggle -S reference tDocu bDocu ';
+	ASSIGN S+F4 	'run toggle -S 49 51 52 ';
 	#ASSIGN C+F4 	'';
 	#ASSIGN CA+F4 	'';
 	#ASSIGN CS+F4 	'';
@@ -174,6 +175,7 @@ LBR:
 	ASSIGN CA+I 	SHOW;
 	ASSIGN C+M 		MOVE;
 	ASSIGN CA+M 	'RUN MOVEBY';
+	ASSIGN CSA+M 	'RUN GRP-ROTATE 45'; #mouse
 	ASSIGN C+N 		NAME;
 	ASSIGN C+T 		TEXT;
 	ASSIGN C+V 		Paste;
@@ -191,19 +193,19 @@ LBR:
 
 PAC:
 
-	#ASSIGN F2 		'run toggle Top tOrigins';
+	#ASSIGN F2 		'run toggle 1 23';
 	ASSIGN A+F2 	'display all';
-	#ASSIGN S+F2 	'run toggle -S tStop tRestrict';
-	#ASSIGN C+F2 	'run toggle -s tPlace';
-	#ASSIGN CA+F2 	'run toggle -s tDocu';
+	#ASSIGN S+F2 	'run toggle -S 29 41';
+	#ASSIGN C+F2 	'run toggle -s 21';
+	#ASSIGN CA+F2 	'run toggle -s 51';
 	#ASSIGN CS+F2 	'';
 	#ASSIGN SA+F2 	'';
 
-	#ASSIGN F3 		'run toggle Bottom bOrigins';
+	#ASSIGN F3 		'run toggle 16 24';
 	ASSIGN A+F3 	'display none; display';
-	#ASSIGN S+F3 	'run toggle -S bStop bRestrict';
-	#ASSIGN C+F3 	'run toggle -s bPlace';
-	#ASSIGN CA+F3 	'run toggle -s bDocu';
+	#ASSIGN S+F3 	'run toggle -S 30 42';
+	#ASSIGN C+F3 	'run toggle -s 22';
+	#ASSIGN CA+F3 	'run toggle -s 52';
 	#ASSIGN CS+F3 	'';
 	#ASSIGN SA+F3 	'';
 

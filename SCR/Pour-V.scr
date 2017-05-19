@@ -1,0 +1,2 @@
+#Ratsnest and process power polygons - For menu
+SET POLYGON_RATSNEST ON; RATSNEST V*;SET POLYGON_RATSNEST OFF;

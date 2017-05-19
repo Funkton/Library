@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.0">
+<eagle version="8.1.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="mm" unit="mm" style="dots" multiple="1" display="yes" altdistance="0.05" altunitdist="mm" altunit="mm"/>
+<grid distance="0.01" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.001" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -15007,10 +15007,10 @@ Mates with S2M Series
 <wire x1="3.81" y1="0" x2="3.81" y2="-12.1158" width="1.1684" layer="51"/>
 </package>
 <package name="SIP-.050-1X08">
-<description>&lt;b&gt;SIP Header&lt;/b&gt; - .050", 26 mil drill</description>
-<pad name="1" x="-4.445" y="0" drill="0.6604" diameter="1.1176" shape="square" first="yes"/>
-<pad name="2" x="-3.175" y="0" drill="0.6604" diameter="1.1176" thermals="no"/>
-<pad name="3" x="-1.905" y="0" drill="0.6604" diameter="1.1176"/>
+<description>&lt;b&gt;SIP Header&lt;/b&gt; - .050", 24 mil drill, 40mil diam</description>
+<pad name="1" x="-4.445" y="0" drill="0.6096" diameter="1.016" shape="square" first="yes"/>
+<pad name="2" x="-3.175" y="0" drill="0.6096" diameter="1.016" thermals="no"/>
+<pad name="3" x="-1.905" y="0" drill="0.6096" diameter="1.016"/>
 <wire x1="-5.461" y1="1.05" x2="5.461" y2="1.05" width="0.2032" layer="21"/>
 <wire x1="5.461" y1="1.05" x2="5.461" y2="-1.05" width="0.2032" layer="21"/>
 <wire x1="5.461" y1="-1.05" x2="-5.461" y2="-1.05" width="0.2032" layer="21"/>
@@ -15018,11 +15018,11 @@ Mates with S2M Series
 <text x="-5.08" y="1.27" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
 <text x="-5.08" y="-2.54" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
 <rectangle x1="-5.461" y1="-1" x2="5.461" y2="1" layer="39"/>
-<pad name="4" x="-0.635" y="0" drill="0.6604" diameter="1.1176"/>
-<pad name="5" x="0.635" y="0" drill="0.6604" diameter="1.1176"/>
-<pad name="6" x="1.905" y="0" drill="0.6604" diameter="1.1176"/>
-<pad name="7" x="3.175" y="0" drill="0.6604" diameter="1.1176"/>
-<pad name="8" x="4.445" y="0" drill="0.6604" diameter="1.1176"/>
+<pad name="4" x="-0.635" y="0" drill="0.6096" diameter="1.016"/>
+<pad name="5" x="0.635" y="0" drill="0.6096" diameter="1.016"/>
+<pad name="6" x="1.905" y="0" drill="0.6096" diameter="1.016"/>
+<pad name="7" x="3.175" y="0" drill="0.6096" diameter="1.016"/>
+<pad name="8" x="4.445" y="0" drill="0.6096" diameter="1.016"/>
 </package>
 <package name="TERM-S-TH-100-03">
 <description>3 Pos .1" Terminal Block. Designed to fit OSTVN03A150</description>

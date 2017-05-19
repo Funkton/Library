@@ -1,0 +1,70 @@
+#usage "<h3>Inverted Silkscreen</h3>"
+ "First create your art work (Polygon in top layer with text inside it on layer 41 tRestrict with vector font type).<br>"
+ "Run Ratsnest.<br>"
+ "Name the polygon with \"NEG_SILK\" to make it special from other normal polygons.<br>"
+ "Run <b>neg_silk.ulp</b><br><br>"
+ "<author>Authors: Christian Bohrer (Original), Yahya Tawil (Enhancment)</author>"
+
+
+ // THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+ /*
+ First Create by: Christian Bohrer (negasilk.ulp)
+ Edited by Yahya Tawil 2017 (neg_silk.ulp)
+ */
+	 
+string CMD="", SilkName="", silkspool="", Header = 
+"Set Wire_Bend 2;\n" + 
+"LAYER 21;\n" +	// YT 2017
+"GRID MM;\n\n";
+
+int Found = 0; // YT 2017
+
+/*
+if (board) board(B){ 
+SilkName = filesetext(B.name, "_.scr");
+}
+*/
+
+string Vectors(UL_WIRE W){
+ string h = "";
+ sprintf(h,"WIRE %3.4f (%3.4f %3.4f) (%3.4f %3.4f);\n", 
+ u2mm(W.width), u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2)); 
+ return h;
+}   
+
+///////////////////////////
+ if (board) board(B){    
+  B.signals(S){   
+	if(S.name == "NEG_SILK")
+	{
+		Found = 1;
+    S.polygons(P) { 
+     P.contours(W){ if(W.layer == 1){silkspool += Vectors(W);}}
+     P.fillings(W){ if(W.layer == 1){silkspool += Vectors(W);}}
+    }
+    } 
+  }
+ }
+//////////////////////////
+
+// YT 2017
+if(Found)
+{
+CMD = Header + silkspool ;
+exit(CMD); 
+}
+else
+{
+dlgMessageBox("! No Polygon with signal name \"NEG_SILK\" is found","+OK");
+exit(-1);	
+}
+//
+
+/*
+ silkspool+= "GRID LAST;\n";
+ 
+ output(SilkName){  
+ printf(Header);
+ printf(silkspool);
+ }
+*/

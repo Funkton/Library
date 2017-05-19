@@ -28,18 +28,26 @@ Version: 0.8 05/12/17
 Basic operation. Enter values to move by.
 
 To-Do Feature List:
-1) Get and display units, use list box to override.
-2) Box to enter single components?
-3) Add option to enter origin.
-4) Rotate option
+- For Rev 0.9
+[ ] - Store last used values as default.
+[ ] - Rotate option
+
+- For Rev 1.0
+[ ] - Get and display units, use list box to override.
+[ ]? - Box to enter single components?
+[ ]? - Handle MARK as the reference origin (where you want the offset should start from, would be handy in library creation from datasheet dimensions)
+[ ]x - 
 
 */
 
-#usage "Group move by x,y displacement."
-       "<author>Author: cnicks@phaseivengr.com</author>"
+#usage 	"Group move by x,y displacement. Define a group, enter values, enter.<p>"
+		"Moves the group by the amounts entered"
+		"<author>Author: Cameron.Nicks+Layout@gmail.com</author>"
+		"<author>Author: cnicks@phaseivengr.com</author>"
 
+// Input box Defaults
 
-real xVal = 0; // Set Defaults
+real xVal = 0; // Change to last used value. Can this be saved without writing to a file?
 real yVal = 0;
 
 string Version = "0.8";

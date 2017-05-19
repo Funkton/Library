@@ -1,0 +1,518 @@
+//Author:yahya.tawil@gmail.com
+
+#usage 	   "<html><p>This ULP makes creating packages for libraries much easier<br />"
+		   "You can use is to draw multiple SMDs/PADs, lines and rectangles</p>"
+		   "<p>PAD</p>"
+		   "<ul><li><strong>Select Shape</strong>: Select the shape of pad (Square-Round-Octagon-Long-Offset).</li>"
+		   "<li><strong>Select Axis</strong>: Select the axis of pads. Adding them horizontally or vertically.</li>"			   
+		   "<li><strong>Select PAD Angle</strong>: Select the angle of pad (0-45-90-180).</li>"
+		   "<li><strong>Count of PADs</strong>: Select how many pads you want to add.</li>"	
+		   "<li><strong>Pitch (Distance)</strong>: Select the distance between every 2 pads.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"
+		   "<p>SMD</p>"
+		   "<ul><li><strong>Select Axis</strong>: Select the axis of SMDs. Adding them horizontally or vertically.</li>"			   
+		   "<li><strong>Select SMD Angle</strong>: Select the angle of SMD (0-45-90-180).</li>"
+		   "<li><strong>Count of SMDs</strong>: Select how many SMDs you want to add.</li>"	
+		   "<li><strong>Roundness</strong>: Roundness of SMD.</li>"
+		   "<li><strong>Pitch (Distance)</strong>: Select the distance between every 2 SMDs.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li>"
+		   "<li><strong>Size </strong>: Size of SMD (X & Y).</li></ul>"		
+		   "<p>Line</p>"
+		   "<ul><li><strong>Select Axis</strong>: Adding line horizontally or vertically.</li>"			   
+		   "<li><strong>Select Layer</strong></li>"
+		   "<li><strong>Width</strong>: Select width of the wire.</li>"	
+		   "<li><strong>Length</strong>: Select length of the wire.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"
+		   "<p>Rectangle</p>"
+		   "<ul><li><strong>Select Axis</strong>: Adding line horizontally or vertically.</li>"			   
+		   "<li><strong>Select Layer</strong></li>"
+		   "<li><strong>Size</strong>: Select size of rectangle.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"		   
+		   "<p><strong>Usage:</strong> RUN LibIt.ulp<br />"
+		   "<strong>Author:<a href=\"mailto:yahya.tawil@gmail.com\">yahya.tawil@gmail.com</a></strong></p>"   
+		   "</html>"
+
+
+	/* LOG
+				Version		Date			Author			Comment
+				---------+----------------+--------------+---------------------------------------------------------------
+				V1.0		31 March 2017	Yahya Tawil		First Create. An entry for 4element Eagle ULPs contest 2017. Tested on Version 7.5.0 for Linux (32 bit) 
+	*/
+int CNT_P,CNT_S;
+int sel_P = 0 ;
+int sel_L = 0 ;
+int UsedGrid = 0;
+int Result;
+real Pitch = 0.0;
+real X =0;
+real Y =0;
+real X_width = 0.0;
+real Y_width = 0.0;
+real Length = 0;
+real Width = 0;
+string ShapOfPad[] = { "Square", "Round", "Octagon", "Long", "Offset" };
+string WhatToAdd[] = {"PAD", "SMD", "Line","Regtangle"};
+string Units[] = {"mm", "Inch"};
+string VerHor[] = {"Vertical","Horizintal"};
+string Angel[] = {"0","45","90","180"};
+string Layer[] = {"Top","Bottom","tPlace","bPlace","tStop","bStop","tKeepout","bKeepout","tRestrict","bRestrict","Document","Reference","tDocu","bDocu"};
+int angel[] = {0,45,90,180};
+int Sel_ShapOfPad = 2; // initially selects "Octagon"
+int Sel_WhatToAdd = 0; // initially selects "PAD"
+int Sel_Unit = 0; // initially selects "mm"
+int Sel_VerHor = 0; // initially selects "Vertical"
+int Sel_Angel = 0; // initially selects "0"
+int Sel_Layer = 2; // initially selects "tPlace"
+int Roudness = 0;
+
+string CMD;
+
+/*
+This Function contains all stuffs related to PAD dialog
+*/
+void PAD(void){
+	
+	CMD ="GRID ";
+	if(Sel_Unit == 0) // mm
+	{
+	CMD +="MM; ";	
+	}
+	else if(Sel_Unit == 1) // Inch
+	{
+	CMD +="INCH; ";	
+	}
+	CMD += "PAD ";
+		
+	Result = dlgDialog("PAD") 
+	{
+
+		dlgVBoxLayout 
+		{
+			dlgLabel("Select Shape:");
+			dlgComboBox(ShapOfPad, Sel_ShapOfPad) ;//dlgMessageBox("You have selected " + Colors[Selected]);
+			dlgLabel("Select Axis:");
+			dlgComboBox(VerHor, Sel_VerHor) ;
+			dlgLabel("Select PADs Angle:");
+			dlgComboBox(Angel, Sel_Angel) ;
+			dlgLabel("Count of PADs:");
+			dlgIntEdit(CNT_P);
+			dlgLabel("Pitch (Distance):");
+			dlgRealEdit(Pitch);
+
+		}
+		dlgHBoxLayout 
+		{
+		dlgLabel("Origin :");
+		dlgLabel("X");
+		dlgRealEdit(X);
+		dlgLabel("Y");
+		dlgRealEdit(Y);
+		}
+
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Run") { 
+			  
+			  string tmp;
+			  sprintf(tmp,"%s R%d",ShapOfPad[Sel_ShapOfPad],angel[Sel_Angel]);  
+			  CMD += tmp;
+			  CMD += ' ';
+			  
+			  
+				int temp = CNT_P;
+				
+				real X_Q = X;
+				real Y_Q = Y;
+				  
+				  while(temp !=0)
+				  {	
+					  if(Sel_VerHor == 0) // Vertical
+					  {
+					  sprintf(tmp,"(%f %f)",X_Q,Y);  	
+					  X_Q += Pitch;
+					  }
+					  else
+					  {
+					  sprintf(tmp,"(%f %f)",X,Y_Q);  	
+					  Y_Q += Pitch;  
+					  }
+					  CMD += tmp;
+					  temp --;
+					  // TODO show the results to user 
+				  }
+				  CMD +=';';
+				  //dlgMessageBox(CMD,"OK");
+				  Result = dlgDialog("PAD") 
+					{
+						string Text = CMD;
+						dlgVBoxLayout {
+					    dlgLabel("&Command");
+						dlgTextEdit(Text);
+					}
+						dlgPushButton("+&Let's do it") {exit(CMD);}
+						dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+					};
+		  
+		  }
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		}
+   		
+ 	};
+}
+
+/*
+This Function contains all stuffs related to SMD dialog
+*/
+void SMD(void){
+	
+	CMD ="GRID ";
+	if(Sel_Unit == 0) // mm
+	{
+	CMD +="MM; ";	
+	}
+	else if(Sel_Unit == 1) // Inch
+	{
+	CMD +="INCH; ";	
+	}
+	CMD += "SMD ";
+		
+	Result = dlgDialog("SMD") 
+	{
+
+		dlgVBoxLayout 
+		{
+			dlgLabel("Select Axis:");
+			dlgComboBox(VerHor, Sel_VerHor) ;
+			dlgLabel("Select SMDs Angle:");
+			dlgComboBox(Angel, Sel_Angel) ;
+			dlgLabel("Count of SMDs:");
+			dlgIntEdit(CNT_S);
+			dlgLabel("Roudness:");
+			dlgIntEdit(Roudness);			
+			dlgLabel("Pitch (Distance):");
+			dlgRealEdit(Pitch);
+
+		}
+		dlgHBoxLayout 
+		{
+		dlgLabel("Origin :");
+		dlgLabel("X");
+		dlgRealEdit(X);
+		dlgLabel("Y");
+		dlgRealEdit(Y);
+		}
+		
+		dlgHBoxLayout 
+		{
+		dlgLabel("Size :");
+		dlgLabel("X_width");
+		dlgRealEdit(X_width);
+		dlgLabel("Y_width");
+		dlgRealEdit(Y_width);
+		}
+
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Run") { 
+			  
+			  string tmp;
+			  sprintf(tmp,"%f %f -%d R%d",X_width,Y_width,Roudness,angel[Sel_Angel]);  
+			  CMD += tmp;
+			  CMD += ' ';
+			  
+			  
+				int temp = CNT_S;
+				
+				real X_Q = X;
+				real Y_Q = Y;
+				  
+				  while(temp !=0)
+				  {	
+					  if(Sel_VerHor == 0) // Vertical
+					  {
+					  sprintf(tmp,"(%f %f)",X_Q,Y);  	
+					  X_Q += Pitch;
+					  }
+					  else
+					  {
+					  sprintf(tmp,"(%f %f)",X,Y_Q);  	
+					  Y_Q += Pitch;  
+					  }
+					  CMD += tmp;
+					  temp --;
+					  // TODO show the results to user 
+				  }
+				  CMD +=';';
+				  //dlgMessageBox(CMD,"OK");
+				  Result = dlgDialog("SMD") 
+					{
+						string Text = CMD;
+						dlgVBoxLayout {
+					    dlgLabel("&Command");
+						dlgTextEdit(Text);
+					}
+						dlgPushButton("+&Let's do it") {exit(CMD);}
+						dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+					};
+		  
+		  }
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		}
+   		
+ 	};
+
+}
+
+/*
+This Function contains all stuffs related to Line dialog
+*/
+void Line(void){
+	
+	CMD ="GRID ";
+	if(Sel_Unit == 0) // mm
+	{
+	CMD +="MM; ";	
+	}
+	else if(Sel_Unit == 1) // Inch
+	{
+	CMD +="INCH; ";	
+	}
+		
+	Result = dlgDialog("Line") 
+	{
+
+		dlgVBoxLayout 
+		{
+			dlgLabel("Select Axis:");
+			dlgComboBox(VerHor, Sel_VerHor) ;
+			dlgLabel("Select Layer:");
+			dlgComboBox(Layer, Sel_Layer) ;		
+			dlgLabel("Width :");
+			dlgRealEdit(Width);			
+			dlgLabel("Length :");
+			dlgRealEdit(Length);
+
+		}
+		dlgHBoxLayout 
+		{
+			dlgLabel("Origin :");
+			dlgLabel("X");
+			dlgRealEdit(X);
+			dlgLabel("Y");
+			dlgRealEdit(Y);
+		}
+
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Run") { 
+			  
+			  	CMD += "LAYER "; 
+				CMD += Layer[Sel_Layer];
+				CMD +="; ";
+			  
+			  	string tmp;
+			  
+				int temp = CNT_S;
+				
+				real X_Q = X;
+				real Y_Q = Y;
+
+				if(Sel_VerHor == 0) // Vertical
+				{
+				X_Q += Length;
+				sprintf(tmp,"WIRE (%f %f) %f (%f %f);",X,Y,Width,X_Q,Y);  					
+				}
+				else
+				{
+				Y_Q += Length;  
+				sprintf(tmp,"WIRE (%f %f) %f (%f %f);",X,Y,Width,X,Y_Q);  	
+				}
+				CMD += tmp;
+
+				  //dlgMessageBox(CMD,"OK");
+				  Result = dlgDialog("Line") 
+					{
+						string Text = CMD;
+						dlgVBoxLayout {
+					    dlgLabel("&Command");
+						dlgTextEdit(Text);
+					}
+						dlgPushButton("+&Let's do it") {exit(CMD);}
+						dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+					};
+		  
+		  }
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		}
+   		
+ 	};
+
+}
+
+/*
+This Function contains all stuffs related to Regtangle dialog
+*/
+void Regtangle(void)
+{
+	CMD ="GRID ";
+	if(Sel_Unit == 0) // mm
+	{
+	CMD +="MM; ";	
+	}
+	else if(Sel_Unit == 1) // Inch
+	{
+	CMD +="INCH; ";	
+	}
+		
+	Result = dlgDialog("Regtangle") 
+	{
+
+		dlgVBoxLayout 
+		{
+
+			dlgLabel("Select Layer:");
+			dlgComboBox(Layer, Sel_Layer) ;		
+			dlgLabel("Line Width :");
+			dlgRealEdit(Width);			
+
+		}
+		dlgHBoxLayout 
+		{
+			dlgLabel("Origin :");
+			dlgLabel("X");
+			dlgRealEdit(X);
+			dlgLabel("Y");
+			dlgRealEdit(Y);
+		}
+
+		dlgHBoxLayout 
+		{
+		dlgLabel("Size :");
+		dlgLabel("X_width");
+		dlgRealEdit(X_width);
+		dlgLabel("Y_width");
+		dlgRealEdit(Y_width);
+		}
+		
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Run") { 
+			  
+			  	CMD += "LAYER "; 
+				CMD += Layer[Sel_Layer];
+				CMD +="; ";
+			  
+			  	string tmp;
+			  
+				int temp = CNT_S;
+				
+				real X_Q = X + X_width;
+				real Y_Q = Y + Y_width;
+
+
+				sprintf(tmp,"WIRE (%f %f) %f (%f %f); ",X,Y,Width,X_Q,Y); 
+			  	CMD+=tmp;
+			  	sprintf(tmp,"WIRE (%f %f) %f (%f %f); ",X_Q,Y,Width,X_Q,Y_Q);
+			  	CMD+=tmp;
+			  	sprintf(tmp,"WIRE (%f %f) %f (%f %f); ",X_Q,Y_Q,Width,X,Y_Q);  
+			  	CMD+=tmp;
+			  	sprintf(tmp,"WIRE (%f %f) %f (%f %f); ",X,Y_Q,Width,X,Y);  
+				CMD += tmp;
+
+				  //dlgMessageBox(CMD,"OK");
+				  Result = dlgDialog("Rectangle") 
+					{
+						string Text = CMD;
+						dlgVBoxLayout {
+					    dlgLabel("&Command");
+						dlgTextEdit(Text);
+					}
+						dlgPushButton("+&Let's do it") {exit(CMD);}
+						dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+					};
+		  
+		  }
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		}
+   		
+ 	};	
+}
+
+/*
+This Function contains all stuffs related to PAD dialog
+*/
+void FirstDL(void)
+{
+	Result = dlgDialog("LibIt !") 
+{
+
+		dlgVBoxLayout 
+		{
+			dlgLabel("Select What to Add:");
+			dlgComboBox(WhatToAdd , Sel_WhatToAdd );
+			dlgLabel("Select Unit:");
+			dlgComboBox(Units, Sel_Unit ) ;
+		}
+
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Next") {
+			  if(Sel_WhatToAdd==0)
+			{
+				//dlgAccept();
+				PAD();
+			}
+			else if(Sel_WhatToAdd == 1)
+			{
+				//dlgAccept();
+				SMD();
+			}
+			else if(Sel_WhatToAdd == 2)
+			{
+				//dlgAccept();
+				Line();	
+			}
+			else
+			{
+				Regtangle();  
+			}
+		  }	
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		  dlgPushButton("&Info") { dlgMessageBox(usage,"OK"); }
+		}
+ 	};
+}
+
+/*
+This Function contains all stuffs related to PAD dialog
+*/
+void main(void) {
+	
+	/* 
+	library(L)
+		{
+			string Unit; // 1:mm 3:Inch
+			UsedGrid = L.grid.unit;
+			if(UsedGrid !=1 || UsedGrid !=3)
+			{
+			sprintf( Unit, "Current unit is %d !", UsedGrid);
+			dlgMessageBox(Unit,"OK");
+			exit(-1);	
+			}
+			
+		}
+		*/
+	if(board)
+	{
+		dlgMessageBox("! Open this ULP from Library Editor","+OK");
+		exit(-1);
+	}
+	
+	if(schematic)
+	{
+		dlgMessageBox("! Open this ULP from Library Editor","+OK");
+		exit(-1);		
+	}
+	FirstDL();
+}
+

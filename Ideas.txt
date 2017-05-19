@@ -1,0 +1,1 @@
+Polygon manager dialog window. List all polygons and have checkboxes to enable disable them. Ulp for ratsnest will look in config file whether to pour or not.

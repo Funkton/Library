@@ -66,10 +66,23 @@ BRD:
 
 		MENU
 		'RENDER {\
-						Top       : SCRIPT RenderT.scr; |\
-						Bottom : SCRIPT RenderB.scr; |\
-						Mirror Brd : RUN mirror-board; |\
+				Top       : SCRIPT RenderT.scr; |\
+				Bottom : SCRIPT RenderB.scr; |\
+				Mirror Brd : RUN mirror-board; |\
 				}'\
+		'RATS 	{\
+				All			: SCRIPT Rats-All.scr; |\
+				None		: SCRIPT Rats-None.scr; |\
+				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
+				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
+				}'\
+		'POUR 	{\
+				All			: SCRIPT Rats-All.scr; |\
+				None		: SCRIPT Rats-None.scr; |\
+				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
+				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
+				V* Nets	: SCRIPT Pour-V.scr; |\
+				}\
 
 			
 	# Toolbar Hack Settings from eaglerc.usr

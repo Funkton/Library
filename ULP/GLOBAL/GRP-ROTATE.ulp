@@ -28,7 +28,7 @@ Basic operation. Rotate group by increment. When launched from shortcut, rotates
 To-Do Feature List:
 1) Add argument handling (separate shortcuts or 45/90 selection.)
 2) Rotate using polar grid (by angle)
-3) Option for fixed origin
+3) Option for fixed origin (or set origin with alternate shortcut)
 */
 
 #usage 	"Rotate group by increment.<p>"
