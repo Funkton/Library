@@ -54,7 +54,7 @@ SCH:
 
 		'SHOW {\
 				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
-				GRP - Airwires/Parts : RUN SHOW-SCH-GROUP; |\
+				GRP - Nets & Parts : RUN SHOW-SCH-GROUP; |\
 				}'\		
 
 #----------------------------------#

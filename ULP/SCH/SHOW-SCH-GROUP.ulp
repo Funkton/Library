@@ -14,8 +14,12 @@
 		- Net ignore. (Needs the ability to add more than one)
 		- Value ignore. Ignores parts with value: SUP (Supply.lbr parts all have this)
 	
- Rev 1.2-
-		TO-DO: Add ability to launch from Board. (No need for ratsnest, only show parts and nets)
+Feature Wish List:
+
+[ ]	- Add ability to launch from Board. (No need for ratsnest, only show parts and nets)
+[ ]	- Enable option to process polygons belonging to any signals in group (even if SET POLYGON_RATSNEST is OFF)
+		
+[ ]	- Integrate 'select-sch-group-to-brd-group.ulp' to define same group in board.
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +43,11 @@ THE SOFTWARE.
 
 
 
-//////////////////////////////////////////////////////////////////////////////*/
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+*/
 
 
 #usage "<b>Show nets and parts in schematic group, visually highlights and isolates airwires in board editor.</b><p>"
