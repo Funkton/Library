@@ -9,16 +9,16 @@
 # Author: Cameron Nicks, PCB Designer
 # 
 #
-#   This file must be copied to scr/eagle.scr in the Eagle installation
-#   directory whenever changes are made or a new version of Eagle is installed.
+#   This file must be copied to Eagle scripts directory (control panel -> Options -> Directories...)
 #   It will be run automatically when Eagle is started and when various windows
-#   are brought up.
+#   are brought up (bug, some settings are not loaded at start like font. Run at first launch to be sure)
 #___________________________________
 
-# SCRIPTS
+# Bring in modular setup scripts
 
 #SCRIPT COLORS.scr;
 SCRIPT SHORTCUTS.scr
+SCRIPT MENU.scr
 
 #----------------------------------#
 #------------ GENERAL--------------#
@@ -49,8 +49,9 @@ SCRIPT SHORTCUTS.scr
 #----------------------------------#
 
 BRD:
+# Context and menu set from Configure/MENU.scr
 
-	SET WIRE_BEND @ 0 1 2;
+	SET WIRE_BEND @ 0 1 2; #Only allows 90, 45, and free. Use ctrl+right to switch directions
 	Set Drill 0.254mm;
 	Change Shape Round;
 	Change Width 0.2mm;
@@ -58,39 +59,14 @@ BRD:
 	Change Font Vector;
 	Change Ratio 18;
 
-	SET CONTEXT;
-	SET CONTEXT ELEMENT  	'Show Part Airwires'   'RUN SHOW-NETS GND';
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
-
-	# Text Command Menu Setup
-
-		MENU
-		'RENDER {\
-				Top       : SCRIPT RenderT.scr; |\
-				Bottom : SCRIPT RenderB.scr; |\
-				Mirror Brd : RUN mirror-board; |\
-				}'\
-		'RATS 	{\
-				All			: SCRIPT Rats-All.scr; |\
-				None		: SCRIPT Rats-None.scr; |\
-				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
-				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
-				}'\
-		'POUR 	{\
-				All			: SCRIPT Rats-All.scr; |\
-				None		: SCRIPT Rats-None.scr; |\
-				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
-				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
-				V* Nets	: SCRIPT Pour-V.scr; |\
-				}\
-
 			
-	# Toolbar Hack Settings from eaglerc.usr
-	
-	# Brd.ToolBar.Action = "2 1 1 0 2"
-	# Brd.ToolBar.CommandButtons = "3 0 1 0 3"
-	# Brd.ToolBar.CommandTexts = "2 0 1 0 2"
-	# Brd.ToolBar.Parameters = "3 1 1 0 3"
+		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.
+		# To use, close eagle, open eaglerc.usr and change the following settings.
+		
+		# Brd.ToolBar.Action = "2 1 1 0 2"
+		# Brd.ToolBar.CommandButtons = "3 0 1 0 3"
+		# Brd.ToolBar.CommandTexts = "2 0 1 0 2"
+		# Brd.ToolBar.Parameters = "3 1 1 0 3"
 
 
 #----------------------------------#
@@ -98,6 +74,7 @@ BRD:
 #----------------------------------#
 
 SCH:
+# Context and menu set from Configure/MENU.scr
 
 	Grid IN .1;
 	Grid ALT IN .025;
@@ -105,36 +82,22 @@ SCH:
 	Change Font Vector;
 	SET vector_font on;
 	SET WIRE_BEND @ 0;
-
-	SET CONTEXT;
-	SET CONTEXT ELEMENT   'Show Airwires'   'RUN SHOW-AIRWIRES';
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
-
 	
-	# Text Command Menu Setup
 
-		MENU
-		'SHOW GRP : Run showgroup;'
+		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.
+		# To use, close eagle, open eaglerc.usr and change the following settings.
 
-
-	# Toolbar Hack Settings from eaglerc.usr
-
-	# Sch.ToolBar.Action = "2 1 1 0 2"
-	# Sch.ToolBar.CommandButtons = "3 0 1 0 3"
-	# Sch.ToolBar.CommandTexts = "2 0 1 0 2"
-	# Sch.ToolBar.Parameters = "3 1 1 0 3"
+		# Sch.ToolBar.Action = "2 1 1 0 2"
+		# Sch.ToolBar.CommandButtons = "3 0 1 0 3"
+		# Sch.ToolBar.CommandTexts = "2 0 1 0 2"
+		# Sch.ToolBar.Parameters = "3 1 1 0 3"
 
 #----------------------------------#
 #--------- LIBRARY EDITOR ---------#
 #----------------------------------#
 
 LBR:
-
-	# Text Command Menu Setup
-
-		MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
-
+# Context and menu set from Configure/MENU.scr
 
 PAC:
 	Grid MM .1;
@@ -142,14 +105,6 @@ PAC:
 	Change Shape Round;
 	Change Font Vector;
 	Change Width 0.2;
-	
-		# Text Command Menu Setup
-
-		MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
-		
-	SET CONTEXT;
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
 
 SYM:
 	Grid IN .1;
@@ -157,17 +112,13 @@ SYM:
 	Change Font Vector;
 	Change Width 0.016;
 	
-		# Text Command Menu Setup
-
-		MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
+	# Context and menu moved to Configure/MENU.scr
 		
-	SET CONTEXT;
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
 
-	# Toolbar Hack Settings from eaglerc.usr
+		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.
+		# To use, close eagle, open eaglerc.usr and change the following settings.
 
-	# Lbr.ToolBar.Action = "2 1 1 0 2"
-	# Lbr.ToolBar.CommandButtons = "3 0 1 0 3"
-	# Lbr.ToolBar.CommandTexts = "2 0 1 0 2"
-	# Lbr.ToolBar.Parameters = "3 1 1 0 3"
+		# Lbr.ToolBar.Action = "2 1 1 0 2"
+		# Lbr.ToolBar.CommandButtons = "3 0 1 0 3"
+		# Lbr.ToolBar.CommandTexts = "2 0 1 0 2"
+		# Lbr.ToolBar.Parameters = "3 1 1 0 3"

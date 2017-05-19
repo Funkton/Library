@@ -1,19 +1,23 @@
-#usage "<b>ShowGroup Version 1.1</b>\n"
+#usage "<b>SHOW-GROUP-PARTS Version 1.1</b>\n"
 "<p>Highlight selected components in schematics when working in board<br>"
 "or visa versa.</p>"
 "<p><br><i><u> How to use:</u></i><br>"
 "Select a group of components in board and then<br>"
-"<b>RUN ShowGroup.ulp</b><br>"
+"<b>RUN SHOW-GROUP-PARTS.ulp</b><br>"
 "The selected componets are showed in the schematics surounded by a square<br>"
 "It also works the oposit way selecting components in <br>"
 "the schematics to locate the on the board<br></p>"
 "<p>This program are free of charge and are used on your own risk<br>"
 "If you make improvments, please share it</p>"
 "<author>Author: Øyvind.Eggen@jotron.com</author>"
-// Edited by Cameron Nicks, Phase IV Engineering
-// Version 1.1: Group selection in Sch now ignores supply parts with values 'GND' or 'SUP'. Fixed multi-gate part name error when showing to brd
-// TODO: Merge with SHOW-SCH-GROUP.ulp which ratsnests and shows selected parts and/or nets
+"<author>Author: Cameron Nicks</author>"
 /*
+Edited by Cameron Nicks, Phase IV Engineering
+Version 1.1: Group selection in Sch now ignores supply parts with values 'GND' or 'SUP'. Fixed multi-gate part name error when showing to brd
+TODO:
+	-Merge with SHOW-SCH-GROUP.ulp which ratsnests and shows selected parts and/or nets
+	-Add ignore library. ex: ignore all elements from supply library
+
 History
 20090827: Verson 1.0  
 First release. 

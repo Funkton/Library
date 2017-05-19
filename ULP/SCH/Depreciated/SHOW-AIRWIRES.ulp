@@ -3,6 +3,8 @@
 	"Use 'RATSNEST *' at the command line in board to show all airwires.<br>"
 	"Use 'RATSNEST ! *' at the command line in board to show no airwires.<p>"
 	"<author>peter@seng.de</author>";
+	
+// This has been replaced with SHOW-SCH-GROUP.ulp
 
 string cmd;
 

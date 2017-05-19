@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// Cameron Nicks
+// To-do: Add ability to select part from schematic
+
 #usage "<b>Show Nets</b>"
 "<p>Shows all airwires and traces connected to a selected part, while hiding "
 "all other airwires. This does <b>NOT</b> work for groups of parts.</p>"

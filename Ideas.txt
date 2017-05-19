@@ -1,1 +1,3 @@
 Polygon manager dialog window. List all polygons and have checkboxes to enable disable them. Ulp for ratsnest will look in config file whether to pour or not.
+
+Test to see if CONTEXT/MENU items can be modified on the fly from scr/ulp. This could be helpful to make toggles

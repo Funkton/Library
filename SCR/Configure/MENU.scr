@@ -1,0 +1,87 @@
+# Modular Eagle Setup Scripts
+# 
+# File: MENU.SCR
+# Description: Context and user menu setup.
+# Author: Cameron Nicks, PCB Designer
+# 
+#
+#   To run by default, include this file in eagle.scr otherwise use SCRIPT to run
+#___________________________________
+
+#----------------------------------#
+#---------- BOARD EDITOR ----------#
+#----------------------------------#
+BRD:
+	# Package text command menu setup
+	 
+	SET CONTEXT;
+	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'   'RUN SHOW-BRD-PART-NETS GND';
+	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+
+		MENU
+		'RENDER {\
+				Top       : SCRIPT RenderT.scr; |\
+				Bottom : SCRIPT RenderB.scr; |\
+				Mirror Brd : RUN mirror-board; |\
+				}'\
+		'SHOW {\
+				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
+				PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
+				}'\
+		'RATS 	{\
+				All			: SCRIPT Rats-All.scr; |\
+				None		: SCRIPT Rats-None.scr; |\
+				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
+				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
+				}'\
+		'POUR 	{\
+				All			: SCRIPT Pour-All.scr; |\
+				V* Nets		: SCRIPT Pour-V.scr; |\
+				Clr GND		: SCRIPT Pour-CLR-GND.scr; |\
+				}\
+
+#----------------------------------#
+#------- SCHEMATIC EDITOR ---------#
+#----------------------------------#				
+SCH:
+	# Schematic text command menu setup
+	
+	SET CONTEXT; # These are not working for some reason. Object type?
+	#SET CONTEXT ELEMENT   'Show Airwires'   'RUN SHOW-AIRWIRES'; #Depreciated, replaced with SHOW-SCH-GROUP.ulp
+	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+
+		MENU
+
+		'SHOW {\
+				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
+				GRP - Airwires/Parts : RUN SHOW-SCH-GROUP; |\
+				}'\		
+
+#----------------------------------#
+#--------- LIBRARY EDITOR ---------#
+#----------------------------------#
+LBR:
+	# Library text command menu setup
+
+	MENU
+		'NAME/VAL : SCRIPT namevalue.scr;'
+
+
+PAC:
+	# Package text command menu setup
+
+	MENU
+		'NAME/VAL : SCRIPT namevalue.scr;'
+		
+	SET CONTEXT;
+	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+
+SYM:
+	# Symbol text command menu setup
+
+	MENU
+		'NAME/VAL : SCRIPT namevalue.scr;'
+		
+	SET CONTEXT;
+	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+	

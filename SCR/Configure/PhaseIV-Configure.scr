@@ -102,7 +102,7 @@ SCH:
 	# Text Command Menu Setup
 
 		MENU
-		'SHOW GRP : Run showgroup;'
+		'SHOW GRP : Run SHOW-GROUP-PARTS;'
 
 
 	# Toolbar Hack Settings from eaglerc.usr
