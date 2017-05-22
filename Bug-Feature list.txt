@@ -5,7 +5,7 @@ Suggestions:
 
 Add ability to save template as default for the new menu in control panel.
 
-- NEW: Using MOVE, ctrl click can arc a line and move rectangle ends. Suggest Shift+click changes width. Moving up or down to grow and shrink. For rectangles it could be a resize center aligned.
+- NEW: Using MOVE, ctrl click can arc a line and move rectangle ends. Suggest Shift+click changes width by moving up or down to grow and shrink. For rectangles it could be a resize center aligned.
 
 - NEW: GRID: AUTO WIDTH feature to link width to grid size.
 	- Steps per grid size. ex: grid = 1mm, steps = 10 , width increment = 1/10 = 0.1mm. Percentage or step input.

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.1">
+<eagle version="8.2.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -70,8 +70,10 @@
 </layers>
 <library>
 <description>&lt;b&gt;Phase IV Engineering RCL - v1.5 (04/24/2017)&lt;/b&gt;&lt;p&gt;
-&lt;p&gt;Phase IV Engineering master RCL library containing SMD capcitors, resistors, inductors, and ferrite beads.
+&lt;p&gt;Phase IV Engineering master RCL library containing SMD capcitors, resistors, inductors, and ferrite beads.&lt;br&gt;
+
 &lt;p&gt;&lt;h4&gt;Naming conventions:&lt;/h4&gt;&lt;/p&gt;
+? = Package variant, * = Technology (value_tolerance)&lt;br&gt;
 &lt;table width="380" border="1" bordercolor="#000000"&gt;
   &lt;tr&gt; 
     &lt;td width="81" bgcolor="#33CCFF"&gt;&lt;div align="center"&gt;&lt;strong&gt;Prefix&lt;/strong&gt;&lt;/div&gt;&lt;/td&gt;
@@ -90,30 +92,43 @@
     &lt;td&gt;&lt;div align="center"&gt;Polarized Electrolytic/Tantalum Types&lt;/div&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt; 
-    &lt;td&gt;&lt;div align="center"&gt;C_&lt;/div&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;div align="center"&gt;C_?_*&lt;/div&gt;&lt;/td&gt;
     &lt;td&gt;&lt;div align="center"&gt;Non-Polarized Film / Chip Types&lt;/div&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt; 
-    &lt;td&gt;&lt;div align="center"&gt;FB_&lt;/div&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;div align="center"&gt;FB_?_*&lt;/div&gt;&lt;/td&gt;
     &lt;td&gt;&lt;div align="center"&gt;Simple Ferrite Bead Types&lt;/div&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt; 
-    &lt;td&gt;&lt;div align="center"&gt;L_&lt;/div&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;div align="center"&gt;L_?_*&lt;/div&gt;&lt;/td&gt;
     &lt;td&gt;&lt;div align="center"&gt;Simple Chip Inductors&lt;/div&gt;&lt;/td&gt;
   &lt;/tr&gt;
   &lt;tr&gt; 
-    &lt;td&gt;&lt;div align="center"&gt;R_&lt;/div&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;div align="center"&gt;R_?_*&lt;/div&gt;&lt;/td&gt;
     &lt;td&gt;&lt;div align="center"&gt;Resistor Types&lt;/div&gt;&lt;/td&gt;
   &lt;/tr&gt;
 &lt;/table&gt;
 &lt;p&gt;
-As a general guideline, SMD resistors are typically rated as follows:&lt;p&gt;
-0402 = 1/16 watt&lt;br&gt;
-0603 = 1/10 watt&lt;br&gt;
-0805 = 1/8  watt&lt;br&gt;
-1206 = 1/4  watt&lt;br&gt;
-2010 = 1/2  watt&lt;br&gt;
-2512 = 1    watt&lt;br&gt;&lt;p&gt;
+ATTRIBUTES:
+&lt;ul&gt;
+&lt;li&gt;ALT: Alternate Part Number
+&lt;li&gt;DESC: Description
+&lt;li&gt;FEAT: Features
+&lt;li&gt;MANF: Manufacturer
+&lt;li&gt;MFPN: Manufacturer Part Number
+&lt;li&gt;PARTNO: User Part Number
+&lt;li&gt;PRICE: Price
+&lt;li&gt;RATE: Power Rating
+&lt;li&gt;SIZE:Package Size
+&lt;li&gt;STATUS: Part Status
+&lt;li&gt;TC: Temperature Coefficient
+&lt;li&gt;TOL: Tolerance
+&lt;li&gt;TYPE: Part Type
+&lt;li&gt;VAL: Part Value
+&lt;li&gt;VOLT: Voltage Rating
+&lt;/ul&gt;
+
+&lt;br&gt;&lt;p&gt;
 &lt;author&gt;THIS LIBRARY IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED.&lt;br&gt;Copyright (C) 2017 Phase IV Engineering, Cameron Nicks&lt;br&gt; 
 &lt;a href="http://www.phaseivengr.com"&gt;http://www.phaseivengr.com&lt;/a&gt;
 &lt;/author&gt;</description>
@@ -2836,7 +2851,7 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 </device>
 </devices>
 </deviceset>
-<deviceset name="R_?_*" prefix="R" uservalue="yes">
+<deviceset name="R_?_*" prefix="R">
 <description>&lt;B&gt;RESISTOR&lt;/B&gt;</description>
 <gates>
 <gate name="G$1" symbol="R-" x="0" y="0"/>
@@ -2912,6 +2927,22 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TYPE" value="THICK FILM"/>
 <attribute name="VAL" value="1M"/>
 </technology>
+<technology name="100K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DESC" value="RES SMD 100K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF1003X"/>
+<attribute name="PARTNO" value="03-100446-00"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="± 1%"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VAL" value="100k"/>
+</technology>
 <technology name="10K_1%">
 <attribute name="ALT" value="" constant="no"/>
 <attribute name="DESC" value=""/>
@@ -2943,6 +2974,22 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TOL" value="± 5%"/>
 <attribute name="TYPE" value="THICK FILM"/>
 <attribute name="VAL" value="10k"/>
+</technology>
+<technology name="2.0K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DESC" value="RES SMD 2K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF2001X"/>
+<attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="± 1%" constant="no"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VAL" value="2.0k"/>
 </technology>
 <technology name="2.0M_1%">
 <attribute name="ALT" value="03-100630-00" constant="no"/>

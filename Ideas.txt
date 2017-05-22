@@ -1,3 +1,6 @@
-Polygon manager dialog window. List all polygons and have checkboxes to enable disable them. Ulp for ratsnest will look in config file whether to pour or not.
 
-Test to see if CONTEXT/MENU items can be modified on the fly from scr/ulp. This could be helpful to make toggles
+- Polygon manager dialog window. List all polygons and have checkboxes to enable disable them. Ulp for ratsnest will look in config file whether to pour or not.
+
+- Test to see if CONTEXT/MENU items can be modified on the fly from scr/ulp. This could be helpful to make toggles
+
+- AutoHotKey script to build quick launch dialog around mouse when left+middle held together. Place to add most used scripts, ulps, settings for quick access. Operation, hold mouse buttons together, hover item, release to launch.
