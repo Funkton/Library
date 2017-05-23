@@ -1,0 +1,307 @@
+[CAM Processor Job]
+Description[en]="Standard Eagle CAM job to output <b>6 layer</b> design in extended Gerber format (RS274X, 2.5).<p>Project Folder Structure:<br><br>PROJECT<br>&nbsp;&nbsp;&nbsp;&nbsp;Board<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) Board Files (brd, sch, drl, cfg)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) Fabrication<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1) BOM (bill of materials, XY placement)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2) Gerber<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1) Stencil<br>&nbsp;&nbsp;&nbsp;&nbsp;Panel<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) Panel Board Files (brd, sch, drl, cfg)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) Fabrication<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1) Panel BOM (bill of materials, XY placement)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2) Gerber (panel gerbers)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1) Stencil<br><p>Standard Gerber File Extensions:<br>.GTP = Top Paste<br>.GTO = Top Overlay (silkscreen)<br>.GTS = Top Stop<br>.GTL = Top Layer (copper)<br>.GL2 = Inner Layer 2 (copper)<br>.GL3 = Inner Layer 3 (copper)<br>.GL4 = Inner Layer 4 (copper)<br>.GL5 = Inner Layer 5 (copper)<br>.GL6 = Inner Layer 6 (copper)<br>.GL7 = Inner Layer 7 (copper)<br>.GBL = Bottom Layer (copper)<br>.GBS = Bottom Stop<br>.GBO = Bottom Overlay (silkscreen)<br>.GBP = Bottom Paste<br>.DRD = Drills (Excellon 1.5)<br><br>.MIL = Milling Outline and Route<br>.INFO = Board documentation<p><br> C. Nicks, Phase IV Engineering 2017"
+
+Section=Sec_1
+Section=Sec_2
+Section=Sec_3
+Section=Sec_4
+Section=Sec_5
+Section=Sec_6
+Section=Sec_7
+Section=Sec_8
+Section=Sec_9
+Section=Sec_10
+Section=Sec_11
+Section=Sec_12
+Section=Sec_13
+Section=Sec_14
+Section=Sec_15
+Section=Sec_16
+
+[Sec_1]
+Name[en]="Top Cream"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/Stencil/%N.GTC"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 31"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_2]
+Name[en]="Top Silk Screen"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GTO"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 21 25"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_3]
+Name[en]="Top Stop Mask"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GTS"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 29"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_4]
+Name[en]="Top Copper"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GTL"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 1 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_5]
+Name[en]="Inner Layer 2"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL2"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 2 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_6]
+Name[en]="Inner Layer 3"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL3"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 3 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_7]
+Name[en]="Inner Layer 4"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL4"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 4 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_8]
+Name[en]="Inner Layer 5"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL5"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 13 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_9]
+Name[en]="Inner Layer 6"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL6"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 14 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_10]
+Name[en]="Inner Layer 7"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GL7"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 15 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_11]
+Name[en]="Bottom Copper"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GBL"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 16 17 18 20"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_12]
+Name[en]="Bottom Stop Mask"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GBS"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 30"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_13]
+Name[en]="Bottom Silk Screen"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.GBO"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 22 26"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_14]
+Name[en]="Bottom Cream"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=".whl"
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/Stencil/%N.GBC"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0 0"
+Pen="0.0mil 0"
+Page="12000.0mil 8000.0mil"
+Layers=" 20 32"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_15]
+Name[en]="Drill"
+Prompt=""
+Device="EXCELLON"
+Wheel=".whl"
+Rack="DRILLRACK.DRL"
+Scale=1
+Output="%P/Fabrication/Gerber/%N.DRD"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0.03 0.03"
+Pen="0.0mil 0"
+Page="11000.0mil 16000.0mil"
+Layers=" 44 45"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_16]
+Name[en]="Documentation"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=""
+Rack=""
+Scale=1
+Output="%P/Fabrication/Gerber/%N.INFO"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0.03 0.03"
+Pen="0.0mil 0"
+Page="11000.0mil 16000.0mil"
+Layers=" 20 47 48 51 144"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"

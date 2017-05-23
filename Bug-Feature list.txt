@@ -105,6 +105,11 @@ EAGLE HELP:
 - ROUTE: Automatic traces (obstacle avoid) do not get placed on grid.
 
 
+- GROUP: Last Tool Before Group No Longer Active
+	-Versions affected: 8.2.1, 8.2.0, 8.1.1, 8.1.0, 8.0.2
+
+
+
 
 Settings from eaglerc.usr to investigate:
 
