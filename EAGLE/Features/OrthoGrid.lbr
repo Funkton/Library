@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.1">
+<eagle version="8.2.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="down"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="5" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.05" altunitdist="mm" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -60,57 +60,153 @@
 <library>
 <packages>
 <package name="ORTHOGANAL-GRID">
-<wire x1="-15" y1="0" x2="15" y2="0" width="0.2" layer="21"/>
-<wire x1="0" y1="-20" x2="0" y2="10" width="0.2" layer="21"/>
-<wire x1="5" y1="-20" x2="5" y2="10" width="0.2" layer="21"/>
-<wire x1="-5" y1="-20" x2="-5" y2="10" width="0.2" layer="21"/>
-<wire x1="-15" y1="5" x2="15" y2="5" width="0.2" layer="21"/>
-<wire x1="-15" y1="-5" x2="15" y2="-5" width="0.2" layer="21"/>
-<wire x1="-10" y1="-20" x2="-10" y2="10" width="0.2" layer="21"/>
-<wire x1="10" y1="-20" x2="10" y2="10" width="0.2" layer="21"/>
-<wire x1="-15" y1="-10" x2="15" y2="-10" width="0.2" layer="21"/>
-<wire x1="-15" y1="-15" x2="15" y2="-15" width="0.2" layer="21"/>
-<text x="-5" y="15" size="2" layer="21" font="vector" ratio="10">Grid</text>
-<wire x1="20" y1="0" x2="50" y2="0" width="0.2" layer="100"/>
-<wire x1="35" y1="-20" x2="35" y2="10" width="0.2" layer="100"/>
-<wire x1="40" y1="-20" x2="40" y2="10" width="0.2" layer="100"/>
-<wire x1="30" y1="-20" x2="30" y2="10" width="0.2" layer="100"/>
-<wire x1="20" y1="5" x2="50" y2="5" width="0.2" layer="100"/>
-<wire x1="20" y1="-5" x2="50" y2="-5" width="0.2" layer="100"/>
-<wire x1="25" y1="-20" x2="25" y2="10" width="0.2" layer="100"/>
-<wire x1="45" y1="-20" x2="45" y2="10" width="0.2" layer="100"/>
-<wire x1="20" y1="-10" x2="50" y2="-10" width="0.2" layer="100"/>
-<wire x1="20" y1="-15" x2="50" y2="-15" width="0.2" layer="100"/>
-<wire x1="50" y1="-10" x2="30" y2="10" width="0.2" layer="101"/>
-<wire x1="50" y1="-5" x2="35" y2="10" width="0.2" layer="101"/>
-<wire x1="50" y1="-15" x2="45" y2="-10" width="0.2" layer="101"/>
-<wire x1="45" y1="10" x2="20" y2="-15" width="0.2" layer="101"/>
-<wire x1="50" y1="-20" x2="20" y2="10" width="0.2" layer="101"/>
-<wire x1="50" y1="0" x2="40" y2="10" width="0.2" layer="101"/>
-<wire x1="20" y1="0" x2="30" y2="10" width="0.2" layer="101"/>
-<wire x1="20" y1="-5" x2="35" y2="10" width="0.2" layer="101"/>
-<wire x1="50" y1="10" x2="20" y2="-20" width="0.2" layer="101"/>
-<wire x1="50" y1="5" x2="25" y2="-20" width="0.2" layer="101"/>
-<wire x1="20" y1="-10" x2="40" y2="10" width="0.2" layer="101"/>
-<wire x1="30" y1="-10" x2="40" y2="0" width="0.2" layer="101"/>
-<wire x1="45" y1="-5" x2="35" y2="-15" width="0.2" layer="101"/>
-<wire x1="50" y1="-5" x2="45" y2="-10" width="0.2" layer="101"/>
-<wire x1="45" y1="-10" x2="40" y2="-15" width="0.2" layer="101"/>
-<wire x1="40" y1="-15" x2="35" y2="-20" width="0.2" layer="101"/>
-<wire x1="50" y1="-10" x2="40" y2="-20" width="0.2" layer="101"/>
-<wire x1="30" y1="-20" x2="50" y2="0" width="0.2" layer="101"/>
-<wire x1="50" y1="-15" x2="45" y2="-20" width="0.2" layer="101"/>
-<wire x1="30" y1="-20" x2="20" y2="-10" width="0.2" layer="101"/>
-<wire x1="35" y1="-20" x2="20" y2="-5" width="0.2" layer="101"/>
-<wire x1="45" y1="-10" x2="25" y2="10" width="0.2" layer="101"/>
-<wire x1="40" y1="-20" x2="20" y2="0" width="0.2" layer="101"/>
-<wire x1="40" y1="-15" x2="20" y2="5" width="0.2" layer="101"/>
-<wire x1="40" y1="-15" x2="45" y2="-20" width="0.2" layer="101"/>
-<wire x1="20" y1="-15" x2="25" y2="-20" width="0.2" layer="101"/>
-<wire x1="25" y1="10" x2="20" y2="5" width="0.2" layer="101"/>
-<wire x1="45" y1="10" x2="50" y2="5" width="0.2" layer="101"/>
-<text x="20" y="15" size="2" layer="101" font="vector" ratio="10">Orthogonal Grid
+<description>Ortho grid feature idea. This would really help keep 45 degree angles on grid.</description>
+<wire x1="0" y1="20" x2="30" y2="20" width="0.2" layer="21"/>
+<wire x1="15" y1="0" x2="15" y2="30" width="0.2" layer="21"/>
+<wire x1="20" y1="0" x2="20" y2="30" width="0.2" layer="21"/>
+<wire x1="10" y1="0" x2="10" y2="30" width="0.2" layer="21"/>
+<wire x1="0" y1="25" x2="30" y2="25" width="0.2" layer="21"/>
+<wire x1="0" y1="15" x2="30" y2="15" width="0.2" layer="21"/>
+<wire x1="5" y1="0" x2="5" y2="30" width="0.2" layer="21"/>
+<wire x1="25" y1="0" x2="25" y2="30" width="0.2" layer="21"/>
+<wire x1="0" y1="10" x2="30" y2="10" width="0.2" layer="21"/>
+<wire x1="0" y1="5" x2="30" y2="5" width="0.2" layer="21"/>
+<text x="10" y="35" size="2" layer="21" font="vector" ratio="10">Grid</text>
+<wire x1="35" y1="20" x2="65" y2="20" width="0.2" layer="100"/>
+<wire x1="50" y1="0" x2="50" y2="30" width="0.2" layer="100"/>
+<wire x1="55" y1="0" x2="55" y2="30" width="0.2" layer="100"/>
+<wire x1="45" y1="0" x2="45" y2="30" width="0.2" layer="100"/>
+<wire x1="35" y1="25" x2="65" y2="25" width="0.2" layer="100"/>
+<wire x1="35" y1="15" x2="65" y2="15" width="0.2" layer="100"/>
+<wire x1="40" y1="0" x2="40" y2="30" width="0.2" layer="100"/>
+<wire x1="60" y1="0" x2="60" y2="30" width="0.2" layer="100"/>
+<wire x1="35" y1="10" x2="65" y2="10" width="0.2" layer="100"/>
+<wire x1="35" y1="5" x2="65" y2="5" width="0.2" layer="100"/>
+<wire x1="65" y1="10" x2="45" y2="30" width="0.2" layer="101"/>
+<wire x1="65" y1="15" x2="50" y2="30" width="0.2" layer="101"/>
+<wire x1="65" y1="5" x2="60" y2="10" width="0.2" layer="101"/>
+<wire x1="60" y1="30" x2="35" y2="5" width="0.2" layer="101"/>
+<wire x1="65" y1="0" x2="35" y2="30" width="0.2" layer="101"/>
+<wire x1="65" y1="20" x2="55" y2="30" width="0.2" layer="101"/>
+<wire x1="35" y1="20" x2="45" y2="30" width="0.2" layer="101"/>
+<wire x1="35" y1="15" x2="50" y2="30" width="0.2" layer="101"/>
+<wire x1="65" y1="30" x2="35" y2="0" width="0.2" layer="101"/>
+<wire x1="65" y1="25" x2="40" y2="0" width="0.2" layer="101"/>
+<wire x1="35" y1="10" x2="55" y2="30" width="0.2" layer="101"/>
+<wire x1="45" y1="10" x2="55" y2="20" width="0.2" layer="101"/>
+<wire x1="60" y1="15" x2="50" y2="5" width="0.2" layer="101"/>
+<wire x1="65" y1="15" x2="60" y2="10" width="0.2" layer="101"/>
+<wire x1="60" y1="10" x2="55" y2="5" width="0.2" layer="101"/>
+<wire x1="55" y1="5" x2="50" y2="0" width="0.2" layer="101"/>
+<wire x1="65" y1="10" x2="55" y2="0" width="0.2" layer="101"/>
+<wire x1="45" y1="0" x2="65" y2="20" width="0.2" layer="101"/>
+<wire x1="65" y1="5" x2="60" y2="0" width="0.2" layer="101"/>
+<wire x1="45" y1="0" x2="35" y2="10" width="0.2" layer="101"/>
+<wire x1="50" y1="0" x2="35" y2="15" width="0.2" layer="101"/>
+<wire x1="60" y1="10" x2="40" y2="30" width="0.2" layer="101"/>
+<wire x1="55" y1="0" x2="35" y2="20" width="0.2" layer="101"/>
+<wire x1="55" y1="5" x2="35" y2="25" width="0.2" layer="101"/>
+<wire x1="55" y1="5" x2="60" y2="0" width="0.2" layer="101"/>
+<wire x1="35" y1="5" x2="40" y2="0" width="0.2" layer="101"/>
+<wire x1="40" y1="30" x2="35" y2="25" width="0.2" layer="101"/>
+<wire x1="60" y1="30" x2="65" y2="25" width="0.2" layer="101"/>
+<text x="55" y="35" size="2" layer="101" font="vector" ratio="10">Orthogonal Grid
 = Grid + Center</text>
+<circle x="70" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="70" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="75" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="80" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="85" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="95" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="90" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="0" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="5" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="10" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="15" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="25" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="20" radius="0.3" width="0" layer="101"/>
+<circle x="100" y="30" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="2.5" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="7.5" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="12.5" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="17.5" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="22.5" radius="0.3" width="0" layer="101"/>
+<circle x="72.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<circle x="77.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<circle x="82.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<circle x="87.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<circle x="97.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<circle x="92.5" y="27.5" radius="0.3" width="0" layer="101"/>
+<wire x1="70" y1="20" x2="100" y2="20" width="0.2" layer="21"/>
+<wire x1="85" y1="0" x2="85" y2="30" width="0.2" layer="21"/>
+<wire x1="90" y1="0" x2="90" y2="30" width="0.2" layer="21"/>
+<wire x1="80" y1="0" x2="80" y2="30" width="0.2" layer="21"/>
+<wire x1="70" y1="25" x2="100" y2="25" width="0.2" layer="21"/>
+<wire x1="70" y1="15" x2="100" y2="15" width="0.2" layer="21"/>
+<wire x1="75" y1="0" x2="75" y2="30" width="0.2" layer="21"/>
+<wire x1="95" y1="0" x2="95" y2="30" width="0.2" layer="21"/>
+<wire x1="70" y1="10" x2="100" y2="10" width="0.2" layer="21"/>
+<wire x1="70" y1="5" x2="100" y2="5" width="0.2" layer="21"/>
 </package>
 </packages>
 <symbols>

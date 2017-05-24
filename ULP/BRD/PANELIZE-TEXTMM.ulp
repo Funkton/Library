@@ -108,7 +108,8 @@ if (board) {
   }
   // test();
 
-  cmd += "SET UNDO_LOG ON;\nGRID LAST;\n";
+  //cmd += "SET UNDO_LOG ON;\nGRID LAST;\n";
+  cmd += "SET UNDO_LOG ON;\n";
   header();
   cmd_header += cmd;
   cmd = cmd_header;

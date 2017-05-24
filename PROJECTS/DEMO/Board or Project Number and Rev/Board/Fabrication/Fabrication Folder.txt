@@ -1,0 +1,2 @@
+Fabrication Folder:
+All files generated for fabrication including bill of materials, gerbers, documentation, placement files, etc.

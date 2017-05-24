@@ -1,1 +1,1 @@
-This is an example project to show the folder structure used. 
+This is an example project to show Eagle project folder template.
