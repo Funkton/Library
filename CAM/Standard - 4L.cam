@@ -1,6 +1,5 @@
 [CAM Processor Job]
 Description[en]="Standard Eagle CAM job to output <b>4 layer</b> design in extended Gerber format (RS274X, 2.5).<p>Project Folder Structure:<br><br>PROJECT<br>&nbsp;&nbsp;&nbsp;&nbsp;Board<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) Board Files (brd, sch, drl, cfg)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) Fabrication<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1) BOM (bill of materials, XY placement)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2) Gerber<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1) Stencil<br>&nbsp;&nbsp;&nbsp;&nbsp;Panel<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1) Panel Board Files (brd, sch, drl, cfg)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2) Fabrication<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.1) Panel BOM (bill of materials, XY placement)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2) Gerber (panel gerbers)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.2.1) Stencil<br><p>Standard Gerber File Extensions:<br>.GTP = Top Paste<br>.GTO = Top Overlay (silkscreen)<br>.GTS = Top Stop<br>.GTL = Top Layer (copper)<br>.GL2 = Inner Layer 2 (copper)<br>.GL3 = Inner Layer 3 (copper)<br>.GBL = Bottom Layer (copper)<br>.GBS = Bottom Stop<br>.GBO = Bottom Overlay (silkscreen)<br>.GBP = Bottom Paste<br>.DRD = Drills (Excellon 1.5)<br><br>.MIL = Milling Outline and Route<br>.INFO = Board documentation<p><br> C. Nicks, Phase IV Engineering 2017"
-
 Section=Sec_1
 Section=Sec_2
 Section=Sec_3
@@ -13,6 +12,7 @@ Section=Sec_9
 Section=Sec_10
 Section=Sec_11
 Section=Sec_12
+Section=Sec_13
 
 [Sec_1]
 Name[en]="Top Paste"
@@ -228,4 +228,22 @@ Tolerance="0 0 0 0 0.03 0.03"
 Pen="0.0mil 0"
 Page="11000.0mil 16000.0mil"
 Layers=" 20 47 48 51 144"
+Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"
+
+[Sec_13]
+Name[en]="Milling"
+Prompt=""
+Device="GERBER_RS274X"
+Wheel=""
+Rack=""
+Scale=1
+Output="%P/../Fabrication/Gerber/%N.MIL"
+Flags="0 0 0 1 0 1 1"
+Emulate="0"
+Offset="0.0mil 0.0mil"
+Sheet=1
+Tolerance="0 0 0 0 0.03 0.03"
+Pen="0.0mil 0"
+Page="11000.0mil 16000.0mil"
+Layers=" 46"
 Colors=" 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 6 6 4 8 8 8 8 8 8 8 8 8 8 8 8 8 4 4 1 1 1 1 3 3 1 2 6 8 8 5 8 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 4 2 4 3 6 6 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0"

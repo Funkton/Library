@@ -19,7 +19,7 @@ string Help =
 string Version = "Version 1.0";
 
                        // *********************************************
-string Suffix = "";    // **** Anhang an den Netznamen,            ****
+string Suffix = "_1";    // **** Anhang an den Netznamen,            ****
                        // **** kann nach belieben geändert werden. ****
                        // *********************************************
 

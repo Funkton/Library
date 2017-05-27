@@ -383,6 +383,12 @@
 <text x="0" y="3.556" size="1.27" layer="95" font="vector" ratio="10" align="bottom-center">VMCU</text>
 <pin name="VBATT" x="0" y="0" visible="off" length="short" direction="sup" rot="R90"/>
 </symbol>
+<symbol name="V_RF_PA">
+<description>V_RF_PA</description>
+<wire x1="-1.905" y1="2.54" x2="1.905" y2="2.54" width="0.508" layer="94"/>
+<pin name="V_RF_PA" x="0" y="0" visible="off" length="short" direction="sup" rot="R90"/>
+<text x="0" y="3.556" size="1.27" layer="95" font="vector" ratio="10" align="bottom-center">V_RF_PA</text>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="GND" prefix="GND">
@@ -1203,6 +1209,22 @@
 <description>Microcontroller Power</description>
 <gates>
 <gate name="G$1" symbol="VMCU" x="0" y="0"/>
+</gates>
+<devices>
+<device name="">
+<technologies>
+<technology name="">
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="VALUE" value="SUP" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="V_RF_PA" prefix="V">
+<description>RF Power Amplifier</description>
+<gates>
+<gate name="G$1" symbol="V_RF_PA" x="0" y="0"/>
 </gates>
 <devices>
 <device name="">

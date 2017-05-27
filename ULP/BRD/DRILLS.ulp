@@ -1,4 +1,4 @@
-#usage "<b>Drill Legend for Eagle Board.</b><p>"
+2#usage "<b>Drill Legend for Eagle Board.</b><p>"
        "This ULP add a drill legend in a board in Layer 144 (default).<br>"
        "Sort both drill tools and drill diameters in the same ascending order as the drill legend.<br>"
        "You could also generate the drill configuration for the CamProcessor.<p>"
@@ -16,6 +16,8 @@
  * By Christian BOHRER   (PCB Designer)             *
  * c.bohrer@m6net.fr                                *
  ****************************************************
+ 
+ TODO: Erase everything on 144 instead of throwing an error. C.Nicks
 
  * THIS PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY FOR POSSIBLE DAMAGE */
 
@@ -34,8 +36,8 @@ string Version = "2.10"; // 2011-06-15  check if drillegend layer exist
  /************** DEFAULT SETTINGS ***********************/
 
 int    Legend           = 1;     // ** mode for drawing drill-symbol 2005-09-14 **
-int    SymbolLayer      = 144;
-string SymbolLayerName  = "DrillLegend";
+int    SymbolLayer      = 48;	//Changed to Document layer. 2017-05-25 C.Nicks
+string SymbolLayerName  = "Document";
 string Legend_layer     ; sprintf(Legend_layer, "LAYER %d %s;\n", SymbolLayer, SymbolLayerName) ;  // ** the layer of drill symbols are drawing 2005-09-14 **
 int    SymbolSize       = 40;    /*Symbol diameter*/
 int    SymbolWidth      = 4;     /*Symbol wire width*/
@@ -782,13 +784,17 @@ void OutDriLegend() {
    printf("Layer %s;\n",LayerName[j]);
   }
   printf("Change layer %d;\n", SymbolLayer);
+  
+  printf("Change Size %.4f;\n", LabelSize); // Label size
+  printf("Change Ratio %d;\n", LabelRatio); // Label Ratio
+  printf("Text 'Drills:' R0 (0 200);\n");	// Label
+  
   printf("Change Size %.4f;\n", TextSize);
   printf("Change Ratio %d;\n", TextRatio);
   printf("Change Font %s;\n", TextFont[IdxFnt]);
   printf("MARK;\n");         // *** clear MARK 2005-09-14 alf@cadsoft.de ***
 
-  // Label
-  printf("Text 'Drills:' R0 (0 200);\n");
+
 
   if(VerticalChart == 1) {
    defPos();
@@ -805,21 +811,24 @@ void OutDriLegend() {
   printf("EDIT .brd;\n");  //  2010-12-21 alf@cadsoft.de
 
   if (Legend_layer) printf("%s", Legend_layer);  // is legend-layer defined? 2005-09-14 alf@cadsoft.de
+  // Stop changing my displays and grids. C.Nicks
+  /*
   printf("DISPLAY 23 44 45 %d;\n",SymbolLayer);
   printf("GRID MIL 25 1 ;\n");
+  */
   printf("SET WIRE_BEND 2;\n");
   printf("USE %s\n",LbrPath);
 
   if (replace == 0) {
-   printf("ADD 'DRILEGEND' DRILEGEND R0 (%.3f %.3f);\n", u2mil(Bx)-LoffsetX, u2mil(By)-LoffsetY );
-   printf("%s", str_symbols);
+   printf("ADD 'DRILEGEND' DRILEGEND R0 (%.3f %.3f);\n", u2mm(Bx)-LoffsetX, u2mm(By)-LoffsetY );
+   // printf("%s", str_symbols); // Do I really need all of the drills marked with symbols? I guess useful for debuging for finding certain ones. Maybe make this a checkbox option in the dialog.
   }
   if (replace == 1) {
    printf("UPDATE %s;\n",LbrPath);
   }
-  printf("DISPLAY LAST;\n");  // 2015-05-14
+  //printf("DISPLAY LAST;\n");  // 2015-05-14
   printf("WIN FIT;\n");
-  printf("GRID LAST;\n");
+  //printf("GRID LAST;\n");
  }
 }
 
@@ -1174,10 +1183,14 @@ string stack = "";
 str_symbols = Legend_layer;
 real TextLength = TextSize * 5.0;
 
-// sprintf(s, "TEXT 'LAYER-STACK' (%.4f %.4f);\n",    // Layerbeschriftung/Kopfzeile 2010-12-22
-//              u2mil(Bx)-LoffsetX-TextLength*2.1,
-//              u2mil(By)-LoffsetY-(Idrl_stack  * TextSize * TextOffset * HighCellFactor)
-//           );
+
+// Commented out layer stack labels. C.Nicks
+/*
+ sprintf(s, "TEXT 'LAYER-STACK' (%.4f %.4f);\n",    // Layerbeschriftung/Kopfzeile 2010-12-22
+              u2mil(Bx)-LoffsetX-TextLength*2.1,
+              u2mil(By)-LoffsetY-(Idrl_stack  * TextSize * TextOffset * HighCellFactor)
+           );
+*/
 str_symbols += s;
 
 for (int n = 0; n < Drl_cnt; n++) {

@@ -1,0 +1,19 @@
+#usage "<b>Edit previous sheet</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+string cmd = "";
+
+if (schematic) {
+  int s;
+  schematic(SH) {
+     sheet(SH) s = SH.number;
+     if (s > 1) {
+        s--;
+        sprintf(cmd, "EDIT .s%d;\n", s);
+        }
+     }
+  exit(cmd);
+  }

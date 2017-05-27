@@ -141,7 +141,8 @@ SCH:
 	ASSIGN C+Y 		REDO;
 	ASSIGN C+Z 		UNDO;
 	ASSIGN CA+G 	'Display';
-	ASSIGN F3 		'Window 2';
+	ASSIGN F2 		'run editprev-sheet';
+	ASSIGN F3 		'run editnext-sheet';
 	ASSIGN F4 		'Window 0.5';
 	ASSIGN F5 		'Window (@);';
 	ASSIGN SC+A 	ADD;

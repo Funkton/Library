@@ -29,14 +29,17 @@ Basic operation. Enter values to move by.
 
 To-Do Feature List:
 - For Rev 0.9
-[ ] - Store last used values as default.
-[ ] - Rotate option
+1) - Store last used values as default.
+2) - Rotate option
+3) - Repeat mode: Repeats the last move amounts without the dialog popping up.
 
 - For Rev 1.0
 [ ] - Get and display units, use list box to override.
 [ ]? - Box to enter single components?
-[ ]? - Handle MARK as the reference origin (where you want the offset should start from, would be handy in library creation from datasheet dimensions)
-[ ]x - 
+
+[ ]? - Handle MARK as the reference origin (where you want the offset should start from, would be handy in library creation from datasheet dimensions) (this may not be doable because the mark command does not accept placement coordinates, double check how drills.ulp uses the mark information for placement)
+[ ]x - INPUT CHANGE: Increment mode. Numbers entered multiplied by the grid step. With a  0.1mm grid size, 5 entered as the move by value would move 0.5mm.
+This could also be used combined with previosly used value and repeat mode to make move by step shortcuts on the arrow keys.
 
 */
 
