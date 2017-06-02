@@ -1,0 +1,89 @@
+    #usage "<b>pick-up parts in the board editor that are grouped in the schematic</b>\n"
+
+          "<p>"
+
+          "group parts in the schematic, then run pickGrouped"
+
+          "<p>"
+
+          "<author>Author: lorenznl@yahoo.com</author>"
+
+     
+
+    // THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+     
+
+     
+
+    void main (void) {
+
+    string gInSch[], cmd;
+
+    int    gCnt, mx, my;
+
+     
+
+       // collect the grouped parts
+
+       project.schematic(SCH) {
+
+         SCH.parts(PAR) PAR.instances (INS) {
+
+           if (PAR.device.package && ingroup(INS))
+
+             gInSch[gCnt++] = PAR.name;
+
+         }
+
+       }
+
+     
+
+       if (gCnt == 0) {
+
+         dlgMessageBox("Nothing grouped in schematic!");
+
+         exit(1);
+
+       }
+
+     
+
+       project.board (B) {
+
+         clrgroup(B);
+
+     
+
+         // regroup the collected parts in the board
+
+         //  and determine center of weight
+
+         B.elements (E) {
+
+           if (lookup(gInSch, E.name, 0) != "") {
+
+             mx += E.x;
+
+             my += E.y;
+
+             setgroup(E);
+
+           }
+
+         }
+
+     
+
+         // pick up the grouped parts at center of weight
+
+         sprintf(cmd, "move (>%.1fmic %.1fmic)", u2mic(mx/gCnt), u2mic(my/gCnt));
+
+         if (project.schematic) cmd = "edit .brd;" + cmd;
+
+         exit(cmd);
+
+       }
+
+    }

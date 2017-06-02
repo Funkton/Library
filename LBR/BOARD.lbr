@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.05" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="GND" color="18" fill="9" visible="no" active="no"/>
@@ -121,6 +121,18 @@ Attributes/Variables:
 &lt;li&gt;&lt;b&gt;&gt;DRD&lt;/b&gt; - DRILLS SCOPE
 &lt;li&gt;&lt;b&gt;&gt;BOARD&lt;/b&gt; - Total Board Thickness
 &lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;
+&lt;b&gt;Layer Stack Information Sources:&lt;/b&gt;
+&lt;p&gt;
+&lt;a href="http://www.4pcb.com/pcb-prepreg.html"&gt;Advanced Circuits PrePreg Chart&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="http://www.4pcb.com/pcb-stack-ups-.031.html"&gt;Advanced Circuits 0.031" Layer Stacks&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="http://www.4pcb.com/pcb-stack-ups-0.062.html"&gt;Advanced Circuits 0.036" Layer Stacks&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="https://www.sunstone.com/pcb-manufacturing-capabilities/layer-stackup"&gt;Sunstone Layer Stacks&lt;/a&gt;
+&lt;hr&gt;
 &lt;p&gt;
 &lt;i&gt;C. Nicks - Phase IV Engineering, 2017</description>
 <packages>
@@ -823,6 +835,18 @@ Attributes/Variables:
 &lt;li&gt;&lt;b&gt;&gt;DRD&lt;/b&gt; - DRILLS SCOPE
 &lt;li&gt;&lt;b&gt;&gt;BOARD&lt;/b&gt; - Total Board Thickness
 &lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;
+&lt;b&gt;Layer Stack Information Sources:&lt;/b&gt;
+&lt;p&gt;
+&lt;a href="http://www.4pcb.com/pcb-prepreg.html"&gt;Advanced Circuits PrePreg Chart&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="http://www.4pcb.com/pcb-stack-ups-.031.html"&gt;Advanced Circuits 0.031" Layer Stacks&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="http://www.4pcb.com/pcb-stack-ups-0.062.html"&gt;Advanced Circuits 0.036" Layer Stacks&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="https://www.sunstone.com/pcb-manufacturing-capabilities/layer-stackup"&gt;Sunstone Layer Stacks&lt;/a&gt;
+&lt;hr&gt;
 &lt;p&gt;
 &lt;i&gt;C. Nicks - Phase IV Engineering, 2017</description>
 <gates>
@@ -834,11 +858,11 @@ Attributes/Variables:
 <technology name="">
 <attribute name="BOARD" value="Total Thickness" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-THICK" value="1-2 Thickness" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-THICK" value="2-3 Thickness" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-THICK" value="3-4 Thickness" constant="no"/>
 <attribute name="DRD" value="Layers 1-4" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
@@ -849,11 +873,11 @@ Attributes/Variables:
 <technology name="-031">
 <attribute name="BOARD" value="31 mil +/- 10%" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-THICK" value="5.7 mil" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-THICK" value="14 mil" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-THICK" value="5.7 mil" constant="no"/>
 <attribute name="DRD" value="Layers 1-4" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
@@ -864,12 +888,42 @@ Attributes/Variables:
 <technology name="-062">
 <attribute name="BOARD" value="62 mil +/- 10%" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-THICK" value="8.2 mil" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-THICK" value="40 mil" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-THICK" value="8.2 mil" constant="no"/>
+<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="PLATE1" value="1oz" constant="no"/>
+<attribute name="PLATE2" value="1oz" constant="no"/>
+<attribute name="PLATE3" value="1oz" constant="no"/>
+<attribute name="PLATE4" value="1oz" constant="no"/>
+</technology>
+<technology name="-SUN-031-2OZ">
+<attribute name="BOARD" value="28 mil +/- 10%" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
+<attribute name="DIE1-2-THICK" value="4.4 mil" constant="no"/>
+<attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
+<attribute name="DIE2-3-THICK" value="14" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
+<attribute name="DIE3-4-THICK" value="4.4 mil" constant="no"/>
+<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="PLATE1" value="1oz" constant="no"/>
+<attribute name="PLATE2" value="1oz" constant="no"/>
+<attribute name="PLATE3" value="1oz" constant="no"/>
+<attribute name="PLATE4" value="1oz" constant="no"/>
+</technology>
+<technology name="-SUN-062-2OZ">
+<attribute name="BOARD" value="62 mil +/- 10%" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
+<attribute name="DIE1-2-THICK" value="14 mil" constant="no"/>
+<attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
+<attribute name="DIE2-3-THICK" value="28 mil" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
+<attribute name="DIE3-4-THICK" value="14 mil" constant="no"/>
 <attribute name="DRD" value="Layers 1-4" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
@@ -914,48 +968,48 @@ Attributes/Variables:
 <technology name="">
 <attribute name="BOARD" value="Total ± tol" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE1-2-THICK" value="Thickness" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE2-3-THICK" value="Thickness" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE3-4-THICK" value="Thickness" constant="no"/>
 <attribute name="DIE4-5" value="FR-4 Core" constant="no"/>
 <attribute name="DIE4-5-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE4-5-THICK" value="Thickness" constant="no"/>
-<attribute name="DIE5-6" value="Prepeg" constant="no"/>
+<attribute name="DIE5-6" value="Prepreg" constant="no"/>
 <attribute name="DIE5-6-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE5-6-THICK" value="Thickness" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-6" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
-<attribute name="PLATE2" value="0.5oz" constant="no"/>
-<attribute name="PLATE3" value="0.5oz" constant="no"/>
-<attribute name="PLATE4" value="0.5oz" constant="no"/>
-<attribute name="PLATE5" value="0.5oz" constant="no"/>
+<attribute name="PLATE2" value="1oz" constant="no"/>
+<attribute name="PLATE3" value="1oz" constant="no"/>
+<attribute name="PLATE4" value="1oz" constant="no"/>
+<attribute name="PLATE5" value="1oz" constant="no"/>
 <attribute name="PLATE6" value="1oz" constant="no"/>
 </technology>
 <technology name="-031">
 <attribute name="BOARD" value="31 mil ± 10%" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE1-2-THICK" value="4.2 mil" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE2-3-THICK" value="5 mil" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE3-4-THICK" value="4.2 mil" constant="no"/>
 <attribute name="DIE4-5" value="FR-4 Core" constant="no"/>
 <attribute name="DIE4-5-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE4-5-THICK" value="5 mil" constant="no"/>
-<attribute name="DIE5-6" value="Prepeg" constant="no"/>
+<attribute name="DIE5-6" value="Prepreg" constant="no"/>
 <attribute name="DIE5-6-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE5-6-THICK" value="4.2 mil" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-6" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
 <attribute name="PLATE3" value="1oz" constant="no"/>
@@ -966,22 +1020,74 @@ Attributes/Variables:
 <technology name="-062">
 <attribute name="BOARD" value="62 mil ± 10%" constant="no"/>
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
-<attribute name="DIE1-2" value="Prepeg" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
 <attribute name="DIE1-2-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE1-2-THICK" value="8.5 mil" constant="no"/>
 <attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
 <attribute name="DIE2-3-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE2-3-THICK" value="14 mil" constant="no"/>
-<attribute name="DIE3-4" value="Prepeg" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
 <attribute name="DIE3-4-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE3-4-THICK" value="8.5 mil" constant="no"/>
 <attribute name="DIE4-5" value="FR-4 Core" constant="no"/>
 <attribute name="DIE4-5-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE4-5-THICK" value="14 mil" constant="no"/>
-<attribute name="DIE5-6" value="Prepeg" constant="no"/>
+<attribute name="DIE5-6" value="Prepreg" constant="no"/>
 <attribute name="DIE5-6-DESC" value="Dielectric" constant="no"/>
 <attribute name="DIE5-6-THICK" value="8.5 mil" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-6" constant="no"/>
+<attribute name="PLATE1" value="1oz" constant="no"/>
+<attribute name="PLATE2" value="1oz" constant="no"/>
+<attribute name="PLATE3" value="1oz" constant="no"/>
+<attribute name="PLATE4" value="1oz" constant="no"/>
+<attribute name="PLATE5" value="1oz" constant="no"/>
+<attribute name="PLATE6" value="1oz" constant="no"/>
+</technology>
+<technology name="-SUN-031-2OZ">
+<attribute name="BOARD" value="31 mil ± 10%" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
+<attribute name="DIE1-2-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE1-2-THICK" value="4.4 mil" constant="no"/>
+<attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
+<attribute name="DIE2-3-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE2-3-THICK" value="5 mil" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
+<attribute name="DIE3-4-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE3-4-THICK" value="4.4 mil" constant="no"/>
+<attribute name="DIE4-5" value="FR-4 Core" constant="no"/>
+<attribute name="DIE4-5-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE4-5-THICK" value="5 mil" constant="no"/>
+<attribute name="DIE5-6" value="Prepreg" constant="no"/>
+<attribute name="DIE5-6-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE5-6-THICK" value="4.4 mil" constant="no"/>
+<attribute name="DRD" value="Layers 1-6" constant="no"/>
+<attribute name="PLATE1" value="1oz" constant="no"/>
+<attribute name="PLATE2" value="1oz" constant="no"/>
+<attribute name="PLATE3" value="1oz" constant="no"/>
+<attribute name="PLATE4" value="1oz" constant="no"/>
+<attribute name="PLATE5" value="1oz" constant="no"/>
+<attribute name="PLATE6" value="1oz" constant="no"/>
+</technology>
+<technology name="-SUN-062-2OZ">
+<attribute name="BOARD" value="62 mil ± 10%" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DIE1-2" value="Prepreg" constant="no"/>
+<attribute name="DIE1-2-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE1-2-THICK" value="8.4 mil" constant="no"/>
+<attribute name="DIE2-3" value="FR-4 Core" constant="no"/>
+<attribute name="DIE2-3-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE2-3-THICK" value="14 mil" constant="no"/>
+<attribute name="DIE3-4" value="Prepreg" constant="no"/>
+<attribute name="DIE3-4-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE3-4-THICK" value="8.4 mil" constant="no"/>
+<attribute name="DIE4-5" value="FR-4 Core" constant="no"/>
+<attribute name="DIE4-5-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE4-5-THICK" value="14 mil" constant="no"/>
+<attribute name="DIE5-6" value="Prepreg" constant="no"/>
+<attribute name="DIE5-6-DESC" value="Dielectric" constant="no"/>
+<attribute name="DIE5-6-THICK" value="8.4 mil" constant="no"/>
+<attribute name="DRD" value="Layers 1-6" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
 <attribute name="PLATE3" value="1oz" constant="no"/>

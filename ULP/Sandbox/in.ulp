@@ -1,0 +1,85 @@
+#usage 	"de: <b>Zentrales Startprogramm für ULPs</b>\n"
+		"<p>"
+		"Um etwas mehr Übersicht in die vielen ULPs zu bekommen, bietet es sich an diese "
+		"thematisch in Unterverzeichnisse zu verschieben." 
+		"<p>"
+		"Leider ist Eagle (6.2) nicht in der Lage vorangestellte, relative Pfade aufzulösen. "
+		"Zum Beispiel läßt sich ein ULP names '<i>test.ulp</i>', dass im Standard-ULP-Verzeichniss "
+		"liegt per '<code>run test</code>' aufrufen." 
+		"<p>"
+		"Wird selbiges in das Unterverzeichnis '<i>bla</i>' verschoben, ist es nicht mehr möglich "
+		"das ULP mit '<code>run bla/test</code>' aufzurufen." 
+		"<p>"
+		"Dieses ULP ermöglicht es, ULPs strukturiert abzulegen und trotzdem einfach zu starten. "
+		"Dafür muss dieses ULP nur in das Standard-ULP-Verzeichnis kopiert werden und der Aufruf "
+		"wie folgt angepasst werden."
+		"<hr><b>Aufruf:</b>"
+		"<pre> ... run <i><b>in dir</b> ulp [parameter]</i></pre>"
+		"<p>"
+		"<ul>"
+		"<li>Als erster Parameter wird das Unterverzeichnis, in dem das zu startende ULP liegt, erwartet."
+		" Das Unterverzeichnis muss innerhalb des ULP-Verzeichnisses liegen.</li>"
+		"<li>Als zweiter Parameter wird der Name des zu startenden ULP erwartet.</li>"
+		"<li>Danach können beliebig viele Parameter folgen, die an das ULP-durchgereicht werden.</li>"
+		"</ul>"
+		"<hr><b>Beispiel:</b>"
+		"<p>Hier wurde das ULP 'designlink-order' in den Unterordner 'my_dir' verschoben "
+		"und der entsprechende Eintrag innerhalb des Scripts 'eagle.scr' angepasst. "
+		"<br> Der Aufruf sieht dann so aus:"
+		"<p><pre>"
+		"<br>MENU '[designlink22.png] Search and order {\\"
+		"<br>        General   : run <b>in</b> my_dir designlink-order -general; |\\"
+		"<br>        Schematic : run <b>in</b> my_dir designlink-order; \\"
+		"<br>     }'"
+		"</pre>"
+		"<p><author><a href=""mailto:stefan6973@gmx.net"">Author: Stefan Ey</a>"
+		"</author>",
+		
+		"en: <b>common ulp starter</b>"
+		"<p>for ulps in sub dirs of the standard ulp directory. "
+		"The reason is that eagle can't handle relative paths in run commands."
+		"<hr><b>Calling:</b>"
+		"<pre> ... run <i><b>in dir</b> ulp [parameter]</i></pre>"
+		"<p>"
+		"<ul>"
+		"<li>The sub directory where the ULP resides is the first parameter."
+		"This sub directory is inside the standard ULP directory.</li>"
+		"<li>The name of the ULP is the second parameter.</li>"
+		"<li>After the two parameters may follow all necessary paramters of the ULP.</li>"
+		"</ul>"
+		"<hr><b>Example:</b>"
+		"<p>The ULP 'designlink-order' was moved into the sub directory 'my_dir' "
+		"and the following lines in 'eagle.scr' was changed to meet the new ULP-location. "
+		"<p><pre>"
+		"<br>MENU '[designlink22.png] Search and order {\\"
+		"<br>        General   : run <b>in</b> my_dir designlink-order -general; |\\"
+		"<br>        Schematic : run <b>in</b> my_dir designlink-order; \\"
+		"<br>     }'"
+		"</pre>"
+		"<p><author><a href=""mailto:stefan6973@gmx.net"">Author: Stefan Ey</a>"
+		"</author>"
+	
+
+if (argc >= 3) 
+{	
+	//Befehl des zu startenden ULP bilden
+	string strCommand = "";
+	sprintf(strCommand, "run %s%s/%s.ulp", filedir(argv[0]), argv[1], argv[2]);
+	//alle übrigen Parameter anfügen
+	int n = 3;
+	while(n<argc)
+	{
+		strCommand += " ";
+		strCommand += argv[n];
+		++n;
+	}
+	//dlgMessageBox(strCommand);
+	exit(strCommand);
+}
+else
+{
+	string strMsg = "";
+	sprintf(strMsg, "Es wurde kein ULP als Parameter angegeben (%d Parameter)", argc);
+	dlgMessageBox(strMsg, "Schade");
+	exit (0);	
+}

@@ -1,0 +1,165 @@
+//======================================================
+// SWAP v 1.0.0
+//
+// Eagle v5.11 or later is required. Only the board editor and the schamatic editor are supported.
+//
+// Swap 2 board components in group or listed at the command line
+// This software is released under the BSD 4-clause license:
+//
+// Copyright (c) 2012, Danny Damhave, Damhave Systems
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+//	*	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+//	*	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+// 		in the documentation and/or other materials provided with the distribution.
+//	*	Neither the name of Danny Damhave nor Damhave Systems nor the names of its contributors may be used to endorse or promote products derived from
+//	    this software without specific prior written permission.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+// BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+// OF SUCH DAMAGE.
+//======================================================
+#require 5.11
+#usage	"<B>Swap 2 components in group or listed</B>"
+"<P>"
+	"<P>"
+	"Swap positions of two components.<br>"
+	"<b>Usage:</b>"
+	"<blockquote>run align<br>"
+	"run swap [-flag{flag}] {component component}</blockquote>"
+	"<b>Flags:</b>"
+	"e: use regular Expressions (regex) instead of wildcards<br>"	
+	"<I>If exactly two components in the selection group, those two are swapped when no components are specified at the command line.<br>"
+	"<P>"
+	"<b>Examples:</b><br>"
+	"Swap the selected two components:"
+	"<blockquote>run swap</blockquote>"
+	"Swap the resistors R1, R2:"
+	"<blockquote>run swap R1 R2</blockquote>"
+	"<P>"
+	"Copyright (c) 2012 Danny Damhave"
+	"<P>"
+	"<Author>Danny Damhave<br>Damhave Systems<br>www.damhave.com</Author><br><br>"
+	"This ulp is released under the BSD 4-clause license. See source code for details!"
+
+enum {false, true};
+enum {GROUP, LIST};
+string outputFileName = "swaptempfile.scr";
+int noElements = 0, mode = GROUP, firstInList = 1,regexFlag = false;
+int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+string name1, name2;
+
+int isMatch(string s, string test, int useRegex)
+{	
+	string regex = !useRegex ?  "^" : test;
+	if (!useRegex)
+	{
+		for(int i = 0; test[i];)
+		{
+			switch(test[i])
+			{
+				case '[': regex += strsub(test, i, strchr(test, ']', i) - i + 1), i += strchr(test, ']', i) - i + 1; break;
+				case '?': regex += ".", i++; break;
+				case '*': regex += ".*", i++; break;
+				case '+': case '^': case '$': case '.': case '{': case '}': case '(': case ')':  case '|': case '\\':
+				regex += "\\" + test[i], i++; break;
+				default: regex += test[i], i++;
+			}
+		}
+		regex +='$';
+	}
+	return strxstr(s, regex, 0) == 0;
+}
+
+int inList(string name)
+{
+	for(int i = firstInList; i < argc && argv[i] != ""; i++)
+	{
+		if (regexFlag)
+		{
+			if (isMatch(name, argv[i], regexFlag)) return true;
+		}
+		else
+		{
+			if (isMatch(strupr(name), strupr(argv[i]), regexFlag)) return true;		
+		}
+	}
+	return false;
+}
+
+//		***** The ulp begins here *****
+if (!board && !schematic && !dlgMessageBox("Can only be used in the board and schematic editors.\n")) exit(1);
+
+if (argc>firstInList)
+{
+	string flags = argv[firstInList];
+	if (flags[0] == '-')
+	{
+		if (strlen(flags) == 1) { dlgMessageBox("No flags.\n"); exit(1); }		
+		for (int i = 1; flags[i]; i++)
+		{
+			switch (flags[i])
+			{
+				case 'e' : regexFlag = true; break;
+				default : dlgMessageBox("No such flag.\n"); exit(3);
+			}
+		}	 
+		firstInList++;
+	}
+	else;	// There are no flags therefore use the default align to bottommost/leftmost object in the direction with the most spread
+}
+if (argc>firstInList) mode = LIST;
+
+
+
+if(schematic) schematic(S)
+{
+	S.sheets(sch) // Cannot cover more than the current sheet
+	{
+		outputFileName = filedir(S.name)+outputFileName;
+		sch.instances(inst)
+		{
+			if ((mode == GROUP && ingroup(inst)) || (mode == LIST && inList(inst.name)))
+			{
+				noElements += 1;
+				x1 = x2, y1 = y2;
+				name1 = name2;
+				x2 = inst.x;
+				y2 = inst.y;
+				name2 = inst.name;
+			}
+
+		}
+		if (noElements != 2) noElements = 0; // Cannot cover more than the current sheet which must have two parts selected/listed
+	}
+}
+else if(board) board(brd)
+{
+	outputFileName = filedir(brd.name)+outputFileName;
+
+	brd.elements(element)
+	{
+		if ((mode == GROUP && ingroup(element)) || (mode == LIST && inList(element.name)))
+		{
+			noElements += 1;
+			x1 = x2, y1 = y2;
+			name1 = name2;
+			x2 = element.x;
+			y2 = element.y;
+			name2 = element.name;			
+		}
+	}
+}
+
+if ((noElements != 2) && !dlgMessageBox("Requires exactly 2 components in selection group or listed at the command line.\n")) exit(1);
+
+output(outputFileName, "wtD")
+{
+	printf("MOVE %s (%fmil %fmil)\n", name1, u2mil(x2), u2mil(y2));
+	printf("MOVE %s (%fmil %fmil)\n", name2, u2mil(x1), u2mil(y1));
+}
+
+exit("script '" + outputFileName + "'");

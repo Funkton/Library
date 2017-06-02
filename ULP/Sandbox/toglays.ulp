@@ -1,0 +1,49 @@
+
+
+#usage "<qt><b>togmlays.ulp layernum layernum ... "
+"<p>Toggle visibility of the specified layers"
+"<p>"
+"<author>Author: Paul Badger modded for multiple args by Bill Westfield westfw@assorted</author></qt>"
+
+int mylayer;
+string foo="";
+string buff="";
+string nfoo="";
+string buf;
+
+
+void display (string s) {
+dlgMessageBox(s);
+return;
+}
+
+if (argc < 2) { /* Should be ulp + arg */
+sprintf(foo, "no layer %d found", argc);
+display(foo);
+exit("");
+}
+
+for (int i = 1; i <= (argc); i++){
+
+mylayer = strtod(argv[i]);
+
+if (board) board(B) {
+B.layers(L) {
+	if (L.number == mylayer) {
+		if (L.visible) {
+		// I'm using layer numbers here instead of names because of bizzare eagle bug
+		// "Display Top;" on my machine stopped working, but layer numbers still work fine.
+	        
+		    sprintf(buff, "%d", mylayer);
+			foo = foo + "display -" + buff + "; ";
+		} 
+		else 
+		{
+		sprintf(buff, "%d", mylayer);
+		nfoo = nfoo + "display " + buff + "; ";
+        }                   
+    }
+  }
+}
+}
+exit(foo + nfoo);

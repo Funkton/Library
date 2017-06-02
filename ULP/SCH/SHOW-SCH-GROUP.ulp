@@ -7,12 +7,15 @@
   Then SHOW command has all nets and parts (except parts with ignored value, supply etc.) added before full command execution.
 
  REVISION HISTORY:
- Rev 1.0 	Original ULP (show-airwires.ulp) from peter@seng.de
-
- Rev 1.1- May 2017 by Cameron Nicks, Phase IV Engineering, cnicks@phaseivengr.com
+	Rev 1.2 - 06/01/17
+		- Added argument handling for ratsnest option. Without -rats only shows group.
+ 
+	Rev 1.1- May 2017 by Cameron Nicks, Phase IV Engineering, cnicks@phaseivengr.com
 		- Changed added SHOW to highlight all nets and elements in group after ratsnesting.
 		- Net ignore. (Needs the ability to add more than one)
 		- Value ignore. Ignores parts with value: SUP (Supply.lbr parts all have this)
+		
+	Rev 1.0 	Original ULP (show-airwires.ulp) from peter@seng.de
 	
 Feature Wish List:
 
@@ -51,30 +54,29 @@ THE SOFTWARE.
 
 
 #usage "<b>Show nets and parts in schematic group, visually highlights and isolates airwires in board editor.</b><p>"
-	"1) ASSIGN this ulp to a shortcut. Modify ignore settings (ignores GND net and parts with SUP value)<br>"
+	"1) ASSIGN this ulp to a shortcut (add -rats if you want to ratsnest group). Modify ignore settings (ignores GND net and parts with SUP value)<br>"
 	"2) Define group in schematic<br>"
 	"3) Run SHOW-SCH-GROUP from console, shortcut, or run dialog.<br>"
 	"4) Set all supply symbols to have value of SUP to stop warnings for supply parts. <p>"
 	"<i>How it works.</i><br>"
-	"First it switches to the board editor, then hides all airwires with 'RATS ! *'.<br>"
-	"It then adds all the net names in the group to Ratsnest command.<br>"
-	"After Ratsnest, all of the parts and nets in the group (except for ingnored) are added to  'SHOW' command.<p>"
+	"First it switches to the board editor.<br>"
+	"Using the -rats option, it hides all airwires with 'RATS ! *' and adds all the net names in the group to Ratsnest command.<br>"
+	"After Ratsnest, all of the parts and nets in the group (except for ignored) are added to  'SHOW' command.<p>"
 	"Use 'RATS *' at the command line in board to show all airwires.<br>"
 	"Use 'RATS ! *' at the command line in board to show no airwires.<p>"
 	"<i>TO-DO:<br> -Add Board group to Schematic. (only SHOW parts and nets in brd group)</i><br>"
 	"- Automatic ignore for any schematic device without package.<p>"
-	"<author>Rev 1.1: Cameron Nicks, Phase IV Engingeering cnicks@phaseivengr.com</author><br>"
+	"<author>Cameron Nicks, Phase IV Engingeering cnicks@phaseivengr.com</author><br>"
 	"<author>Based on show-airwires by peter@seng.de</author>"
 	
-
+string VERSION = "1.2 - 06/01/17";
 string cmd;
 string netList;
 string partList;
 string Revision = "1.1";
 string ignoreNet = "GND";
 string ignoreVal = "SUP";
-string toSch = "edit .sch; group;"; // Remove group if you do not want the tool to change automatically
-
+string rats = "RATS ! *; RATS ";
 if (schematic){
 
 	int cntN = 0;
@@ -83,7 +85,6 @@ if (schematic){
 
 	schematic(S) 
 	{	
-		cmd = "edit .brd; RATS ! *; RATS "; // create command string 
 		S.sheets(SH) // work-around for bug in EAGLE 5/6 --> must use sheet context, see http://www.element14.com/community/thread/16119
 		  SH.nets(N){
 			if (ingroup(N)){
@@ -128,8 +129,14 @@ if (schematic){
 		
 		
 //-------------------- Build Command String ------------------
+		cmd = "edit .brd;";
+		
+		if (argv[1] == "-rats") {
+		cmd += "RATS ! *; RATS ";
 		cmd += netList;		// add only nets to ratsnest command
-		cmd += "; SHOW ";	// add show command to command string
+		cmd += ";";
+		}
+		cmd += "SHOW ";	// add show command to command string
 		cmd += netList;		// add nets to show command
 		cmd += partList;	// add parts to show command
 		
@@ -149,6 +156,6 @@ else
 {
 	
 	dlgMessageBox("ULP must be run from schematic", "OK"); //Comment this line if you want to automatically switch to schematic editor 
-	exit(toSch);
+	exit("edit .sch; group;"); // Resets back to schematic with group tool enabled
 }
 

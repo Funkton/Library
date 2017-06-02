@@ -1,0 +1,156 @@
+#usage     "Changes values of parts with a speficif suffix in it's current values.\n"
+    "Author: H. Eilers\n"
+    "Web: www.hanneseilers.de\n"
+    "Use RUN change-values.ulp to start."
+
+#require 6.0100
+
+/* ---- GLOBAL VARIABLES ----*/
+string filepath = "partList.txt";
+string localdir = "";
+string partList[];
+string partValues[];
+string partPackages[];
+int quantities[];
+int enableQuantityList = 0;
+
+/* ---- FUNCTIONS ---- */
+
+/* Shows a message box with a simple text message */
+void msgBox(string msg){
+    dlgMessageBox(msg);
+}
+
+/* checks if a part is a valid part or a supply symbol or hole */
+int isPartValid(UL_PART P){
+    if( (P.value != "") && (strstr(P.device.library, "supply") < 0) && (strstr(P.device.library, "holes") < 0) )
+    	return 1;
+    return -1;
+}
+
+/* Searches for a part in partList an returns it position or -1 if not found */
+int posInPartList(string value, string packageType){
+    for(int i=0; partList[i]; i++){
+    	if( (partValues[i] == value) && (partPackages[i] == packageType) )
+         	return i;
+    }
+    return -1;
+}
+
+int getPartListLength(){
+    int length = 0;
+    for(int i=0; partList[i]; i++){
+    	length += 1;
+    }
+    return length;
+}
+
+/* adds a part to the partList if it is valid */
+void addTopartList(UL_PART P){
+     if( isPartValid(P) == 1 ){
+
+     	// get package type
+     	string packageType = "";
+         if(P.device.package)
+         	packageType = P.device.package.name;
+
+         // get position of part in partList
+         int pos = posInPartList(P.value, packageType);
+         if( pos == -1 || enableQuantityList != 0 ){
+         	// add new part to partList
+                 pos = getPartListLength();
+                 partList[pos] = P.name;
+                 partValues[pos] = P.value;
+                 partPackages[pos] = packageType;
+                 quantities[pos] = 1;
+         }
+         else {
+         	// update entry
+                 partList[pos] += ", "+P.name;
+                 quantities[pos] += 1;
+         }
+
+     	// retString +=  P.name+","+P.value+","+pack+"\n";
+     }
+}
+
+/* Returns the partList as string */
+string getPartListAsString(){
+     string retString = "";
+
+     for(int i=0; partList[i] && quantities[i]; i++){
+	string tmpString = "";
+
+         string names = partList[i];
+         string value = partValues[i];
+         string packageType = partPackages[i];
+         int quantity = quantities[i];
+
+         sprintf(tmpString, "%d; \%s\; %s; %s\n", quantity, names, value, packageType);
+         retString += tmpString;
+     }
+
+     return retString;
+}
+
+/* Exports all parts as comma seperated list */
+string exportParts(){
+    string retString = "sep=;\n";
+    retString += "Quantity;Partname;Value;Package\n";
+
+    schematic(S){
+    	S.parts(P){
+         	addTopartList(P);
+	}
+    }
+
+    return retString + getPartListAsString();
+}
+
+/* Shows parameters dialog */
+int showParametersDialog(){
+    schematic(S){
+    	localdir = filedir(S.name);
+    }
+    filepath = dlgFileSave("Save csv file as", localdir, "CSV-Datei *.csv");
+
+    int dlg = dlgDialog("Enter Parameters"){
+    	dlgVBoxLayout {
+        		dlgGroup("Group parts with same value and package-type?") {
+			dlgRadioButton("&yes", enableQuantityList);
+			dlgRadioButton("&no", enableQuantityList);
+                 }
+                 dlgHBoxLayout{
+                	dlgPushButton("+&Accept") dlgAccept();
+                	dlgPushButton("Cancel") dlgReject();
+            }
+         }
+    };
+
+    if( (fileext(filepath) == "") || (dlg == -1))
+	return -1;
+    return 1;
+}
+
+/* Main function */
+void main(){
+
+    if(!schematic){
+        msgBox("Run in schematic!");
+    }
+    else{
+	if(showParametersDialog() == 1){
+                 // get partList */
+                 status("exporting partList to "+filepath);
+           	string filecontent = exportParts();
+
+                 // write partList to file
+                 output(filepath, "wt"){
+                 	printf( filecontent );
+                 }
+
+           	msgBox("Exported partList to "+filepath);
+        }
+    }
+
+}

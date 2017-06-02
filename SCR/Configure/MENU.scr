@@ -8,15 +8,23 @@
 #   To run by default, include this file in eagle.scr otherwise use SCRIPT to run
 #___________________________________
 
+# Notes about CONTEXT MENU
+#attribute, circle, dimension, element, frame, gate, hole, instance, junction, label, modinst (module instance), pad, pin, rectangle, smd, text, via and wire.
+
+#Restriction note on ULP execution:
+#In order to have the selected object available for function ingroup() please avoid setting the ';' within the apostrophs (i.e. not 'run myexport.ulp;', but 'run myexport.ulp').
+
+
 #----------------------------------#
 #---------- BOARD EDITOR ----------#
 #----------------------------------#
 BRD:
 	# Package text command menu setup
 	 
-	SET CONTEXT;
+#	SET CONTEXT; #This clears all user context menu items. Disabled so --install options do not get over written
+	SET CONTEXT ELEMENT;
 	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'   'RUN SHOW-BRD-PART-NETS GND';
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+#	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
 		MENU
 		'RENDER {\
@@ -46,15 +54,21 @@ BRD:
 SCH:
 	# Schematic text command menu setup
 	
-	SET CONTEXT; # These are not working for some reason. Object type?
-	#SET CONTEXT ELEMENT   'Show Airwires'   'RUN SHOW-AIRWIRES'; #Depreciated, replaced with SHOW-SCH-GROUP.ulp
-	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
+#	SET CONTEXT; # These are not working for some reason. Object type? Yes, Element -> Instance shows up
+
+	SET CONTEXT WIRE		'Show in Brd'	'RUN SHOW-SCH-GROUP';
+	SET CONTEXT WIRE		'Show Airwires'	'RUN SHOW-SCH-GROUP -rats';
+	
+	SET CONTEXT INSTANCE	'Move by Displacement'	'RUN MOVEBY';
+	SET CONTEXT INSTANCE	'Show in Brd'	'RUN SHOW-SCH-GROUP';
+	SET CONTEXT INSTANCE	'Show Airwires'	'RUN SHOW-SCH-GROUP -rats';
 
 		MENU
 
 		'SHOW {\
 				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
-				GRP - Nets & Parts : RUN SHOW-SCH-GROUP; |\
+				GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
+				GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\
 				}'\		
 
 #----------------------------------#
@@ -64,14 +78,14 @@ LBR:
 	# Library text command menu setup
 
 	MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
+		'[c:/LAYOUT/Library/ULP/icons/ipc_wizard.svg] IPC-Wizard : RUN ipc-wizard;'
 
 
 PAC:
 	# Package text command menu setup
 
 	MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
+		'NAME/VAL : SCRIPT namevalue.scr;' 'Rotate/Scale : RUN rotate-scale;' 'IPC-Wizard : RUN ipc-wizard;'
 		
 	SET CONTEXT;
 	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
@@ -80,7 +94,7 @@ SYM:
 	# Symbol text command menu setup
 
 	MENU
-		'NAME/VAL : SCRIPT namevalue.scr;'
+		'NAME/VAL : SCRIPT namevalue.scr;' 'Rotate/Scale : RUN rotate-scale;'
 		
 	SET CONTEXT;
 	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';

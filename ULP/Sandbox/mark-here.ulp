@@ -1,0 +1,131 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2013 Eric Stevens <estevens05+ulp@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+#usage "<b>Mark Here</b>"
+"<p>Place the mark on an object via the context menu. Context menu entries can be added via the SET command.</p>"
+"<p>Example eagle.scr entry for adding package editor context items:</p>"
+"<pre>PAC:<br />"
+"SET CONTEXT;<br />"
+"SET CONTEXT hole   'Mark hole'   'run mark-here';<br />"
+"SET CONTEXT circle 'Mark circle' 'run mark-here';<br />"
+"SET CONTEXT smd    'Mark SMD'    'run mark-here';<br />"
+"SET CONTEXT pad    'Mark pad'    'run mark-here';</pre>"
+"<u>Recognized objects:</u>"
+"<ul><li>Schematic Parts</li>"
+"<li>Board Elements</li>"
+"<li>Library Package Circles</li>"
+"<li>Library Package Contacts (SMD, Pad)</li>"
+"<li>Library Package Holes</li></ul>"
+"<p><author>Copyright &copy; 2013, Eric Stevens &lt;estevens05+ulp@gmail.com&gt;</author></p>"
+
+#require 6.0
+
+string Version = "Version 1.0.0";
+string cmd = "";
+
+int x;
+int y;
+int valid_object = 0;
+
+if (schematic)
+{
+  schematic(S)
+  {
+    S.parts(P)
+    {
+      P.instances(I)
+      {
+        if (ingroup(I))
+        {
+          x = I.x;
+          y = I.y;
+          valid_object = 1;
+        }
+      }
+    }
+  }
+}
+
+if (board)
+{
+  board(B)
+  {
+    B.elements(E)
+    {
+      if (ingroup(E))
+      {
+        x = E.x;
+        y = E.y;
+        valid_object = 1;
+      }
+    }
+  }
+}
+
+if (library)
+{
+  library(L)
+  {
+    package(P)
+    {
+      P.circles(O)
+      {
+        if (ingroup(O))
+        {
+          x = O.x;
+          y = O.y;
+          valid_object = 1;
+        }
+      }
+
+      P.contacts(O)
+      {
+        if (ingroup(O))
+        {
+          x = O.x;
+          y = O.y;
+          valid_object = 1;
+
+        }
+      }
+
+      P.holes(O)
+      {
+        if (ingroup(O))
+        {
+          x = O.x;
+          y = O.y;
+          valid_object = 1;
+        }
+      }
+    }
+  }
+}
+
+if (valid_object)
+{
+  sprintf(cmd, "GRID MM; MARK (%f %f); GRID LAST;\n", u2mm(x), u2mm(y));
+}
+
+exit(cmd);

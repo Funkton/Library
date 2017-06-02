@@ -1,60 +1,86 @@
 /*
-The MIT License (MIT)
+Title : MOVEBY.ulp
+Purpose : Moves group by displacement.
+Author : Cameron Nicks
 
-Eagle Group Move-By Displacement
-Copyright (c) 2017 Cameron Nicks, Phase IV Engineering <cnicks@phaseivengr.com>
+License : Creative Commons Attribution-ShareAlike 4.0 International
+        : CC BY-SA 4.0
+        : https://creativecommons.org/licenses/by-sa/4.0/
 
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+*******************************************************************************
+*				Copyright (c) 2017 Cameron Nicks                              *
+*******************************************************************************
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Version: 0.8 05/12/17
-Basic operation. Enter values to move by.
+
+Version:
+0.81 06/01/17
+	- Swapped out license block for Creative Commons.
+	- Restructured revision and feature list.
+	- Added context install routines from Rachael Peterson. Thanks :)
+[X] - Store last used values as default. Use cfgset() and cfgget() to save and load from eagerc.usr
+
+0.8 05/12/17
+	- Basic operation. Enter values to move by.
 
 To-Do Feature List:
-- For Rev 0.9
-1) - Store last used values as default.
-2) - Rotate option
-3) - Repeat mode: Repeats the last move amounts without the dialog popping up.
 
-- For Rev 1.0
+
+[ ] - Add command line argument handling. Only open dialog if no arguments present. (RUN MOVEBY x y)
+[ ] - Rotate option
+[ ] - Repeat mode: Repeats the last move amounts without the dialog popping up.
 [ ] - Get and display units, use list box to override.
-[ ]? - Box to enter single components?
+[ ]? - Box to enter single components? Context menu? Absolute option for single element move to?
 
-[ ]? - Handle MARK as the reference origin (where you want the offset should start from, would be handy in library creation from datasheet dimensions) (this may not be doable because the mark command does not accept placement coordinates, double check how drills.ulp uses the mark information for placement)
-[ ]x - INPUT CHANGE: Increment mode. Numbers entered multiplied by the grid step. With a  0.1mm grid size, 5 entered as the move by value would move 0.5mm.
+[ ]? - Handle MARK as the reference origin. Move distance from Mark. How would this handle groups? Single elements only? (where you want the offset should start from, would be handy in library creation from datasheet dimensions)
+[ ]x - INPUT CHANGE: Increment mode. Numbers entered multiplied by the grid step. With a 0.1mm grid size, 5 entered as the move by value would move 0.5mm.
 This could also be used combined with previosly used value and repeat mode to make move by step shortcuts on the arrow keys.
 
 */
 
-#usage 	"Group move by x,y displacement. Define a group, enter values, enter.<p>"
-		"Moves the group by the amounts entered"
+#usage 	"en: Move group by x,y displacement. Define a group, enter values, enter.<p>"
+		"Moves the group by the amounts entered in the currently set units"
+		"run changeVia --install - Installs the utility to the board context menus.\n"
+		"run changeVia --version - Shows the version number of the ULP being called.\n"
+		"run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
 // Input box Defaults
 
-real xVal = 0; // Change to last used value. Can this be saved without writing to a file?
-real yVal = 0;
+string xVal = cfgget("moveby.value.x", "0"); // Load last used value
+string yVal = cfgget("moveby.value.y", "0");
 
-string Version = "0.8";
-string cmd;
+
+
+string VERSION = "0.81.1 (01-Jun-2017)";
+
+if (argv[1] == "--install") {
+   exit("edit .brd; set context element 'Move By...' 'run MOVEBY';"); //'run MOVEBY --context' // TO-DO: Add schematic context: BUG Reported: https://goo.gl/vA6Mfq
+}else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else {
+
+   // Define variables
+
+   string cmd="";
+   int result;
+   string tmp = "";
 
 
 int Result = dlgDialog("Move By Displacement") {
@@ -65,9 +91,9 @@ int Result = dlgDialog("Move By Displacement") {
     }
   dlgHBoxLayout {
   dlgLabel("X:");
-  dlgRealEdit(xVal);
+  dlgStringEdit(xVal);
   dlgLabel("Y:");
-  dlgRealEdit(yVal);
+  dlgStringEdit(yVal);
   }
   dlgHBoxLayout {
    // dlgStretch(1);
@@ -78,8 +104,14 @@ int Result = dlgDialog("Move By Displacement") {
 
 if (Result) {
 
-sprintf(cmd, "MOVE (>0 0) (%f %f);\n", xVal, yVal);
+// Save last used values to eaglerc.usr
+// This doesn't actually save to the file until eagle closes, but it does hold the changes in memory.
+cfgset("moveby.value.x", xVal);
+cfgset("moveby.value.y", yVal);
+
+sprintf(cmd, "MOVE (>0 0) (%s %s);\n", xVal, yVal);
 
 exit(cmd);
+}
 }
 

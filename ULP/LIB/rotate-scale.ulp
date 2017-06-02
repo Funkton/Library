@@ -1,0 +1,166 @@
+#usage "en: Rotate and scale elements\n"
+            "Implements rotation and scale of groups of wire and polygon elements\n"
+            "Usage: RUN rotate.ulp\n"
+            "Author: behner@zess.uni-siegen.de",
+       "de: Drehen und Skalieren von Elementen\n"
+            "Implementiert Drehung und Skalierung von Wire und Polygongruppen\n"
+            "Aufruf: RUN rotate.ulp\n"
+            "Autor: behner@zess.uni-siegen.de"
+
+string outScript;
+real rotationAngle=0;
+real scale=1;
+real linescale=1;
+int xmin=INT_MAX ,xmax=INT_MIN ,ymin=INT_MAX ,ymax=INT_MIN ;
+
+int nelement=0;
+int scaleLineWidth=1;
+int deleteGroup=1;
+
+int Result = dlgDialog("Enter rotation angle/scale") {
+    dlgHBoxLayout {
+        dlgLabel("Rotation angle (°):");
+        dlgRealEdit(rotationAngle);
+    }
+    dlgHBoxLayout {
+        dlgLabel("Scale:");
+        dlgRealEdit(scale);
+        dlgCheckBox("Scale line width", scaleLineWidth);
+    }
+    dlgCheckBox("Delete", deleteGroup);
+    dlgPushButton("+OK") dlgAccept();
+};
+real R11=scale*cos(rotationAngle/180.0*PI);
+real R12=-scale*sin(rotationAngle/180.0*PI);
+real R21=-R12;
+real R22=R11;
+if (scaleLineWidth)
+    linescale=scale;
+if (deleteGroup)
+    outScript+="DELETE (>@);\n";
+if (symbol)
+    symbol(S) {
+        S.wires(W) {
+            if (ingroup(W)) {
+                xmin=min(xmin,W.x1);
+                ymin=min(ymin,W.y1);
+                xmin=min(xmin,W.x2);
+                ymin=min(ymin,W.y2);
+                xmax=max(xmax,W.x1);
+                ymax=max(ymax,W.y1);
+                xmax=max(xmax,W.x2);
+                ymax=max(ymax,W.y2);
+            }
+        }
+        S.polygons(P) {
+            if (ingroup(P)) {
+            P.wires(W){
+                xmin=min(xmin,W.x1);
+                ymin=min(ymin,W.y1);
+                xmin=min(xmin,W.x2);
+                ymin=min(ymin,W.y2);
+                xmax=max(xmax,W.x1);
+                ymax=max(ymax,W.y1);
+                xmax=max(xmax,W.x2);
+                ymax=max(ymax,W.y2);
+                }
+            }
+        }
+    }
+
+if (package)
+    package(S) {
+        S.wires(W) {
+            if (ingroup(W)) {
+                xmin=min(xmin,W.x1);
+                ymin=min(ymin,W.y1);
+                xmin=min(xmin,W.x2);
+                ymin=min(ymin,W.y2);
+                xmax=max(xmax,W.x1);
+                ymax=max(ymax,W.y1);
+                xmax=max(xmax,W.x2);
+                ymax=max(ymax,W.y2);
+            }
+        }
+        S.polygons(P) {
+            if (ingroup(P)) {
+            P.wires(W){
+                xmin=min(xmin,W.x1);
+                ymin=min(ymin,W.y1);
+                xmin=min(xmin,W.x2);
+                ymin=min(ymin,W.y2);
+                xmax=max(xmax,W.x1);
+                ymax=max(ymax,W.y1);
+                xmax=max(xmax,W.x2);
+                ymax=max(ymax,W.y2);
+                }
+            }
+        }
+    }
+int xorigin=(xmin+xmax)/2;
+int yorigin=(ymin+ymax)/2;
+//sprintf(outScript,"%sCIRCLE (%fmm %fmm) (%fmm %fmm);\n", outScript, u2mm(xorigin),u2mm(yorigin),u2mm(xorigin)+1,u2mm(yorigin));
+
+void rotateWire(UL_WIRE W){
+    real x1t=W.x1-xorigin;
+    real y1t=W.y1-yorigin;
+    real x2t=W.x2-xorigin;
+    real y2t=W.y2-yorigin;
+    int x1=R11*x1t+R12*y1t+xorigin;
+    int y1=R21*x1t+R22*y1t+yorigin;
+    int x2=R11*x2t+R12*y2t+xorigin;
+    int y2=R21*x2t+R22*y2t+yorigin;
+    sprintf(outScript,"%sWIRE %fmm (%fmm %fmm) %+f (%fmm %fmm);\n", outScript, linescale*u2mm(W.width), u2mm(x1), u2mm(y1), W.curve, u2mm(x2), u2mm(y2));
+}
+
+void rotatePolygon(UL_POLYGON P){
+    sprintf(outScript,"%sPOLYGON %fmm ",outScript, linescale*u2mm(P.width));
+    int x0, y0, first = 1;
+    P.wires(W) {
+        if (first){
+            x0=W.x1;
+            y0=W.y1;
+        }
+        real x1t=W.x1-xorigin;
+        real y1t=W.y1-yorigin;
+        int x1=R11*x1t+R12*y1t+xorigin;
+        int y1=R21*x1t+R22*y1t+yorigin;
+        sprintf(outScript,"%s(%fmm %fmm) %+f  ", outScript, u2mm(x1), u2mm(y1), W.curve);
+        if (first)
+            first = 0;
+        else if (W.x2 == x0 && W.y2 == y0) {
+            real x2t=W.x2-xorigin;
+            real y2t=W.y2-yorigin;
+            int x2=R11*x2t+R12*y2t+xorigin;
+            int y2=R21*x2t+R22*y2t+yorigin;
+            sprintf(outScript,"%s(%fmm %fmm)", outScript, u2mm(x2), u2mm(y2));
+            first = 1;
+            }
+    }
+    sprintf(outScript,"%s;\n",outScript);
+}
+if (symbol)
+    symbol(S) {
+        S.wires(W) {
+            if (ingroup(W)) rotateWire(W);
+        }
+        S.polygons(P) {
+            if (ingroup(P)) {
+                rotatePolygon(P);
+            }
+        }
+    }
+
+if (package)
+    package(S) {
+        S.wires(W) {
+            if (ingroup(W)) rotateWire(W);
+        }
+        S.polygons(P) {
+            if (ingroup(P)) {
+                rotatePolygon(P);
+            }
+        }
+    }
+dlgMessageBox(outScript);
+exit(outScript);

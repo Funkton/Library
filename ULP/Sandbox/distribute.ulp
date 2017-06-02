@@ -1,0 +1,72 @@
+#usage "<b>Distribute parts on board.</b>\n"
+       "<p>After using arrange.ulp, all the parts from each schematic sheet are piled on "
+       "top of each other at separate locations on the board, one pile per sheet in the "
+       "upper left quadrant of the layout.</p>"
+       "<p>Select one pile, then run this script to spread the parts out for easier "
+       "placement and routing.  Parts will be moved to the bottom right quadrant of "
+       "the layout below the board outline.</p>"
+       "<p>Note: this script can be used independently of arrange.ulp.  It will work "
+       "on any selected group of parts.</p>"
+       "<p>Scripts are created in the subdirectory \"scripts\" in each project's "
+       "folder.  Watch title bar for progress.</p>"
+       "<author>Doug Wellington http://www.cadsoftusa.com/downloads/DougWellington</author>";
+
+string ScriptName = "distribute";
+string Version = "1.00";
+
+if (!board) {
+  dlgMessageBox(ScriptName + " " + Version + "<p>Please start this ULP from the board layout.</p><hr>" + usage);
+  exit(1);
+}
+
+int maxCols = 10;    // How many groups before making another row?
+int rowIncrement = 500;
+int colIncrement = 500;
+// Make sure to use a different quadrant than ArrangePartsBySheet
+int XQuadrant = +1; // Right
+int YQuadrant = -1; // Bottom
+
+string directory;
+board(brd) {
+  directory = filedir(brd.name) + "scripts";
+}
+string a[];
+int n = fileglob(a, directory);
+string command;
+if (n == 0){
+  sprintf(command, "mkdir %s", directory);
+  system(command);
+}
+int t = time();
+string datestring;
+sprintf(datestring, "%d%02d%02d-%02d%02d%02d", t2year(t), t2month(t), t2day(t), t2hour(t), t2minute(t), t2second(t) );
+string scriptfile;
+sprintf(scriptfile, "%s/%s-%s.scr", directory, ScriptName, datestring);
+
+output(scriptfile) {
+  printf("display -19;\n");  // Hide airwires
+  printf("grid mil 50;\n");  // Known grid state
+  board(BRD) {
+    int row = 1;
+    int col = 1;
+    BRD.elements(E) {
+      int LocationX = col * colIncrement * XQuadrant;
+      int LocationY = row * rowIncrement * YQuadrant;
+      if (ingroup(E)) {
+        printf("Move %s (%d %d);\n", E.name, LocationX, LocationY);
+        col += 1;
+        if (col > maxCols) {
+          col = 1;
+          row += 1;
+        }
+      }
+    }
+  }
+  printf("grid last;\n");    // Return grid state
+  printf("display +19;\n");  // Show airwires again
+  printf("ratsnest;\n");     // Sort airwires
+  printf("window fit;\n");   // Fit everything into the window
+}
+
+sprintf(command, "script %s", scriptfile);
+exit(command);

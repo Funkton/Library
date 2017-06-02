@@ -34,6 +34,7 @@ BRD:
 	ASSIGN A+A 		ATTRIBUTE;
 	ASSIGN A+R 		RATSNEST;
 	ASSIGN A+S 		SIGNAL;
+	ASSIGN A+M		'run toggle 47';
 	ASSIGN C+E 		ERRORS;
 	ASSIGN C+G 		GROUP; #mouse
 	ASSIGN CA+G 	'Display'; #mouse
@@ -45,9 +46,9 @@ BRD:
 	ASSIGN C+M 		MOVE; #mouse
 	ASSIGN CA+M 	'RUN MOVEBY'; #mouse
 	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse
-	ASSIGN C+L 		'SET WIRE_BEND 1; MITER 0; ROUTE'; #mouse
+	ASSIGN C+L 		'SET WIRE_BEND 1; MITER 0; ratsnest; ROUTE'; #mouse
 	ASSIGN CA+L 	'LINE; CHANGE LAYER 21; LINE'; #mouse
-	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse
+#	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse Follow-me settings are not great. Wish the obstacle avoidance setting was controllable from commmand.
 	ASSIGN C+T 		TEXT;
 	ASSIGN C+T 		PASTE;
 	ASSIGN C+X 		CHANGE;
@@ -166,6 +167,7 @@ LBR:
 	ASSIGN A+C 		CONNECT;
 	ASSIGN A+P 		PAD;
 	ASSIGN A+S 		SMD;
+	ASSIGN A+M		'run toggle 47';
 	ASSIGN C+D 		DELETE;
 	ASSIGN C+E 		EDIT;
 	ASSIGN C+F 		'RUN find.ulp';

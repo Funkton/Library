@@ -79,6 +79,8 @@ TIPS TO SHOW:
 
 
 EAGLE Bugs:
+	- 8.1.1: Changelog mentions "With group default on, allow INFO to show automatically when an object is already selected (do not have to click info then select object)."
+		This does not work for me.
 	- PERFORMANCE: Large design bogs down while panning/zooming. Very jerky movement, while only ~12% CPU being used.
 		CAM PERFORMANCE: Large design takes ~5 minutes, but never uses more than ~12% CPU.
 	- PDF PRINTER: Vector font in PDF prints is not selectable or searchable. (proportional font is searchable, not VECTOR)
