@@ -19,7 +19,7 @@
 #---------- BOARD EDITOR ----------#
 #----------------------------------#
 BRD:
-	# Package text command menu setup
+	# BOARD text command menu setup
 	 
 #	SET CONTEXT; #This clears all user context menu items. Disabled so --install options do not get over written
 	SET CONTEXT ELEMENT;
@@ -28,25 +28,50 @@ BRD:
 
 		MENU
 		'RENDER {\
-				Top       : SCRIPT RenderT.scr; |\
-				Bottom : SCRIPT RenderB.scr; |\
-				Mirror Brd : RUN mirror-board; |\
+			Top       : SCRIPT RenderT.scr; |\
+			Bottom : SCRIPT RenderB.scr; |\
+			Mirror Brd : RUN mirror-board; |\
 				}'\
 		'SHOW {\
-				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
-				PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
+			GRP in SCH : RUN SHOW-GROUP-PARTS; |\
+			PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
 				}'\
 		'RATS 	{\
-				All			: SCRIPT Rats-All.scr; |\
-				None		: SCRIPT Rats-None.scr; |\
-				Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
-				Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
+			All			: SCRIPT Rats-All.scr; |\
+			None		: SCRIPT Rats-None.scr; |\
+			Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
+			Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
 				}'\
 		'POUR 	{\
-				All			: SCRIPT Pour-All.scr; |\
-				V* Nets		: SCRIPT Pour-V.scr; |\
-				Clr GND		: SCRIPT Pour-CLR-GND.scr; |\
-				}\
+			POLYGON {\
+				ON			: SET POLYGON_RATSNEST ON; |\
+				OFF			: SET POLYGON_RATSNEST OFF; |\
+				}|\
+			All			: SCRIPT Pour-All.scr; |\
+			V* Nets		: SCRIPT Pour-V.scr; |\
+			Clr GND		: SCRIPT Pour-CLR-GND.scr; |\
+				}'\
+     '---'\
+		'OPTIONS {\
+			Display {\
+			Pad Names {\
+				ON		: SET Option.PadNames 1; |\
+				OFF		: SET Option.PadNames 0; |\
+						}|\
+			Signals on Pad {\
+				ON		: SET Option.SignalNamesOnPads 1;|\
+				OFF		: SET Option.SignalNamesOnPads 0; |\
+						}|\
+			Signals on Trace {\
+				ON		: SET Option.SignalNamesOnTraces 1;|\
+				OFF		: SET Option.SignalNamesOnTraces 0; |\
+						}|\
+			Text Origins {\
+				ON		: SET Option.ShowTextOrigins 1; |\
+				OFF		: SET Option.ShowTextOrigins 0; |\
+						}|\
+					}|\
+				}'\
 
 #----------------------------------#
 #------- SCHEMATIC EDITOR ---------#
@@ -61,11 +86,19 @@ SCH:
 	
 	SET CONTEXT INSTANCE	'Move by Displacement'	'RUN MOVEBY';
 	SET CONTEXT INSTANCE	'Show in Brd'	'RUN SHOW-SCH-GROUP';
-	SET CONTEXT INSTANCE	'Show Airwires'	'RUN SHOW-SCH-GROUP -rats';
+	SET CONTEXT INSTANCE	'Show Airwires'	'RUN SHOW-SCH-GROUP -rats'; #This doesn't work to show group and only focuses on the single part right clicked on. Need context meu in blank space that can activate a whoel group.
 
 		MENU
 
 		'SHOW {\
+			Part Origins {\
+				ON			: SET Option.ShowPartOrigins 1; |\
+				OFF			: SET Option.ShowPartOrigins 0; |\
+				}|\
+			Text Origins {\
+				ON			: SET Option.ShowTextOrigins 1; |\
+				OFF			: SET Option.ShowTextOrigins 0; |\
+				}|\
 				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
 				GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
 				GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\

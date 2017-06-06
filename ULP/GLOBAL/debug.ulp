@@ -1,0 +1,18 @@
+#usage "This ulp is meant to be an included file when working on ULPs\n"
+       "It gives you the ability to do printf style debugging on the ULP under test. " 
+       "For example you can collect the info using the debug and debugs strings as shown below:\n"
+       "\n sprintf(debug, string_format, data); debugs += debug;\n"
+       "\n In order to actually see the results you would insert a line in your code that would act on the return variable of the dialog. For example:\n"
+       "\n done = Debug(debugs); \n"
+       "\n This would have the dialog created before the end of the ULP, you would then have the ULP exit after you have OK'd the Debug window. With time it might be good to add some sorting of timing functionality."
+
+string debug, debugs; //Collect Debug info through sprintf statements
+int done; //This variable is used as a flag to allow the user to see the results
+
+int Debug(string info) {
+  int nResult = dlgDialog("DEBUG INFORMATION") {
+        dlgTextEdit(info);
+        dlgPushButton("OK") dlgAccept();
+   };
+   return(nResult);
+}

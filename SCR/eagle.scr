@@ -42,8 +42,28 @@ SCRIPT MENU.scr
 	set Warning.PartHasNoUserDefinableValue 0;
 	set Warning.SupplyPinAutoOverwriteGeneratedNetName 0;
 	SET REPLACE_SAME NAMES;
-
 	
+	set Cmd.Delete.WireJointsWithoutCtrl 1; #This is awesome, wish I knew about this before
+	
+	set Directories.IgnoreNonExisting 1;
+	
+	
+
+#	set Option.SignalNamesOnPads 0; 
+#	set Option.SignalNamesOnTraces 0;
+#	set Option.PadNames 0;
+
+#	set Option.GroupDefault 0; #Group default option. Messes up entire workflow
+
+#-----------------------------------------
+#	These are settings from eaglerc file that I'm curious about.
+#	Replace.IgnoreSchematicInBoard
+#	Option.ActivateItemOnSingleClick #This option doesn't seem to change anything
+#	Option.SignalNames #This one doesn't seem to do anything
+#	Option.DimensionArrowAngle #This doesn't change the dimension arrow, I wish it did
+#	Option.DimensionArrowLength #same here, no effect
+#	Option.DisplayMode #No idea what this does. Default=1
+#	Option.PolygonRatsnest #Is this the same as POLYGON_RATSNEST?
 
 #----------------------------------#
 #---------- BOARD EDITOR ----------#

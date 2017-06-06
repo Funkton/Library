@@ -191,10 +191,14 @@ LBR:
 	ASSIGN SC+C 	COPY;
 	ASSIGN SC+N 	NAME;
 	ASSIGN SC+P 	POLYGON;
+	ASSIGN C+R 		DELETE; #Ripup muscle memory from board editor
 	ASSIGN CA+R 	DELETE;
 	ASSIGN CSA+R 	SLICE;
 
 PAC:
+
+
+	ASSIGN C+R 		DELETE;
 
 	#ASSIGN F2 		'run toggle 1 23';
 	ASSIGN A+F2 	'display all';

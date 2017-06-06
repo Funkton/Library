@@ -1,0 +1,7 @@
+This is a wishlist of ULPs or system mods for Eagle.
+
+- Shortcut modifiers. Ability to modify shortcut options from menu (or other shortcuts)
+	Set shortcut to PRESET launcher.
+	Set preset option from text menu (stored in eaglerc.user)
+
+	Usage idea. Set preset options from POUR menu, that way pour preset (F5) can be changed from the menu. (pour gnd or only v nets).

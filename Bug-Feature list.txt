@@ -89,8 +89,6 @@ EAGLE Bugs:
 	- Right clicking through bend styles does not cycle from follow-me to regular.
 	- Eagle.scr change font to vector does not work on startup, but does when rerunning from scr button.
 	- Follow-Me router does not go into vias centered. Messes up teardrop script.
-	- No way to select BRD/SCH (button) from cmd or shortcut. Works entering 'BOARD' from schematic, but not the other way.
-		Yes: 'EDIT .brd' and 'EDIT .sch' works. Also Windows automatically get 'ALT+1,2,3' shortcuts created.
 	- Copying groups of vias changes the net. (GND -> GND1) but copying one at a time does not. Do not change net.
 	- Project directories (ULP, SCR) do not include sub folders. Add option to include.
 	- Main toolbar (Command Buttons) only snaps to right and left sides, nowhere else. Can change location from eaglerc.usr, so it is possible.
@@ -112,6 +110,9 @@ EAGLE Bugs:
 	- GROUP: Last Tool Before Group No Longer Active
 		-Versions affected: 8.2.1, 8.2.0, 8.1.1, 8.1.0, 8.0.2
 
+RESOLVED
+	- No way to select BRD/SCH (button) from cmd or shortcut. Works entering 'BOARD' from schematic, but not the other way.
+		Yes: 'EDIT .brd' and 'EDIT .sch' works. Also Windows automatically get 'ALT+1,2,3' shortcuts created.
 
 
 

@@ -1,12 +1,12 @@
-#usage "<b>DXFimport</b> V1.7<p>"
+#usage "<b>DXFimport</b> V1.8<p>"
        "This ULP can import DXF files that include polylines.<br>"
        "Browse to the DXF file, setup your origins, input units, scale factor and linewidth then click convert. "
        "The ULP will then show you the script in case you want to change the layer the input will be written to.<br>"
-       "Tested in version 5, 6, 7.<br>"
+       "Tested in version 5, 6, 7, and Autodesk EAGLE.<br>"
        "<author>author Written by Jorge Garcia of Cadsoft Computer, heavily based off of Hank Wallace's DXF2SCR program.</author><br>"
        "With special thanks to Robert Starr, Alfred Zaffran, Billy Coleman and Holger Moessinger."
 
-string Version = "1.7";
+string Version = "1.9";
 
 string Help = "<b>DXFimport "+Version+ "</b>\n <p>This ULP will import a DXF \
 file into EAGLE (Board, Schematic, Package or Symbol-Editor). \
@@ -53,6 +53,11 @@ it's adjusted to your liking click Run.</p>";
             state of DXF.
 
 2015-02-10  make target layer selectable  alf@cadsoft.de
+
+2017-04-06  fixed critical LWPOLYLINE bug JG
+
+2017-06-05  fixed subtle LWPOLYLINE bug where a value of 0 causes
+            the LWPOLYLINE object to be exited early. JG
 
 ********************************************************************* */
 
@@ -126,7 +131,7 @@ This program compiles under Microsoft's command line compiler, version 12.00.
 /* ************************************************************************
 *                           GLOBAL VARIABLES
 ************************************************************************** */
-// #include "/home/cadsoft/eagle/debug.ulp"
+//include "debug.ulp"
 
 string ConfigFileName = filesetext(argv[0], ".cfg");
 
@@ -617,11 +622,14 @@ string dxf(string dxffile, int units, real xorigin, real yorigin, real liwidth, 
       if (strcomp2(s[m], " 70", "70") != -1) {        // Checks for closed polylines and imports them.
         plclosed = strtod(s[m+1]);
       }
-      if (strcomp2(s[m], " 42", "42") != -1) {
-        bulgevalue[i] = strtod(s[m+1]);               // Store bulge value for node
-      }
       if (strcomp2(s[m], " 10", "10") != -1) {
         xa[i] = S_factor*strtod(s[m+1]);
+        m = m+1;                                      //By doing this I'm having the for loop move to the next untouched
+                                                      //line. This avoids a bug where a value of 0 for any of the
+                                                      //LWPOLY attributes will cause it to exit prematurely JG 06/05/2017
+                                                      //the next few states have similar lines. I set the value to the
+                                                      //line of the currently processed data that way when the for loop
+                                                      //comes around it will increment to the next line automatically.
       }
       if (strcomp2(s[m], " 20", "20") != -1) {
         LWPOLY_FLAG = 0;                              // On poorly formated files, this state may run into an
@@ -630,9 +638,16 @@ string dxf(string dxffile, int units, real xorigin, real yorigin, real liwidth, 
                                                       // the state will not be exited before points are
                                                       // processed. See the if statement below.
         ya[i] = S_factor*strtod(s[m+1]);
-        bulgevalue[i] = 0;
-        i++;                                          // This avoids a misalignment of the bulge array should
-                                                      // one or more polylines not have bulges.
+        if (strcomp2(s[m+2], " 42", "42") == -1) {    // No bulge value
+          bulgevalue[i] = 0;
+          m = m+1;                                    // See comments on line 624
+          i++;                                        // This avoids a misalignment of the bulge array should
+        }                                             // one or more polylines not have bulges.
+        if (strcomp2(s[m+2], " 42", "42") != -1) {
+          bulgevalue[i] = strtod(s[m+3]);             // Store bulge value for node
+          i++;
+          m = m+3;                                    // See comments on line 624
+        } 
       }
       if (strcomp2(s[m], "  0", "0") != -1 & LWPOLY_FLAG == 0) {
         for (p=0; p < i-1;p++) {                                    // n points give n-1 lines that's why there's an i-1 in
@@ -641,7 +656,7 @@ string dxf(string dxffile, int units, real xorigin, real yorigin, real liwidth, 
                           linewidth,
                           mx(xa[p]+xorg),
                           my(ya[p]+yorg),
-                          (atan(bulgevalue[p])*180/PI*4),
+                          (atan(bulgevalue[p])*(180/PI)*4),
                           mx(xa[p+1]+xorg),
                           my(ya[p+1]+yorg)
                    );
@@ -880,7 +895,6 @@ void checkscript(void) {             // This allows the user to inspect the scri
   real EXdim = Exmax - Exmin;            // Max dimensions of EAGLE
   real EYdim = Eymax - Eymin;
 
-  /* done = Debug(GUI_script); */
 
   if ((Xdim > EXdim) || (Ydim > EYdim)) {   // Checks if DXF file is larger than EAGLE's drawing area
   dlgMessageBox(":DXF file is larger than EAGLE's drawing area please scale the file in your MCAD software and try again");
