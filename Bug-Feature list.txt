@@ -3,6 +3,7 @@ EAGLE MISC
 
 SUGGESTIONS:
 
+	- Persistent Show: Enable show to stay on while routing/moving. Group would deactivate
 	- ACTIVE ALIGN: Automatic alignment snapping to grid and other elements. Something like Cycling 74's MAX visual programming environment. One of the best user interfaces I've ever used. https://youtu.be/XIAkdjisbfc
 
 	- NEW: Using MOVE, ctrl click can arc a line and move rectangle ends. Suggest Shift+click changes width by moving up or down to grow and shrink. For rectangles it could be a resize center aligned.
@@ -79,6 +80,7 @@ TIPS TO SHOW:
 
 
 EAGLE Bugs:
+	- SignalNamesOnTraces does not show all names. Would be nice to have size controls like max size in order to keep large signal names from cluttering things up.
 	- 8.1.1: Changelog mentions "With group default on, allow INFO to show automatically when an object is already selected (do not have to click info then select object)."
 		This does not work for me.
 	- PERFORMANCE: Large design bogs down while panning/zooming. Very jerky movement, while only ~12% CPU being used.

@@ -1,0 +1,166 @@
+#usage  "en:  <h3>Highlights all net with a given CLASS.</h3>\n"
+             "This ULPs works from within a board or a schematic.<br>"
+             "<p><author>Author: alf@cadsoft.de</author>",
+        "de:  <h3>Hebt Signale der angegebenen CLASS hervor.</h3>\n"
+             "Dieses ULP arbeitet aus Boards oder Schematics heraus.<br>"
+             "<p><author>Author: alf@cadsoft.de</author>"
+
+#require 5.0400
+//2013-07-17 JG Now accepts both netclass name and netclass number as valid input
+//2013-07-18 AZ select class name by menu, if start without class
+
+string strTexts[] = {
+    "en\v"
+    "de\v"
+    ,
+    ";This ULP requires a board or a schematic.\v"
+    ";Dieses Ulp funktioniert nur in Boards und Schematics.\v"
+    ,
+    "Please select class you want to highlight.\v"
+    "Wählen Sie die hervorzuhebende CLASS.\v"
+    ,
+    ";No Signals found with CLASS \"%s\".\v"
+    ";Es wurden keine Signale der CLASS \"%s\" gefunden.\v"
+    ,
+    ";No Nets found with CLASS on this page \"%s\".\v"
+    ";Es wurden keine NETze der CLASS \"%s\" auf dieser Seite gefunden.\v"
+
+};
+
+string strMessage;
+string strScript, s;
+int    nCount;
+string strValue;
+string ClassName[];
+int    Cntcl = 0;
+
+int    Test = 0;
+
+/*** functions ***/
+string Translate(string src) {
+  string strLoc = lookup(strTexts, src, strstr(strTexts[0], language()) / 3, '\v');
+  return((strLoc != "") ? strLoc : src);
+}
+
+string InputBox() {
+  int sel = 0;
+  int nResult = dlgDialog(filename(argv[0])) {
+    dlgGridLayout {
+      dlgCell(0, 0) dlgLabel(Translate("Please select class you want to highlight."));
+      dlgCell(1, 0) dlgComboBox(ClassName, sel); // 2013-07-18 AZ
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") dlgAccept();
+      dlgPushButton("Cancel") dlgReject();
+    }
+  };
+  return(ClassName[sel]);
+}
+
+void test(string Script) {
+  dlgDialog("test") {
+    dlgHBoxLayout dlgSpacing(800);
+    dlgTextEdit(Script);
+    dlgHBoxLayout {
+      dlgPushButton("ok") dlgAccept();
+      dlgPushButton("esc") { dlgReject(); exit(-99); }
+      dlgStretch(1);
+    }
+  };
+  return;
+}
+
+if (argv[1]) {
+  strValue = argv[1];
+}
+
+if(board) board(B) {
+  B.classes(CL) { // 2013-07-18 AZ
+    if (CL.name) ClassName[Cntcl++] = CL.name;
+  }
+  if (!strValue) {
+    strValue = InputBox();
+  }
+  if(!strValue) exit(EXIT_SUCCESS);
+  sprintf(strScript, "WINDOW;\n SHOW ");  // 2008-11-03
+  B.signals(S) {
+    if(strupr(S.class.name) == strupr(strValue)) { //2013-07-17 JG
+      sprintf(s, " %s ", S.name);
+      strScript += s;
+      ++nCount;
+    }
+    else if (strtol(strValue) == 0 && strValue == "0") {
+      if(strupr(S.class.name) == "DEFAULT") {
+        sprintf(s, " %s ", S.name);
+        strScript += s;
+        ++nCount;
+      }
+    }
+    else if (S.class.number == strtol(strValue) && strupr(S.class.name) != "DEFAULT") {
+        sprintf(s, " %s ", S.name);
+        strScript += s;
+        ++nCount;
+    }
+  }
+  strScript +=" ";
+
+  if(!nCount) {
+    sprintf(strMessage, Translate(";No Signals found with CLASS \"%s\"."), strValue);
+    dlgMessageBox(strMessage);
+    exit(EXIT_FAILURE);
+  }
+  else {
+    if (Test) test(strScript);
+    exit(strScript);
+  }
+}
+
+else if(sheet) sheet(S) {
+  schematic(SCH) SCH.classes(CL) {// 2013-07-18 AZ
+    if (CL.name) ClassName[Cntcl++] = CL.name;
+  }
+  string strName;
+  schematic(SCH) {
+    strName = SCH.name;
+  }
+  if (!strValue) {
+    strValue = InputBox();
+  }
+  if(!strValue) exit(EXIT_SUCCESS);
+
+  sprintf(strScript, "WINDOW;\nSHOW ");
+  S.nets(N) {
+    if(strupr(N.class.name) == strupr(strValue)) { //2013-08-10 JG
+      sprintf(s, " %s ", N.name);
+      strScript += s;
+      ++nCount;
+    }
+    else if (strtol(strValue) == 0 && strValue == "0") {
+      if(strupr(N.class.name) == "DEFAULT") {
+        sprintf(s, " %s ", N.name);
+        strScript += s;
+        ++nCount;
+      }
+    }
+    else if (N.class.number == strtol(strValue) && strupr(N.class.name) != "DEFAULT") {
+        sprintf(s, " %s ", N.name);
+        strScript += s;
+        ++nCount;
+    }
+  }
+  strScript += " ";
+
+  if(!nCount) {
+    sprintf(strMessage, Translate(";No Nets found with CLASS on this page \"%s\"."), strValue);
+    dlgMessageBox(strMessage);
+    exit(EXIT_FAILURE);
+  }
+  else {
+    if (Test) test(strScript);
+    exit(strScript);
+  }
+}
+else {
+  dlgMessageBox(Translate(";This ULP requires a board or a schematic."));
+}
+

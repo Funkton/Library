@@ -38,6 +38,8 @@
 				---------+----------------+--------------+---------------------------------------------------------------
 				V1.0		31 March 2017	Yahya Tawil		First Create. An entry for 4element Eagle ULPs contest 2017. Tested on Version 7.5.0 for Linux (32 bit) 
 	*/
+	
+	// ToDo: Add option to rectangle that draws from centered origin. Cnicks
 int CNT_P,CNT_S;
 int sel_P = 0 ;
 int sel_L = 0 ;

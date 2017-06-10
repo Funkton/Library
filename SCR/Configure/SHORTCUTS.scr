@@ -43,9 +43,10 @@ BRD:
 	ASSIGN C+I 		INFO; #mouse
 	ASSIGN CA+I 	SHOW; #mouse
 	ASSIGN CSA+I 	'RUN SHOW-GROUP-PARTS'; #mouse
-	ASSIGN C+M 		MOVE; #mouse
-	ASSIGN CA+M 	'RUN MOVEBY'; #mouse
-	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse
+	ASSIGN C+M 		MOVE; #mouse thumb+forefinger=C+M
+	ASSIGN CA+M 	'MITER 0'; #mouse thumb+forefinger=C+M
+	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
+	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
 	ASSIGN C+L 		'SET WIRE_BEND 1; MITER 0; ratsnest; ROUTE'; #mouse
 	ASSIGN CA+L 	'LINE; CHANGE LAYER 21; LINE'; #mouse
 #	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse Follow-me settings are not great. Wish the obstacle avoidance setting was controllable from commmand.
@@ -66,21 +67,36 @@ BRD:
 	ASSIGN SC+V 	VALUE;
 	ASSIGN C+F 		'RUN find.ulp';
 	ASSIGN ALT+BS 	'edit .sch';
+	
+	# --------------ROUTE SHORTCUTS
+	ASSIGN C+1		'ROUTE 0.15mm';
+	ASSIGN C+2		'ROUTE 0.20mm';
+	ASSIGN C+3		'ROUTE 0.25mm';
+	ASSIGN C+4		'ROUTE 0.30mm';
+	ASSIGN C+5		'ROUTE 0.40mm';
+	ASSIGN C+6		'ROUTE 0.50mm';
+	ASSIGN C+7		'ROUTE 0.80mm';
+	ASSIGN C+8		'ROUTE 1.00mm';
+	
+	# 0 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 0.60mm 0.80mm 1.0mm 2.5mm;
+	# -----------------------------
 
 					# Toggle needs some work, enables more that
-	ASSIGN F2 		'run toggle -S 1 23'; #Top tOrigins
+	ASSIGN F2 		'run toggle -U 1 23'; #Top tOrigins
 	ASSIGN A+F2 	'run toggle -S 21'; #tPlace
-	ASSIGN S+F2 	'run toggle -S 29 41'; #tStop tRestrict
-	ASSIGN C+F2 	'run toggle -s 25'; #tNames
+	ASSIGN S+F2 	'run toggle -U 29 41'; #tStop tRestrict
+#	ASSIGN C+F2 	'run toggle -s 25'; #tNames
+	ASSIGN C+F2		'run toggle -U 1 21 23 29'; #Top Full
 	ASSIGN CA+F2 	'run toggle -s 51'; #tDocu
 	ASSIGN CS+F2 	'';
 	ASSIGN SA+F2 	'';
 
-	ASSIGN F3 		'run toggle -S 16 24'; #Bottom bOrigins
+	ASSIGN F3 		'run toggle -U 16 24'; #Bottom bOrigins
 	ASSIGN A+F3 	'run toggle -S 22'; #bPlace
-	ASSIGN S+F3 	'run toggle -S 30 42'; #bStop bRestrict
-	ASSIGN C+F3 	'run toggle -s 26';
-	ASSIGN CA+F3 	'run toggle -s 52';
+	ASSIGN S+F3 	'run toggle -U 30 42'; #bStop bRestrict
+#	ASSIGN C+F3 	'run toggle -s 26'; #bNames
+	ASSIGN C+F3		'run toggle -U 16 22 24 30'; #Bottom Full
+	ASSIGN CA+F3 	'run toggle -s 52'; #bDocu
 	#ASSIGN CS+F3 	'';
 	#ASSIGN SA+F3 	'';
 
@@ -151,7 +167,8 @@ SCH:
 	ASSIGN SC+I 	INVOKE;
 	ASSIGN SC+P 	POLYGON;
 	ASSIGN C+R 		DELETE; #Ripup muscle memory from board editor
-	ASSIGN CA+R 	DELETE;
+#	ASSIGN CA+R 	DELETE; #Slice in place for 
+	ASSIGN CA+R 	'SLICE 0.2'; 	#RIPUP muscle memory
 	ASSIGN CSA+R 	SLICE;
 	ASSIGN SC+S 	SMASH;
 	ASSIGN SC+V 	VALUE;
@@ -192,13 +209,14 @@ LBR:
 	ASSIGN SC+N 	NAME;
 	ASSIGN SC+P 	POLYGON;
 	ASSIGN C+R 		DELETE; #Ripup muscle memory from board editor
-	ASSIGN CA+R 	DELETE;
-	ASSIGN CSA+R 	SLICE;
+#	ASSIGN CA+R 	DELETE; #Slice in place for RIPUP muscle memory
+	ASSIGN CA+R 	SLICE;
 
 PAC:
 
 
 	ASSIGN C+R 		DELETE;
+	ASSIGN CA+R 	SLICE;
 
 	#ASSIGN F2 		'run toggle 1 23';
 	ASSIGN A+F2 	'display all';
@@ -217,3 +235,5 @@ PAC:
 	#ASSIGN SA+F3 	'';
 
 SYM:
+
+	ASSIGN CA+R 	SLICE;

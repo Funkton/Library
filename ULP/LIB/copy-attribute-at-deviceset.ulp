@@ -1,0 +1,87 @@
+#usage "Kopiere die Attribute der Devices in alle Package-Varianten, und benenne die 1. Variante um zu ''<p>"
+       "In den (Connect) Scripten von LT werden Package-Varianten angelegt, aber nur die erste "
+       "erhält die Attribute aus der importierten *.asy.<br>"
+       "In den Beispielschaltplänen, wird keine Package-Variante angegeben, deshalb muß ein Device im Deviceset "
+       "ein neutrales sein!<br>"
+       "Package-Variante == ''<br>"
+       "<author>Author alf@cadsoft.de</author>"
+
+
+string Version = "1.0.0"; // 2012-10-05 alf@cadsoft.de
+string Dev_AttributtesName[];
+string Dev_AttributtesValue[];
+int    cntAttr = 0;
+
+string Cmd = "";
+string s;
+
+string checkname(string s) {
+  if (s == "''") return "";
+  return s;
+}
+
+void loopdeviceset(UL_DEVICESET DEV) {
+  int n;
+  DEV.devices(D) {
+    int numofattr = 0;
+    string t[];
+    n = strsplit(t, D.technologies, ' ');
+    for (int i = 0; i < n; i++) {
+      D.attributes(A, t[i]) {
+        numofattr++;
+      }
+    }
+    if (numofattr > cntAttr) {
+      cntAttr = 0;
+      n = strsplit(t, D.technologies, ' ');
+      for (int i = 0; i < n; i++) {
+        D.attributes(A, t[i]) {
+          Dev_AttributtesName[cntAttr]  = A.name;
+          Dev_AttributtesValue[cntAttr] = A.value;
+          cntAttr++;
+        }
+      }
+    }
+  }
+  int dcnt = 0;
+  DEV.devices(D) {
+    sprintf(s, "PACKAGE '%s';\n", checkname(D.name));
+    Cmd += s;
+    sprintf(s, "TECHNOLOGY '';\n");
+    Cmd += s;
+    for (n = 0; n < cntAttr; n++) {
+      sprintf(s, "ATTRIBUTE %s '%s';\n", Dev_AttributtesName[n], Dev_AttributtesValue[n]);
+      Cmd+= s;
+    }
+    if (!dcnt) {
+      string pacnam = checkname(D.name);
+      if (pacnam) {
+        sprintf(s, "PACKAGE -%s '''''';\n", pacnam);
+        Cmd+=s;
+      }
+      dcnt++;
+    }
+  }
+  return;
+}
+
+
+if (deviceset && !argv[1]) {
+  Cmd = "";
+  deviceset(DEV) {
+    loopdeviceset(DEV);
+  }
+  //dlgMessageBox(Cmd, "ok");
+  exit(Cmd);
+}
+
+else if (library || deviceset && argv[1] == "/ALL") {
+  Cmd = "";
+  library(L) L.devicesets(DEV) {
+    sprintf(s, "EDIT %s.DEV;\n", DEV.name);
+    Cmd+=s;
+    loopdeviceset(DEV);
+    //if (dlgMessageBox(Cmd, "ok", "esc") != 0) exit(Cmd);
+  }
+  exit(Cmd);
+}

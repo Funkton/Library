@@ -1,6 +1,29 @@
 
 - Polygon manager dialog window. List all polygons and have checkboxes to enable disable them. Ulp for ratsnest will look in config file whether to pour or not.
 
-- Test to see if CONTEXT/MENU items can be modified on the fly from scr/ulp. This could be helpful to make toggles
+- Test to see if CONTEXT/MENU items can be modified on the fly from scr/ulp. This could be helpful to make toggles.
+	-I don't this is possible. A ulp could keep track of toggle state using eaglerc to store states. No visual feedback though.
 
-- AutoHotKey script to build quick launch dialog around mouse when left+middle held together. Place to add most used scripts, ulps, settings for quick access. Operation, hold mouse buttons together, hover item, release to launch.
+- AutoHotKey script to build quick launch dialog around mouse when left+middle held together. Place to add most used scripts, ulps, settings for quick access. Operation, hold mouse buttons together, hover item, release to launch. Radial Menu 4
+
+- Airwire hidden list. Opens dialog that shows all hidden nets, with option to toggle show.
+
+- RIPUP: Enable ripping up joints, similar to Cmd.Delete.WireJointsWithoutCtrl but for routes.
+
+- Hide airwires that only connect on one side. If there are 2 places of copper connected on the top layer and there are no vias or pads, if top is not visible, hide those airwires.
+
+- Take out the 'FINEST' buttons in the grid dialog. When would that ever been useful and sucks to accidentally hit.
+
+- PAD: In library, number typed set diameter. Would be better if it set the drill.
+
+- Add ability to save/load net class presets.
+
+- LIBRARY: There's no way to replace a symbol in device. Even if it's a copy with no pin name changes, just different name. Easy to do in the text.
+
+- SCH: Add snap (green circle) indicator to nets.
+
+- SCH: Labels should still have Xref for same sheet nets. That verifies that it is connected somewhere else on the sheet.
+
+- SCH: Select nets with line tool. Draw line, any nets that it crosses gets put into group.
+
+- Use SELECT ulp type of saving and recalling groups to enable showing of saved groups. Could have a dialog to save, edit, and delete show groups
