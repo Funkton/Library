@@ -94,19 +94,13 @@ SCH:
 				}'\	
 		'SELECT : RUN SELECT;'\
 		'SHOW {\
-			Show Class		: RUN showclass; |\
-			Part Origins {\
-				ON			: SET Option.ShowPartOrigins 1; |\
-				OFF			: SET Option.ShowPartOrigins 0; |\
-				}|\
-			Text Origins {\
-				ON			: SET Option.ShowTextOrigins 1; |\
-				OFF			: SET Option.ShowTextOrigins 0; |\
-				}|\
-				GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
-				GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
-				GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\
-				}'\		
+			Show Class		:	RUN showclass; |\
+			Part Origins	:	RUN CFGTOGGLE Option.ShowPartOrigins; |\
+			Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins; |\
+			GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
+			GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
+			GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\
+			}'\		
 
 #----------------------------------#
 #--------- LIBRARY EDITOR ---------#
