@@ -50,9 +50,9 @@ This could also be used combined with previosly used value and repeat mode to ma
 
 #usage 	"en: Move group by x,y displacement. Define a group, enter values, enter.<p>"
 		"Moves the group by the amounts entered in the currently set units"
-		"run changeVia --install - Installs the utility to the board context menus.\n"
-		"run changeVia --version - Shows the version number of the ULP being called.\n"
-		"run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+		"run MOVEBY --install - Installs the utility to the board context menus.\n"
+		"run MOVEBY --version - Shows the version number of the ULP being called.\n"
+		"run MOVEBY --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 

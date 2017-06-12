@@ -1,0 +1,64 @@
+#usage "en:This ULP defines a GROUP in the layout editor with all those elements that have "
+       "been previously GROUPed in the schematic editor. <p>"
+       "RUN select-sch-group-to-brd-group<p>"
+       "After running the ULP the MOVE command will be active in the layout. "
+       "Use Ctrl + right mouse click in order to move the group.<br>"
+       "<author>Author alf@cadsoft.de</author>"
+       ,
+       "de:Das ULP definiert im Board eine Gruppe mit den Bauteilen, die "
+       "zuvor im Schaltplan als Gruppe markiert wurden.<p>"
+       "RUN select-sch-group-to-brd-group<p>"
+       "Nach Ausführen des ULPs ist im Layout-Editor der MOVE Befehl aktiv. "
+       "Mit Strg + rechte Maustaste kann man die Gruppe bewegen.<br>"
+       "<author>Author alf@cadsoft.de</author>"
+
+
+string Version = "1.0.0"; // 2013-06-21 alf@cadsoft.de
+
+string Name[];
+int    cnt = 0;
+
+int checkEname(string ename) {
+  for (int n = 0; n < cnt; n++) {
+    if (Name[n] == ename) return 1;
+  }
+  return 0;
+}
+
+void getGroupName(void) {
+  if (project.schematic) {
+    project.schematic(SCH) {
+      SCH.parts(P) {
+        P.instances(I) {
+          if (ingroup(I)) {
+            Name[cnt] = P.name;
+            cnt++;
+          }
+        }
+      }
+    }
+  }
+  return;
+}
+
+if (board) {
+  string cmd;
+  if(!argv[1]) {
+    sprintf(cmd, "GROUP; RUN '%s' '*'", argv[0]); // lösche evtl. gesetze Gruppe im Board
+    exit(cmd);
+  }
+  getGroupName();
+  project.board(B) {
+    B.elements(E) {
+      if (checkEname(E.name)) setgroup(E);
+    }
+  }
+  sprintf(cmd, "MOVE ");
+  exit(cmd);
+}
+else if (schematic) {
+  string cmd;
+  sprintf(cmd, "EDIT .brd;\nGROUP; RUN '%s'", argv[0]); // wechsle zum Board und starte das ULP erneut.
+  exit(cmd);
+}
+else dlgMessageBox("Start this ULP in a schematic or board.", "OK");

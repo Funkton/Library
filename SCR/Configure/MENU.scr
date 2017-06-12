@@ -14,6 +14,8 @@
 #Restriction note on ULP execution:
 #In order to have the selected object available for function ingroup() please avoid setting the ';' within the apostrophs (i.e. not 'run myexport.ulp;', but 'run myexport.ulp').
 
+#To-Do: Figure out if there is a way to swap or change icons on the fly. (ie, after CFGTOGGLE to change icon to reflect current setting)
+
 
 #----------------------------------#
 #---------- BOARD EDITOR ----------#
@@ -23,8 +25,10 @@ BRD:
 	 
 #	SET CONTEXT; #This clears all user context menu items. Disabled so --install options do not get over written
 	SET CONTEXT ELEMENT;
-	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'   'RUN SHOW-BRD-PART-NETS GND';
-	SET CONTEXT WIRE		'Length?'	'RUN length'; #Length needs modified to run from context.
+	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'	'RUN SHOW-BRD-PART-NETS GND';
+	SET CONTEXT ELEMENT  	'Display Pad Names'			'RUN CFGTOGGLE Option.PadNames';
+#	SET CONTEXT WIRE		'Length?'	'RUN length'; #Length needs modified to run from context.
+	SET CONTEXT WIRE		'Display Signal Names'	'RUN CFGTOGGLE Option.SignalNamesOnTraces';
 	
 #	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
@@ -52,33 +56,16 @@ BRD:
 			Clr GND		: SCRIPT Pour-CLR-GND.scr; |\
 				}'\
 		'POLYGON {\
-			Display {\
-				SOLID		: SET Option.DrawUnprocessedPolygonEdgesContinuous 1; |\
-				OUTLINE		: SET Option.DrawUnprocessedPolygonEdgesContinuous 0; |\
-					}|\			
-			Process {\
-				ON			: SET POLYGON_RATSNEST ON; |\
-				OFF			: SET POLYGON_RATSNEST OFF; |\
+			Solid/Outline 	:	RUN CFGTOGGLE Option.DrawUnprocessedPolygonEdgesContinuous;|\			
+			Process 		:	RUN CFGTOGGLE Option.PolygonRatsnest; |\
 				}'\
      '---'\
 		'OPTIONS {\
 			Display {\
-			Pad Names {\
-				ON		: SET Option.PadNames 1; |\
-				OFF		: SET Option.PadNames 0; |\
-						}|\
-			Signals on Pad {\
-				ON		: SET Option.SignalNamesOnPads 1;|\
-				OFF		: SET Option.SignalNamesOnPads 0; |\
-						}|\
-			Signals on Trace {\
-				ON		: SET Option.SignalNamesOnTraces 1;|\
-				OFF		: SET Option.SignalNamesOnTraces 0; |\
-						}|\
-			Text Origins {\
-				ON		: SET Option.ShowTextOrigins 1; |\
-				OFF		: SET Option.ShowTextOrigins 0; |\
-						}|\
+			Pad Names 		:	RUN CFGTOGGLE Option.PadNames;|\
+			Signals on Pad	: 	RUN CFGTOGGLE Option.SignalNamesOnPads;|\
+			Signals on Trace:	RUN CFGTOGGLE Option.SignalNamesOnTraces;|\
+			Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins;|\
 					}|\
 				}'\
 				
@@ -101,7 +88,10 @@ SCH:
 	SET CONTEXT INSTANCE	'Show in Brd'	'RUN SHOW-SCH-GROUP';
 	SET CONTEXT INSTANCE	'Show Airwires'	'RUN SHOW-SCH-GROUP -rats'; #This doesn't work to show group and only focuses on the single part right clicked on. Need context meu in blank space that can activate a whoel group.
 
-		MENU
+		MENU 
+		'GROUP {\
+			SCH to BRD		: RUN select-sch-group-to-brd-group; |\
+				}'\	
 		'SELECT : RUN SELECT;'\
 		'SHOW {\
 			Show Class		: RUN showclass; |\
@@ -137,8 +127,10 @@ PAC:
 	# Package text command menu setup
 
 	MENU
+		'CMD Draw : RUN cmd-draw;' |\
 		'NAME/VAL : SCRIPT namevalue.scr;' |\
-		'Rotate/Scale : RUN rotate-scale;' 'IPC-Wizard : RUN ipc-wizard;' |\
+		'Rotate/Scale : RUN rotate-scale;' |\
+		'IPC-Wizard : RUN ipc-wizard;' |\
 		'LibIt! : RUN LibIt;'
 		
 	SET CONTEXT;
@@ -148,7 +140,9 @@ SYM:
 	# Symbol text command menu setup
 
 	MENU
-		'NAME/VAL : SCRIPT namevalue.scr;' 'Rotate/Scale : RUN rotate-scale;'
+		'CMD Draw : RUN cmd-draw;' |\
+		'NAME/VAL : SCRIPT namevalue.scr;' |\
+		'Rotate/Scale : RUN rotate-scale;'
 		
 	SET CONTEXT;
 	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';

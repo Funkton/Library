@@ -1,0 +1,87 @@
+/*
+Title : CFGTOGGLE.ulp
+Purpose : Toggles config value retreived from eaglerc.
+Author : Cameron Nicks
+
+License : Creative Commons Attribution-ShareAlike 4.0 International
+        : CC BY-SA 4.0
+        : https://creativecommons.org/licenses/by-sa/4.0/
+
+*******************************************************************************
+*				Copyright (c) 2017 Cameron Nicks                              *
+*******************************************************************************
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Version:
+0.1 06/12/17
+	- Initial Proof of concept. Only works with Eagle default configurations
+
+
+To-Do Feature List:
+
+[ ] - Maybe a toggle flag to toggle 1/0, or without flag sets cfg with 2nd arg.
+[ ] - Error handling. Don't know what kind of problems can be run into yet. 
+
+Notes:
+cfgset can be used to set values in eaglerc, but in order for display options to take affect SET must be used.
+
+*/
+
+#usage 	"en: Toggles Eagle Configuration Setting between 1/0.<br>Call this ulp with the setting name to be toggled as the argument.<p>"
+		"Works on any binary setting located in eaglerc.usr. See Eagle help.<p>\n"
+		"Example: RUN CFGTOGGLE.ulp Option.SignalNamesOnPads<br>\n"
+		"Will toggle the setting <b>Display the Signal Names On Pads</b> option located in <i>Options -> Set... -> Misc</i><br>\n"
+		"Can set to run from shortcuts or menu items to enable quick toggling.<p>\n"
+		"<hr><author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
+		"<author>Author: cnicks@phaseivengr.com</author>"
+
+string VERSION = "0.1.5 (12-Jun-2017)";
+
+string cmd = "";
+string result = "";
+
+string NewSettingVal;
+string cfgPrefix = "EAGLE"; //This is used to add EAGLE: to the beginning of the parameter name to call using cfgget.
+
+if (argc == 1) {
+	dlgMessageBox(usage);
+	exit(1);
+	} //If only one argument given (flags), exit with errors
+	else {
+
+		string SettingName = argv[1];
+		string join[] = {cfgPrefix, SettingName};
+		string cfgToGet = strjoin(join, ':');
+
+		string OldSettingVal = cfgget(cfgToGet);// Load option from eaglerc that is set from command or settings dialog
+
+
+		// Do the toggles. This could probably be done a bit more elegantly
+		if (OldSettingVal == "0"){
+			NewSettingVal = "1";
+			}
+		if (OldSettingVal == "1"){
+			NewSettingVal ="0";
+			}
+
+	sprintf(cmd, "SET %s %s;\n", SettingName, NewSettingVal);
+
+
+		sprintf(result, "%s has been set to: %s", SettingName, NewSettingVal); 
+		//dlgMessageBox(result);
+		status(result);
+		
+
+	exit(cmd);
+}
