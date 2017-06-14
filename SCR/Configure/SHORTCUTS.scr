@@ -121,14 +121,18 @@ BRD:
 	#ASSIGN A+F6 	'';
 	#ASSIGN S+F6 	'';
 	#ASSIGN C+F6 	'';
-
-	#ASSIGN F6 		'';
-	#ASSIGN A+F6 	'';
-	#ASSIGN S+F6 	'';
-	#ASSIGN C+F6 	'';
 	#ASSIGN CA+F6 	'';
 	#ASSIGN CS+F6 	'';
 	#ASSIGN SA+F6 	'';
+	
+	ASSIGN F7 		'RUN cfgtoggle --t';
+	#ASSIGN A+F7 	'';
+	#ASSIGN S+F7 	'';
+	#ASSIGN C+F7 	'';
+	#ASSIGN CA+F7 	'';
+	#ASSIGN CS+F7 	'';
+	#ASSIGN SA+F7 	'';
+	
 
 #----------------------------------#
 #------- SCHEMATIC EDITOR ---------#
