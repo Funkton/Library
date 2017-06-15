@@ -77,6 +77,7 @@ BRD:
 	# Setup Default Grid, Drill and Width Values
 
 		GRID ON;
+		GRID DOTS;
 		Grid MM 1;
 		Grid ALT MM 0.5;
 
@@ -111,6 +112,7 @@ BRD:
 SCH:
 # Context and menu set from Configure/MENU.scr
 	GRID ON;
+	GRID DOTS;
 	Grid IN .1;
 	Grid ALT IN .025;
 

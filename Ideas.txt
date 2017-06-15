@@ -27,3 +27,7 @@
 - SCH: Select nets with line tool. Draw line, any nets that it crosses gets put into group.
 
 - Use SELECT ulp type of saving and recalling groups to enable showing of saved groups. Could have a dialog to save, edit, and delete show groups
+
+- Add CHANGE ANGLE option.
+
+- Show alt grid while hold alt. Maybe overlaid with both.

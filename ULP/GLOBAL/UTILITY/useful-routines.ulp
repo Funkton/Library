@@ -1,0 +1,67 @@
+#usage "<b>Collection of useful routines</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+// EditBox with Execute/Save filename
+int edit_save_execute(string cmd, string f_name) {
+int R;
+    R = dlgDialog("Edit and execute") {
+    dlgTextEdit(cmd);
+    dlgHBoxLayout {
+       dlgPushButton("+&Execute") dlgAccept();
+       dlgPushButton("-&Cancel") dlgReject();
+       dlgPushButton("+Save") {
+                              string dest = dlgFileSave("Save Script File", f_name+".scr", "*.scr");
+                              if (dest != "") output(dest, "wt") {printf(cmd);}
+                              }
+       }
+    };
+return R; // 1 = Execute, 0 = Cancel
+}
+
+// get ULP program name
+string get_ulp_name(void) {
+  string s = strsub(argv[0], 0, strlen(argv[0])-4);
+  string p = s;
+  char c = '/';
+  int pos = strrchr(s, c);
+  if (pos >= 0) {
+     p = strsub(s, pos + 1);
+  }
+  return p;
+}
+
+// get ULP path
+string get_ulp_path(void) {
+   string ulp_path = "";
+   char c = '/';
+   int pos = strrchr(argv[0], c);
+   if (pos >= 0) {
+      ulp_path = strsub(argv[0], 0, pos + 1);
+      }
+   return ulp_path;
+}
+
+// get project path, if in board or schematic, otherwise library path
+string get_project_path() {
+string s = "", p = "";;
+  if (library)  { library(L)   s = L.name;}
+  if (board)    { board(B)     s = B.name;}
+  if (schematic){ schematic(S) s = S.name;}
+  char c = '/';
+  int pos = strrchr(s, c);
+  if (pos >= 0) {
+     p = strsub(s, 0, pos + 1);
+     }
+  return p;
+}
+
+// returns 1 if FileName exists (including path)
+int exist_file(string FileName) {
+string a[];
+  int n = fileglob(a, FileName);
+  if (n == 0) return 0;
+  else return 1;
+}

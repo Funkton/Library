@@ -1,0 +1,500 @@
+/* Started June 2012, Alan Stummer, alanstummer@gmail.com
+**********************************************************************************************************************
+
+   Modified 16-AUG-2013, Alan Miller, ADMsystems@aol.com
+		Building on the original "Dangling Nets" ULP, code by Alan Stummer, this modified version now 
+		includes similar and additional functions for both “unrouted” and “dangling” nets.
+
+	unrouted-and-dangling-nets-v2.ULP".
+		A ULP for confirming and listing those sometimes hard to find “unrouted” and “dangling” net 
+		stubs.  Separate lists are created for the “unrouted” and “dangling” nets when they are found.  
+		Any net in the lists may be specifically selected for viewing and editing.  Displayed 
+		information for each net found includes the net’s name and coordinates.  The “dangling” net’s 
+		list will also include the net’s layer number.  When any net is selected for viewing, its 
+		layer is set to “visible=yes” assuring that it can be seen.  Since this ULP makes a call to 
+		run itself after executing a command, only change the file name if you know how to edit the 
+		code to point to the new name.  The same applies to the renaming of or moving of the 
+		"ratsnest.png" file to a different directory.  unrouted-and-dangling-nets.png is included 
+		for use as a custom menu icon should you wish to use it.
+*/
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+// Version 1.0  2013.08.15
+// Version 2.0  2013.08.26
+//    		1.) Fixed major bug that caused urViewSelectedNet[goTo] and ViewSelectedNet[goTo] to 
+//						zoom to wrong coordinates.
+//				2.) Refined Zoom Select Algorithm to better display the selected net.
+
+#usage	"<nobr><b>unrouted-and-dangling-nets-v2.ULP</b></nobr><p>"
+
+			"<nobr>Discover and display the exact position of otherwise hard to find unrouted or dangling nets.</nobr>"
+			"<br><nobr>Any net in the lists may be specifically selected for viewing and editing.</nobr>"
+			"<p>"
+			"<author>Author: ADMsystems@aol.com</author>"
+			"<hr>"
+
+				"<nobr>Messages and lists for all found nets are displayed in their appropriate dialog box. "
+					"\"Unrouted Nets...\" or \"Dangling Nets...\".</nobr><p>"
+
+				"<nobr>If no ""\Unrouted Nets""\ are found, you will see the message...  \""
+					"<font color=darkgreen>GOOD!</font> - No unrouted nets!\"</nobr><br>"
+				"<nobr>If no ""\Dangling Nets""\ are found, you will see the message...  \""
+					"<font color=darkgreen>GOOD!</font> - No dangling nets!\"</nobr><p>"
+
+				"<nobr>If ""\Unrouted Nets""\ are found, you will see the message...  \""
+					"<font color=darkred>WARNING!</font> - There is/are <b>n</b> unrouted net/s!\"</nobr><br>"
+				"<nobr>If ""\Dangling Nets""\ are found, you will see the message...  \""
+					"<font color=darkred>WARNING!</font> - There is/are <b>n</b> dangling net/s!\"</nobr><br>"
+					"Where \"<b>n</b>\" represents the total unrouted or dangling nets found.</nobr><p>"
+
+				"In the \"Unrouted Nets...\" dialog box, when unrouted nets are found, you will "
+					"see a \"Ratsnest\" button.  This will RUN the command line - "
+					"\"Layer 19; Ratsnest *; Run unrouted-and-dangling-nets-v2.ulp\".  Should you not wish "
+					"to display unrouted nets hidden by choice, find this line of code and remove "
+					"the \"*\".  Be sure to also update that same line of code should you change the "
+					"name of this ULP.<p>"
+
+				"If \"Unrouted Nets\" - OR - \"Dangling Nets\" are found, a list will be "
+					"generated and displayed within the applicable dialog group.  The found nets will "
+					"be listed in the form of an array of radio buttons followed by the Net Name and "
+					"the X,Y coordinates of the beginning and end of each net.  The Dangling Nets list "
+					"also includes the Nets Layer number.<p>"
+
+				"To view any of the listed nets for editing, first select the desired net by clicking "
+					"on it or its radio button, then click on the appropriate \"View Selected...\" "
+					"button.  The net will then be brought to the center of your screen and highlighted. "
+					"When a net is selected for viewing/editing, that net's layer will be made visible.<p>"
+
+				"Installation:<br>"
+				"Unzip \"unrouted-and-dangling-nets-v2.ulp\" to your ULP directory as defined by the "
+					"Directories path under the \"Options\" menu in the Control Panel.  The \"Ratsnest.png\" "
+					"file is for use as coded in to the ULP.  \"unrouted-and-dangling-nets.png\" is provided \" "
+					"as a menu icon should you wish to add it to your custom menu.<p>"
+
+				"Notes:<br>"
+					"If you change the name of the ULP or \"Ratsnest.png\" file, you must also change the "
+					"references where these files are called from within the ULP.  Just search for the old "
+					"file name and update it to the new file name.  The included \"ratsnest.png\" file must "
+					"reside in the same directory as the unrouted-and-dangling-nets-v2.ulp file.  If you move "
+					"this image file to a different directory, you must update the path to this file within "
+					"the ULP.<p>";
+
+				
+//	UNROUTED NET VARIABLES	****************************************************************************************//
+int urN = 0;
+int urC1;
+int urC2;
+int urHit1[];
+int urHit2[];
+int urNetX1[];
+int urNetX2[];
+int urNetY1[];
+int urNetY2[];
+real urNetWidth[];
+int urZoomX1[];
+int urZoomX2[];
+int urZoomY1[];
+int urZoomY2[];
+int urContactX[];
+int urContactY[];
+int urViaX[];
+int urViaY[];
+int UnroutedNets = 0;
+string urViewSelectedNet[];
+string urNetName[];
+string UnroutedTxt;
+
+//	DANGLING NET VARIABLES	****************************************************************************************//
+int N = 0;
+int Cc = 0;
+int Vv = 0;
+int C1;
+int C2;
+int Hit1[];
+int Hit2[];
+int NetX1[];
+int NetX2[];
+int NetY1[];
+int NetY2[];
+real NetWidth[];
+int zoomX1[];
+int zoomY1[];
+int zoomX2[];
+int zoomY2[];
+int ContactX[];
+int ContactY[];
+int ViaX[];
+int ViaY[];
+int DanglingNets = 0;
+int LayerNumber[];
+string ViewSelectedNet[];
+string NetName[];
+string DanglingTxt;
+string LayerName[];
+
+//	USAGE	**********************************************************************************************************//
+	void helpULP(void) {
+		dlgDialog("unrouted-and-dangling-nets-v2.ulp - Help")	{
+			dlgHBoxLayout dlgSpacing(550);
+			dlgLabel(usage);
+			dlgHBoxLayout {
+				dlgStretch(1);
+				dlgPushButton("+OK") dlgAccept();
+				dlgStretch(1);
+			}
+		};
+		return;
+	}
+
+//	CAN ONLY BE RUN ON A BOARD	************************************************************************************//
+	if (!board)	{
+		dlgMessageBox	(
+			"<nobr>Discover and display the exact position of otherwise hard to find unrouted or dangling nets.</nobr>"
+			"<br><nobr>Any net in the lists may be specifically selected for viewing and editing.</nobr>"
+			"<p>"
+			"<author>Author: ADMsystems@aol.com</author>"
+			"<hr>"									
+			"<nobr><b><font color=darkred>ERROR:</font></b> No board!</b></nobr><br>"
+			"<nobr><i>Unrouted-and-dangling-nets-v2.ulp</i> must be run from a Layout Editor!</nobr>"
+			, "OK"
+		);
+		exit (1);
+	}
+
+//	GIVE X OR Y LOCATION IN INTERNAL UNITS, RETURNS AS A STRING IN BOARD UNITS	************************************//
+	string Gridify (int Ugrid)	{
+	string Txt;
+
+		board(Bo)	{
+			switch (Bo.grid.unit)	{
+				case 0:  sprintf (Txt, "%f", u2mic(Ugrid));       break;               									 //convert to microns.
+				case 1:  sprintf (Txt, "%f", u2mic(Ugrid)/1000);  break;                    									//convert to mm.
+				case 2:  sprintf (Txt, "%f", u2mil(Ugrid));       break;                   									 //convert to mil.
+				case 3:  sprintf (Txt, "%f", u2mil(Ugrid)/1000);  break;                  									//convert to inch.
+			}
+
+			while (Txt[strlen(Txt)-1] == '0')  Txt[strlen(Txt)-1] = 0x00;           									//trim trailing zeros.
+			if    (Txt[strlen(Txt)-1] == '.')  Txt[strlen(Txt)-1] = 0x00;         									//..and trailing period.
+
+			return Txt;
+		}
+	}
+
+//	MAIN	**********************************************************************************************************//
+	dlgDialog("unrouted-and-dangling-nets-v2.ulp")	{
+
+//	LOAD ALL NET SEGMENTS	******************************************************************************************//
+		board(B)  {
+			B.signals(S)	{
+				S.wires(W)  {
+					if (W.layer == 19)	{
+						urN++;
+						urNetName[urN] 	= S.name;
+						urHit1[urN]    		= 0;
+						urHit2[urN]    		= 0;
+						urNetX1[urN]   		= W.x1;
+						urNetX2[urN]   		= W.x2;
+						urNetY1[urN]   		= W.y1;
+						urNetY2[urN]   		= W.y2;
+					}
+					else	{
+						N++;
+						NetName[N] 			= S.name;
+						Hit1[N]    				= 0;
+						Hit2[N]    				= 0;
+						NetX1[N]   			= W.x1;
+						NetX2[N]   			= W.x2;
+						NetY1[N]   			= W.y1;
+						NetY2[N]   			= W.y2;
+						NetWidth[N]			= W.width;
+						LayerNumber[N]	= W.layer;
+					}
+				}
+			}
+
+//	LOAD ALL PADS AND THROUGHHOLES	********************************************************************************//
+			B.signals(S)	{
+				S.contactrefs(C)	{
+					Cc++;
+					ContactX[Cc] = C.contact.x;
+					ContactY[Cc] = C.contact.y;
+				}
+			}
+
+//	LOAD ALL VIAS	**************************************************************************************************//
+			B.signals(S) {
+				S.vias(V) {
+					Vv++;
+					ViaX[Vv] = V.x;
+					ViaY[Vv] = V.y;
+				}
+			}
+		}
+
+//	CHECK ALL UNROUTED NET ENDS FOR CONNECTIONS TO OTHER NETS	******************************************************//
+		for	(urC1=1; urC1<=urN; urC1++)	{
+			for	(urC2=urC1+1; urC2<=urN; urC2++)	{
+				if (urNetX1[urC1]==urNetX1[urC2] & urNetY1[urC1]==urNetY1[urC2])
+					{ urHit1[urC1] = 1; urHit1[urC2] = 1; }   																							//matched one end.
+				if (urNetX1[urC1]==urNetX2[urC2] & urNetY1[urC1]==urNetY2[urC2])
+					{ urHit1[urC1] = 1; urHit2[urC2] = 1; }   																							//matched one end.
+				if (urNetX2[urC1]==urNetX1[urC2] & urNetY2[urC1]==urNetY1[urC2])
+					{ urHit2[urC1] = 1; urHit1[urC2] = 1; } 																							//matched other end.
+				if (urNetX2[urC1]==urNetX2[urC2] & urNetY2[urC1]==urNetY2[urC2])
+					{ urHit2[urC1] = 1; urHit2[urC2] = 1; } 																							//matched other end.
+			}
+		}
+
+//	CHECK ALL NET ENDS FOR CONNECTIONS TO OTHER NETS	**************************************************************//
+		for (C1=1; C1<=N; C1++)	{
+			for (C2=C1+1; C2<=N; C2++)  {
+				if (NetX1[C1]==NetX1[C2] & NetY1[C1]==NetY1[C2])
+					{ Hit1[C1] = 1; Hit1[C2] = 1; }                                         								//matched one end.
+				if (NetX1[C1]==NetX2[C2] & NetY1[C1]==NetY2[C2])
+					{ Hit1[C1] = 1; Hit2[C2] = 1; }                                         								//matched one end.
+				if (NetX2[C1]==NetX1[C2] & NetY2[C1]==NetY1[C2])
+					{ Hit2[C1] = 1; Hit1[C2] = 1; } 																											//matched other end.
+				if (NetX2[C1]==NetX2[C2] & NetY2[C1]==NetY2[C2])
+					{ Hit2[C1] = 1; Hit2[C2] = 1; }                                       								//matched other end.
+			}
+		}
+
+//	CHECK ALL UNROUTED NET ENDS FOR CONNECTIONS TO PADS AND THROUGHHOLES	******************************************//
+		for (urC1=1; urC1<=urN; urC1++)	{
+			for (urC2=1; urC2<=Cc; urC2++)	{
+				if (urNetX1[urC1]==urContactX[urC2] & urNetY1[urC1]==urContactY[urC2])	urHit1[urC1] = 1;		//matched one end.
+				if (urNetX2[urC1]==urContactX[urC2] & urNetY2[urC1]==urContactY[urC2])  urHit2[urC1] = 1;	//matched other end.             
+			}
+		}	
+
+//	CHECK ALL NET ENDS FOR CONNECTIONS TO PADS AND THROUGHHOLES	****************************************************//
+		for (C1=1; C1<=N; C1++)	{
+			for (C2=1; C2<=Cc; C2++)	{
+				if (NetX1[C1]==ContactX[C2] & NetY1[C1]==ContactY[C2])  Hit1[C1] = 1;	//matched one end.
+				if (NetX2[C1]==ContactX[C2] & NetY2[C1]==ContactY[C2])  Hit2[C1] = 1;	//matched other end.    
+			}	                                                                        
+		}
+
+//	CHECK ALL UNROUTED NET ENDS FOR CONNECTIONS TO VIAS	************************************************************//
+		for (urC1=1; urC1<=urN; urC1++)	{
+			for (urC2=1; urC2<=Vv; urC2++)	{
+				if (urNetX1[urC1]==urViaX[urC2] & urNetY1[urC1]==urViaY[urC2])  urHit1[urC1] = 1;	//matched one end.
+				if (urNetX2[urC1]==urViaX[urC2] & urNetY2[urC1]==urViaY[urC2])  urHit2[urC1] = 1; //matched other end.            		
+			}	                                                                        
+		}
+
+//	CHECK ALL NET ENDS FOR CONNECTIONS TO VIAS	********************************************************************//
+		for (C1=1; C1<=N; C1++)	{
+			for (C2=1; C2<=Vv; C2++)	{
+				if (NetX1[C1]==ViaX[C2] & NetY1[C1]==ViaY[C2])  Hit1[C1] = 1;	//matched one end.
+				if (NetX2[C1]==ViaX[C2] & NetY2[C1]==ViaY[C2])  Hit2[C1] = 1; //matched other end.           
+			}	                                                                        
+		}
+
+//	UNROUTED NET MESSAGES	******************************************************************************************//
+		if (!UnroutedNets) {	sprintf (UnroutedTxt,
+			"<tr><td><nobr><font color=darkgreen>GOOD!</font> - No unrouted nets!</tr></td></nobr>\n");
+		}
+		for (urC1=1;  urC1<=urN;  urC1++)  {
+			if (!urHit1[urC1] | !urHit2[urC1])  {
+				UnroutedNets++;
+				if (UnroutedNets)  {
+					if (UnroutedNets == 1) sprintf (UnroutedTxt,
+					"<tr><td><nobr><font color=darkred>WARNING!</font> - There is 1 unrouted net!"
+						"</tr></td></nobr>\n");
+					else                   sprintf (UnroutedTxt,
+					"<tr><td><nobr><font color=darkred>WARNING!</font> - There are %d unrouted nets!"
+						"</tr></td></nobr>\n", UnroutedNets);
+				}
+			}
+		}
+
+//	DANGLING NET MESSAGES	******************************************************************************************//
+		if (!DanglingNets) {	sprintf (DanglingTxt,
+			"<tr><td><nobr><font color=darkgreen>GOOD!</font> - No dangling nets!</tr></td></nobr>\n");
+		}
+		for (C1=1;  C1<=N;  C1++)	{
+			if (!Hit1[C1] | !Hit2[C1])	{
+				DanglingNets++;
+				if (DanglingNets)	{
+					if (DanglingNets == 1) sprintf (DanglingTxt,
+					"<tr><td><nobr><font color=darkred>WARNING!</font> - There is 1 dangling net!"
+					"</tr></td></nobr>\n");
+					else                   sprintf (DanglingTxt,
+					"<tr><td><nobr><font color=darkred>WARNING!</font> - There are %d dangling nets!"
+					"</tr></td></nobr>\n", DanglingNets);
+				}
+			}
+		}
+
+//	UNROUTED NETS	**************************************************************************************************//
+		dlgHBoxLayout	{		
+			dlgGroup("Unrouted Nets...")	{
+				string urTxt;
+				int urGoTo;
+			
+				if (!UnroutedNets) {
+					dlgSpacing(3);
+				}
+				dlgHBoxLayout {
+					dlgLabel(UnroutedTxt);
+					dlgSpacing(20);
+				
+					if (UnroutedNets)	{
+						dlgHBoxLayout	{
+							dlgStretch(0);
+							dlgLabel( "<img src= \"ratsnest.png\">");
+							dlgPushButton ("&Ratsnest")	{
+								dlgAccept(); exit ("Layer 19; Ratsnest *; Run unrouted-and-dangling-nets-v2.ulp");
+							}
+						}
+					}
+				}
+				dlgSpacing(10);
+				
+//	CHECK ALL UNROUTED NETS FOR NOT CONNECTED AT EITHER END AND DISPLAY RESULTS	************************************//
+				for (urC1=1;  urC1<=urN;  urC1++)	{            
+					if (!urHit1[urC1] | !urHit2[urC1])	{
+						sprintf (urTxt, "Net - %s - at  (%s %s)  to  (%s %s)",
+						urNetName[urC1],
+						Gridify(urNetX1[urC1]),
+						Gridify(urNetY1[urC1]),
+						Gridify(urNetX2[urC1]),
+						Gridify(urNetY2[urC1]));
+						dlgRadioButton(urTxt, urGoTo);
+
+//	ALGORITHM FOR UNROUTED NETS ZOOM SELECT COORDINATES	************************************************************//					
+						if (urNetX1[urC1]	<	urNetX2[urC1] &&  urNetY1[urC1] < urNetY2[urC1]		||
+								urNetX1[urC1] > urNetX2[urC1] &&  urNetY1[urC1] == urNetY2[urC1]	||
+								urNetX1[urC1] > urNetX2[urC1] &&  urNetY1[urC1] < urNetY2[urC1]		||
+								urNetX1[urC1] == urNetX2[urC1] &&  urNetY1[urC1] < urNetY2[urC1])	{
+									urZoomX1[urC1] = (urNetX1[urC1] + 55000);
+									urZoomY1[urC1] = (urNetY1[urC1] - 55000);
+									urZoomX2[urC1] = (urNetX2[urC1] - 55000);
+									urZoomY2[urC1] = (urNetY2[urC1] + 55000);
+								}
+
+						if (urNetX1[urC1] > urNetX2[urC1] &&  urNetY1[urC1] > urNetY2[urC1] 	||
+							urNetX1[urC1] < urNetX2[urC1] &&  urNetY1[urC1] == urNetY2[urC1]	||	
+							urNetX1[urC1] < urNetX2[urC1] &&  urNetY1[urC1] > urNetY2[urC1]		||	
+							urNetX1[urC1] == urNetX2[urC1] &&  urNetY1[urC1] > urNetY2[urC1])	{
+									urZoomX1[urC1] = (urNetX1[urC1] - 55000);
+									urZoomY1[urC1] = (urNetY1[urC1] + 55000);
+									urZoomX2[urC1] = (urNetX2[urC1] + 55000);
+									urZoomY2[urC1] = (urNetY2[urC1] - 55000);
+							}	
+
+						sprintf (urViewSelectedNet[urGoTo], "Window (%f %f) (%f %f); Layer 19; Show %s\n",
+						strtod (Gridify (urZoomX1[urC1])),
+						strtod (Gridify (urZoomY1[urC1])),
+						strtod (Gridify (urZoomX2[urC1])),
+						strtod (Gridify (urZoomY2[urC1])),
+						urNetName[urC1]);
+						//dlgLabel(urViewSelectedNet[urGoTo]);		//debug
+						if (urGoTo < UnroutedNets-1) {urGoTo++;}
+					}
+				}
+				
+				dlgStretch(0);
+				if (UnroutedNets)	{
+					dlgSpacing(9);
+					urGoTo = 0;
+					dlgRedisplay();
+					dlgPushButton("View Selected &Unrouted Net")	{
+						dlgAccept(); exit (urViewSelectedNet[urGoTo]);
+					}
+				}
+			}
+
+//	DANGLING NETS	**************************************************************************************************//
+			dlgGroup("Dangling Nets...")	{
+				string Txt;
+				int goTo;
+				dlgSpacing(3);
+				dlgHBoxLayout {
+					dlgLabel(DanglingTxt);
+					dlgSpacing(20);
+				}
+				dlgSpacing(13);
+	
+//	CHECK ALL DANGLING NETS FOR NOT CONNECTED AT EITHER END AND DISPLAY RESULTS	************************************//							
+				for (C1=1;  C1<=N;  C1++)	{
+					if (!Hit1[C1] | !Hit2[C1])	{
+						sprintf (Txt, "Net - %s - at  (%s %s)  to  (%s %s):  Layer - %u",
+						NetName[C1],
+						Gridify(NetX1[C1]),
+						Gridify(NetY1[C1]),
+						Gridify(NetX2[C1]),
+						Gridify(NetY2[C1]),
+						LayerNumber[C1]);
+						dlgRadioButton(Txt, goTo);
+				
+//	ALGORITHM FOR DANGLING NETS ZOOM SELECT COORDINATES	************************************************************//					
+						if (	NetX1[C1] < NetX2[C1] &&  NetY1[C1] < NetY2[C1]		||
+								NetX1[C1] > NetX2[C1] &&  NetY1[C1] == NetY2[C1]	||
+								NetX1[C1] > NetX2[C1] &&  NetY1[C1] < NetY2[C1]		||
+								NetX1[C1] == NetX2[C1] &&  NetY1[C1] < NetY2[C1])	{
+									zoomX1[C1] = (NetX1[C1] + NetWidth[C1]);
+									zoomY1[C1] = (NetY1[C1] - NetWidth[C1]);
+									zoomX2[C1] = (NetX2[C1] - NetWidth[C1]);
+									zoomY2[C1] = (NetY2[C1] + NetWidth[C1]);
+								}
+
+						if (	NetX1[C1] > NetX2[C1] &&  NetY1[C1] > NetY2[C1] 	||
+								NetX1[C1] < NetX2[C1] &&  NetY1[C1] == NetY2[C1]	||	
+								NetX1[C1] < NetX2[C1] &&  NetY1[C1] > NetY2[C1]		||	
+								NetX1[C1] == NetX2[C1] &&  NetY1[C1] > NetY2[C1])	{
+									zoomX1[C1] = (NetX1[C1] - NetWidth[C1]);
+									zoomY1[C1] = (NetY1[C1] + NetWidth[C1]);
+									zoomX2[C1] = (NetX2[C1] + NetWidth[C1]);
+									zoomY2[C1] = (NetY2[C1] - NetWidth[C1]);
+								}					
+
+						sprintf (ViewSelectedNet[goTo], "Window (%f %f) (%f %f); Layer %u; Show %s\n",
+						strtod (Gridify (zoomX1[C1])),
+						strtod (Gridify (zoomY1[C1])),
+						strtod (Gridify (zoomX2[C1])),
+						strtod (Gridify (zoomY2[C1])),
+						LayerNumber[C1],
+						NetName[C1]);
+						//dlgLabel(ViewSelectedNet[goTo]);		//debug
+						if (goTo < DanglingNets-1) {goTo++;}
+					}
+				}
+				dlgStretch(0);
+				if (DanglingNets)  {
+					dlgSpacing(9);
+					goTo = 0;
+					dlgRedisplay();
+					dlgPushButton("View Selected &Dangling Net")	{
+						dlgAccept(); exit (ViewSelectedNet[goTo]);
+					}
+				}
+			}
+			dlgStretch(0);
+
+		}
+//	HELP AND EXIT BUTTONS	******************************************************************************************//
+		dlgStretch(1);
+		dlgHBoxLayout	{
+			string Txt;
+				if (UnroutedNets | DanglingNets) {
+					Txt = ("&Exit");
+				}
+				if (!UnroutedNets & !DanglingNets) {
+					Txt = ("&OK");
+				}
+				dlgStretch(0);
+				dlgLabel("version 2.0");
+				dlgStretch(1);
+				dlgPushButton ("&Help") dlgMessageBox(usage);
+				dlgPushButton(Txt)	{
+					exit (0);
+				}
+		}
+		dlgStretch(0);
+		
+		
+		
+	};

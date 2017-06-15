@@ -1,0 +1,97 @@
+/*
+ *   Title : getDatasheet.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 01-Mar-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : Open the datasheet URL specified in the DATASHEET attribute of a
+ *         : component in the system default web browser.
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Allows the datasheet of a part to be opened from the context menu when right clicking a component.\n"
+       "run getDatasheet --install - Installs the utility to the schematic and board context menus.\n"
+       "run getDatasheet --version - Shows the version number of the ULP being called.\n"
+       "run getDatasheet --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+       "run getDatasheet - Opens the datashet specified in the DATASHEET attribute of the currently selected component.\n"
+
+string VERSION = "0.1 alpha 1 (01-Mar-2017 21:50)";
+
+void showURL (string url) {
+   string syscmd = "";
+   if(strstr(OS_SIGNATURE, "Mac") != -1) {
+      sprintf(syscmd, "open '%s'", url);
+   }
+   if(strstr(OS_SIGNATURE, "Windows") != -1){
+      sprintf(syscmd, "cmd.exe /c start %s", url);
+   }
+   if(strstr(OS_SIGNATURE, "Linux") != -1) {
+      sprintf(syscmd, "xdg-open %s", url);
+   }
+   system(syscmd);
+}
+
+if (argv[1] == "--install") {
+    exit("edit .sch; set context instance 'View Datasheet' 'run getDatasheet';"
+         "edit .brd; set context element 'View Datasheet' 'run getDatasheet';");
+} else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else {
+
+string name;
+
+    if (schematic) {
+        sheet(SH) {
+            SH.instances(IN) {
+                if (ingroup(IN)) {
+                    name = IN.part.name;
+                }
+            }
+        }
+    } else if (board) {
+        board(BRD) {
+            BRD.elements(EL) {
+                if (ingroup(EL)) {
+                    name = EL.name;
+                }
+            }
+        }
+    }
+
+   if (name) {
+      project.schematic(SCH) {
+         SCH.parts(P) {
+            if (P.name == name) {
+               if (P.attribute["DATASHEET"]) {
+                  showURL(P.attribute["DATASHEET"]);
+               }
+            }
+         }
+      }
+   }
+}
+
+exit(0);
