@@ -1,0 +1,65 @@
+/*
+Title : EXP-LAYERS.ulp
+Purpose : Exports all board layer settings to scr.
+Author : Cameron Nicks
+
+License : Creative Commons Attribution-ShareAlike 4.0 International
+        : CC BY-SA 4.0
+        : https://creativecommons.org/licenses/by-sa/4.0/
+
+*******************************************************************************
+*				Copyright (c) 2017 Cameron Nicks                              *
+*******************************************************************************
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Version:
+0.1 06/16/17 
+	- Basic operation. Exports all layer settings to scr file in board location
+
+To-Do:
+[ ] -	Add export dialog with checkboxes for layer settings, names, colors, and activity. C. Nicks
+[ ] -	Add palette export.
+*/
+
+#usage 	"en: Exports all board layer settings.<p>"
+		"Includes colors, fill, used, and visibility.<br>"
+		"Running export scr file in another board or library will copy all settings.<br>"
+		"<author>Author: Cameron.Nicks+Layout@gmail.com</author>"
+		"<author>Author: cnicks@phaseivengr.com</author>"
+  
+  // To Do:
+
+
+
+board (obj) {
+	board(B) {
+		string fname  = filesetext(B.name, "_layers.scr");                    //open the board
+		output(fname, "wtD"){
+			obj.layers (layer) {				//open the list of layers
+				printf ("SET COLOR_LAYER %u %u;\n", layer.number, layer.color); //Set colors
+				printf ("SET FILL_LAYER %u %u;\n", layer.number, layer.fill); //Set Fills
+				printf ("SET USED_LAYERS %u %u;\n", layer.number, layer.used); //Set Used
+				if (layer.visible){
+					printf ("DISPLAY %u;\n", layer.number); //Set Visible
+				}
+				//Add LAYER to create a script that can copy entire used layers and their names. C.Nicks
+				if (layer.number >= 48){
+					printf ("LAYER %u %s;\n", layer.number, layer.name); //Set used layers and names
+				}
+			}                                //back for next layer
+		}
+		dlgMessageBox ("Layer Settings Exported Sucessfully");
+	}	//close the output file
+}
+
