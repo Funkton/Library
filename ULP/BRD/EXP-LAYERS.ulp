@@ -24,42 +24,267 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+1.0 06/18/17
+	- Complete rewrite to split export separate into sections. Used layers still has a bug.
+	- Update to stable release status (1.0)
+	
 0.1 06/16/17 
 	- Basic operation. Exports all layer settings to scr file in board location
 
 To-Do:
 [ ] -	Add export dialog with checkboxes for layer settings, names, colors, and activity. C. Nicks
 [ ] -	Add palette export.
+[ ] -	Break into sections. List used_layers in one string.
 */
 
-#usage 	"en: Exports all board layer settings.<p>"
-		"Includes colors, fill, used, and visibility.<br>"
-		"Running export scr file in another board or library will copy all settings.<br>"
-		"<author>Author: Cameron.Nicks+Layout@gmail.com</author>"
-		"<author>Author: cnicks@phaseivengr.com</author>"
-  
-  // To Do:
-
-
-
-board (obj) {
-	board(B) {
-		string fname  = filesetext(B.name, "_layers.scr");                    //open the board
-		output(fname, "wtD"){
-			obj.layers (layer) {				//open the list of layers
-				printf ("SET COLOR_LAYER %u %u;\n", layer.number, layer.color); //Set colors
-				printf ("SET FILL_LAYER %u %u;\n", layer.number, layer.fill); //Set Fills
-				printf ("SET USED_LAYERS %u %u;\n", layer.number, layer.used); //Set Used
-				if (layer.visible){
-					printf ("DISPLAY %u;\n", layer.number); //Set Visible
-				}
-				//Add LAYER to create a script that can copy entire used layers and their names. C.Nicks
-				if (layer.number >= 48){
-					printf ("LAYER %u %s;\n", layer.number, layer.name); //Set used layers and names
-				}
-			}                                //back for next layer
-		}
-		dlgMessageBox ("Layer Settings Exported Sucessfully");
-	}	//close the output file
+#usage 	"en: <h3>EXP-LAYERS.ulp<br>Export board layer settings into scr files.</h3><hr>"
+		"Run from board, exports into board location.<p>"
+		"Usage:<br> RUN EXP-LAYERS <i>argument</i><p>"
+		"<u>Arguments:</u><br>"
+		"<b><i>-colors</i></b> | Saves all layer color settings, but not palette.<br>"
+		"<b><i>-fills</i></b> | Saves all layer fill settings.<br>"
+		"<b><i>-names</i></b> | Saves all user set layer names (>100).<br>"
+		"<b><i>-visible</i></b> | Saves current layer visibility status.<br>"
+		"<b><i>--version</i></b> | Shows the version number of the ULP being called.<p>"
+		"Only one argument can be used at a time to export by setting type"
+		"<p><author>Author: Cameron Nicks</author> : goo.gl/y1y1zn"
+		"<p><u><author>Cameron.Nicks+Layout@gmail.com</author>"
+		"<br><author>cnicks@phaseivengr.com</author>"
+ 
+string VERSION = "1.0 (18-Jun-2017)";
+ 
+if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
 }
 
+//-- Colors Function --//
+// saves all layer color settings, but not palette
+string Colors (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the layers loop
+		B.layers(L) {
+			sprintf(c, "SET COLOR_LAYER %u %u;\n", L.number, L.color); //Set colors
+			cmd += c;
+		}
+		//--
+		//-- save dialog. todo: setup fileave dialog
+		dlgDialog("Export Layer Colors") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_layer_colors.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End Colors Function --//
+
+//-- Fills Function --//
+// saves all layer fill settings
+string Fills (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the layers loop
+		B.layers(L) {
+			sprintf(c, "SET FILL_LAYER %u %u;\n", L.number, L.fill); //Set fills
+			cmd += c;
+		}
+		//--
+		//-- save dialog. todo: setup fileave dialog
+		dlgDialog("Export Layer Fills") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_layer_fills.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End Fills Function --//
+
+//-- Names Function --//
+// saves all named layers used including user set names
+// running this restores all custom layer names
+string Named (void) {
+		// Todo: filter named layers to used or visible to cut down on the clutter.
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the layers loop
+		B.layers(L) {
+		if (L.number >= 99){ 
+			sprintf(c, "LAYER %u %s;\n", L.number, L.name); //Set named layers
+		}
+		cmd += c;
+		}
+		//--
+		//-- save dialog. todo: setup fileave dialog
+		dlgDialog("Export Layer Names") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_layer_names.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End Names Function --//
+
+//-- Used Function --//
+// Something is really wrong with the way used layers are found. Multiple duplicates and missing layers.
+string Used (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the layers loop
+		B.layers(L) {
+			if (L.used){
+			// In order to restore used layers this needs to be one line
+				sprintf(c, "SET USED_LAYERS %u %u;\n", L.number, L.used); //Set used status
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup fileave dialog
+		dlgDialog("Export Used Layers") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_used_layers.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End Used Function --//
+
+//-- Visible Function --//
+string Visible (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the layers loop
+		B.layers(L) {
+			if (L.visible){
+				sprintf(c, "DISPLAY %u;\n", L.number); //Set visible status
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup fileave dialog
+		dlgDialog("Export Visible Layers") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_visible_layers.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End Visible Function --//
+
+//-- Function calls
+if (argv[1] == "-colors"){	Colors();}
+
+if (argv[1] == "-fills"){	Fills();}
+
+if (argv[1] == "-names"){	Named();}
+
+if (argv[1] == "-used"){	Used();} //Not quite ready yet
+
+if (argv[1] == "-visible"){	Visible();}
+//--
+
+// else {
+  // dlgMessageBox("Run this ULP from a Board", "OK");
+  // exit (0);
+// }
