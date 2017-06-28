@@ -34,10 +34,17 @@ BRD:
 	SET CONTEXT ELEMENT  	'Display Pad Names'			'RUN CFGTOGGLE Option.PadNames';
 #	SET CONTEXT WIRE		'Length?'	'RUN length'; #Length needs modified to run from context.
 	SET CONTEXT WIRE		'Display Signal Names'	'RUN CFGTOGGLE Option.SignalNamesOnTraces';
+	SET CONTEXT WIRE  		'Diagnal'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT TEXT  		'Diagnal'			'RUN GRP-ROTATE 45 -';
 	
 #	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
+
 		MENU
+		'Step Layer {\
+			UP       	: RUN trace-layer -; |\
+			DOWN 		: RUN trace-layer +; |\
+				}'\
 		'RENDER {\
 			Top       : SCRIPT RenderT.scr; |\
 			Bottom : SCRIPT RenderB.scr; |\
@@ -67,6 +74,7 @@ BRD:
 				}'\
      '---'\
 		'OPTIONS {\
+			Set Used Layers	:	RUN UseLayers;|\
 			Display {\
 			Pad Names 		:	RUN CFGTOGGLE Option.PadNames;|\
 			Signals on Pad	: 	RUN CFGTOGGLE Option.SignalNamesOnPads;|\

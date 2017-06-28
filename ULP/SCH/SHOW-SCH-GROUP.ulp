@@ -132,7 +132,7 @@ if (schematic){
 		cmd = "edit .brd;";
 		
 		if (argv[1] == "-rats") {
-		cmd += "RATS ! *; RATS ";
+		cmd += "SET POLYGON_RATSNEST OFF; RATS ! *; RATS ";
 		cmd += netList;		// add only nets to ratsnest command
 		cmd += ";";
 		}

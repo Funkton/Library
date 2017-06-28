@@ -1,0 +1,280 @@
+// *************************** Quick_FINDER_1 ****************************** //
+
+// ********************** initialize values ******************************** //
+
+int hor = 1;
+int ver = 1;
+int n = 0, m = 0, h = 0;
+int LWPselect = 0, LWNselect = 0;    // initially selects at dlgListView
+int LWIselect = 0;
+int EposX[], EposY[];   // positions of components at Board
+int IposX[], IposY[];   // positions of components at Schematic
+int unt;   // unit indicator
+int LBS1 = 0, RBS1 = 0;
+int pshc, nshc, PSHnc[], NSHnc[], ISHnc[];
+
+
+
+real wx1, wx2, wy1, wy2;
+real wxu1, wxu2, wyu1, wyu2;
+real wxs, wys;
+
+string flnam = "ffsc.scr", ffnam;
+string Enam[], Epkg[], Evle[], LWPstr[], LWNstr[], LWIstr[];
+string BSnam[], SNnam[], Inam[], ISnam[], Ivle[];
+string Snam[], Spkg[], Svle[];
+string SDry, BDry, WDry;  // Schematic and Board and Work Directories
+string ffp;
+string Shtt[] = {"All","Sheet1","Sheet2","Sheet3","Sheet4" };
+string Helpt1 = "You can also FIND by DOUBLECLICK on element at ListView";
+string stshtn;  // string of sheet number 
+
+// ---------------------------------------------------------------------------
+// fastcall  function prepocet
+real prepocet(real wx) {
+    real wxu;
+    if (unt == 0){
+      wxu = wx * 1000;
+    }
+    if (unt == 1){
+      wxu = wx;
+    }
+    if (unt == 2){
+      wxu = wx * 1000 / 25.4;
+    }   
+    if (unt == 3){
+      wxu = wx / 25.4;
+    } 
+    return wxu;        
+}
+
+// ---------------------------------------------------------------------------
+// initialize values from BOARD
+if (board) {
+  board(B) {
+    BDry = B.name ;
+    unt = B.grid.unit;
+    B.elements(BE) {
+      Enam[n] = BE.name;
+      Epkg[n] = BE.package.name;
+      Evle[n] = BE.value;
+      EposX[n] = BE.x;
+      EposY[n] = BE.y;
+      LWPstr[n] = Enam[n] + "\t" + Epkg[n] + "\t" + Evle[n];
+      n = n + 1 ;
+    }
+    B.signals(BS) {
+      BSnam[m] = BS.name;
+      LWNstr[m] = BSnam[m];
+      m = m + 1; 
+    }
+  
+  }
+  
+  wxs = 40;  // window size x
+  wys = 20;  // window size y
+  WDry = filedir(BDry);   // Work Directory
+  ffnam = WDry + flnam;
+}  
+
+// ----------------------------------------------------------------------------
+// initialize values from SCHEMATIC
+if (schematic) {
+  schematic(SCH) {
+    SDry = SCH.name;
+    unt = SCH.grid.unit;
+    SCH.sheets(S) {
+      pshc = S.number;
+      sprintf(stshtn,"%d",pshc);
+      S.parts(SP) {      
+        Snam[n] = SP.name;
+        Svle[n] = SP.value;
+        LWPstr[n] = Snam[n] + "\t" + Svle[n];
+        PSHnc[n] = pshc;  // number of sheet init
+        n = n + 1;
+        SP.instances(I) {
+          Inam[h] = I.name;
+          ISHnc[h] = pshc;  // number of sheet init
+          IposX[h] = I.x;
+          IposY[h] = I.y;  
+         // Ivle[h] = I.value;       
+          LWIstr[h] = Snam[n - 1] + "\t" + Inam[h] + "\t" + stshtn;
+          ISnam[h] = Snam[n -1];
+          h = h + 1;
+        }        
+      }
+      S.nets(SN) {
+        SNnam[m] = SN.name;
+        LWNstr[m] = SNnam[m] + "\t" + stshtn;
+        NSHnc[m] = pshc;
+        m = m + 1;           
+      }     
+    }
+  }
+  wxs = 40;  // window size x
+  wys = 20;  // window size y
+  WDry = filedir(SDry);   // Work Directory
+  ffnam = WDry + flnam;  
+}
+
+// ----------------------------------------------------------------------------
+// starting dilaog window for BOARD
+
+if (board) {
+
+  int Result = dlgDialog("Quick_Find_1") {
+      dlgHBoxLayout{
+      dlgSpacing(610);
+      } 
+    dlgHBoxLayout{
+      dlgVBoxLayout{
+      dlgSpacing(400);
+      }     
+      dlgListView("Part_Name\tPackage\tValue", LWPstr, LWPselect){
+        wx1 = u2mm(EposX[LWPselect]) - wxs / 2;
+        wx2 = u2mm(EposX[LWPselect]) + wxs / 2;
+        wy1 = u2mm(EposY[LWPselect]) - wys / 2;
+        wy2 = u2mm(EposY[LWPselect]) + wys / 2;
+        wxu1 = prepocet(wx1);
+        wxu2 = prepocet(wx2);
+        wyu1 = prepocet(wy1);
+        wyu2 = prepocet(wy2);
+        string result = "";
+        sprintf(result, "window (%f %f) (%f %f);\n"
+                "show %s",
+                wxu1, wyu1, wxu2, wyu2, Enam[LWPselect]
+                );
+        exit(result);         
+        dlgAccept();
+      }   
+      dlgListView("Signal_Name", LWNstr, LWNselect){
+        string result = "";
+        sprintf(result, "window fit;\n"
+                "show %s", BSnam[LWNselect]
+                );      
+        exit(result);
+        dlgAccept();
+      }
+    } 
+      dlgSpacing(20);
+      dlgLabel(Helpt1);     
+      dlgSpacing(20);     
+    dlgHBoxLayout {
+    dlgStretch(1);
+    dlgPushButton("&Part_Find") {
+      wx1 = u2mm(EposX[LWPselect]) - wxs / 2;
+      wx2 = u2mm(EposX[LWPselect]) + wxs / 2;
+      wy1 = u2mm(EposY[LWPselect]) - wys / 2;
+      wy2 = u2mm(EposY[LWPselect]) + wys / 2;
+      wxu1 = prepocet(wx1);
+      wxu2 = prepocet(wx2);
+      wyu1 = prepocet(wy1);
+      wyu2 = prepocet(wy2);
+      string result = "";
+      sprintf(result, "window (%f %f) (%f %f);\n"
+              "show %s", 
+              wxu1, wyu1, wxu2, wyu2, Enam[LWPselect]
+              );
+      exit(result);        
+      dlgAccept();
+    } 
+    dlgSpacing(210);
+    dlgPushButton("&Signal_Find") {
+      string result = "";
+      sprintf(result, "window fit;\n"
+              "show %s",BSnam[LWNselect]
+              );
+      exit(result);         
+      dlgAccept();  
+    }
+    dlgSpacing(10);
+    dlgPushButton("-Cancel") dlgReject();
+    }
+  };
+}
+// ----------------------------------------------------------------------------
+// starting dialog Window for SCHEMATIC
+
+if (schematic) {
+  int Result = dlgDialog("Quick_Find_1") { 
+      dlgHBoxLayout{
+      dlgSpacing(500);
+      }
+      dlgHBoxLayout{
+      dlgVBoxLayout{
+      dlgSpacing(400);
+      }
+        dlgListView("Part    \tGate    \tSheet   ", LWIstr, LWIselect) {      
+          wx1 = u2mm(IposX[LWIselect]) - wxs / 2;
+          wx2 = u2mm(IposX[LWIselect]) + wxs / 2;
+          wy1 = u2mm(IposY[LWIselect]) - wys / 2;
+          wy2 = u2mm(IposY[LWIselect]) + wys / 2;
+          wxu1 = prepocet(wx1);
+          wxu2 = prepocet(wx2);
+          wyu1 = prepocet(wy1);
+          wyu2 = prepocet(wy2);
+          string result = "";
+          sprintf(result, "EDIT .S%d;\n"
+                   "window (%f %f) (%f %f);\n"
+                   "show %s\n",
+                   ISHnc[LWIselect],
+                   wxu1, wyu1, wxu2, wyu2,
+                   ISnam[LWIselect] 
+                  );
+          exit(result);
+          dlgAccept();                            
+        }        
+        dlgListView("Signal       \tSheet", LWNstr, LWNselect){  
+          string result = "";
+          sprintf(result, "EDIT .S%d;\n"
+                   "window fit;\n"
+                   "show %s",
+                   NSHnc[LWNselect], SNnam[LWNselect] 
+                 ); 
+          exit(result);                
+          dlgAccept();        
+        }                   
+      }
+      dlgSpacing(20);
+      dlgLabel(Helpt1);     
+      dlgSpacing(20); 
+      dlgHBoxLayout{
+        dlgStretch(1); 
+        dlgPushButton("&Part_Find"){
+          wx1 = u2mm(IposX[LWIselect]) - wxs / 2;
+          wx2 = u2mm(IposX[LWIselect]) + wxs / 2;
+          wy1 = u2mm(IposY[LWIselect]) - wys / 2;
+          wy2 = u2mm(IposY[LWIselect]) + wys / 2;
+          wxu1 = prepocet(wx1);
+          wxu2 = prepocet(wx2);
+          wyu1 = prepocet(wy1);
+          wyu2 = prepocet(wy2);
+          string result = "";
+          sprintf(result, "EDIT .S%d;\n"
+                   "window (%f %f) (%f %f);\n"
+                   "show %s\n",
+                   ISHnc[LWIselect], 
+                   wxu1, wyu1, wxu2, wyu2,
+                   ISnam[LWIselect]
+                 );
+          exit(result);       
+          dlgAccept();                
+        } 
+        dlgSpacing(140);
+        dlgPushButton("&Signal_Find") {
+          string result = "";
+          sprintf(result, "EDIT .S%d;\n"
+                   "window fit;\n"
+                   "show %s\n",
+                   NSHnc[LWNselect], SNnam[LWNselect]
+                 );
+          exit(result);      
+          dlgAccept();          
+        }
+        dlgSpacing(10);        
+        dlgPushButton("-Cancel") dlgReject();                       
+      } 
+      dlgSpacing(20);
+  };  
+}
+

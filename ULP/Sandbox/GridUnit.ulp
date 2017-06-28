@@ -1,0 +1,27 @@
+// GridUnit.ulp helper function
+  
+string Units[] = {"mic","mm","mil","Inch"};
+int UsedGrid = 0;
+
+void CurrentUnit(void){
+
+	string tmp; // 0:mic, 1:mm, 2:mil, 3:Inch
+  
+	if (library){
+		library(L){	UsedGrid = L.grid.unit;}
+	}
+	if (board){
+		board(B){UsedGrid = B.grid.unit;}
+			
+	}
+		
+	if (schematic){
+		schematic(S){UsedGrid = S.grid.unit;}
+	}
+
+	sprintf( tmp, "Current unit is %s", Units[UsedGrid]);
+	dlgMessageBox(tmp,"OK");
+}
+
+CurrentUnit(); 
+

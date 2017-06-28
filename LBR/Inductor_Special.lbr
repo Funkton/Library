@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.6.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -102,6 +102,127 @@ pitch 5 mm, dia 10.5 mm</description>
 <circle x="2.5" y="0" radius="0.35" width="0" layer="51"/>
 <circle x="0" y="0" radius="5.4" width="0" layer="39"/>
 </package>
+<package name="IND1212">
+<description>Shielded Power Inductor 3.00 mm L X 3.00 mm W X 1.20 mm H body</description>
+<wire x1="-0.3" y1="1.7" x2="0.3" y2="1.7" width="0.2" layer="21"/>
+<wire x1="-0.3" y1="-1.7" x2="0.3" y2="-1.7" width="0.2" layer="21"/>
+<rectangle x1="-1.5" y1="-0.9" x2="-0.6" y2="0.9" layer="51"/>
+<wire x1="-1.4" y1="0.9" x2="-1.4" y2="1.4" width="0.2" layer="51"/>
+<wire x1="-1.4" y1="1.4" x2="-1.2" y2="1.4" width="0.2" layer="51"/>
+<wire x1="-1.2" y1="1.4" x2="-1.2" y2="1.1" width="0.2" layer="51"/>
+<wire x1="-1.2" y1="1.1" x2="-1.2" y2="0.9" width="0.2" layer="51"/>
+<wire x1="-0.7" y1="0.8" x2="-1" y2="1.1" width="0.2" layer="51" curve="90"/>
+<wire x1="-1" y1="1.1" x2="-1.2" y2="1.1" width="0.2" layer="51"/>
+<wire x1="-1.1" y1="0.9" x2="-0.9" y2="0.9" width="0.2" layer="51"/>
+<wire x1="-1.4" y1="-0.9" x2="-1.4" y2="-1.4" width="0.2" layer="51"/>
+<wire x1="-1.4" y1="-1.4" x2="-1.2" y2="-1.4" width="0.2" layer="51"/>
+<wire x1="-1.2" y1="-1.4" x2="-1.2" y2="-1.1" width="0.2" layer="51"/>
+<wire x1="-1.2" y1="-1.1" x2="-1.2" y2="-0.9" width="0.2" layer="51"/>
+<wire x1="-0.7" y1="-0.8" x2="-1" y2="-1.1" width="0.2" layer="51" curve="-90"/>
+<wire x1="-1" y1="-1.1" x2="-1.2" y2="-1.1" width="0.2" layer="51"/>
+<wire x1="-1.1" y1="-0.9" x2="-0.9" y2="-0.9" width="0.2" layer="51"/>
+<rectangle x1="0.6" y1="-0.9" x2="1.5" y2="0.9" layer="51" rot="R180"/>
+<wire x1="1.4" y1="-0.9" x2="1.4" y2="-1.4" width="0.2" layer="51"/>
+<wire x1="1.4" y1="-1.4" x2="1.2" y2="-1.4" width="0.2" layer="51"/>
+<wire x1="1.2" y1="-1.4" x2="1.2" y2="-1.1" width="0.2" layer="51"/>
+<wire x1="1.2" y1="-1.1" x2="1.2" y2="-0.9" width="0.2" layer="51"/>
+<wire x1="0.7" y1="-0.8" x2="1" y2="-1.1" width="0.2" layer="51" curve="90"/>
+<wire x1="1" y1="-1.1" x2="1.2" y2="-1.1" width="0.2" layer="51"/>
+<wire x1="1.1" y1="-0.9" x2="0.9" y2="-0.9" width="0.2" layer="51"/>
+<wire x1="1.4" y1="0.9" x2="1.4" y2="1.4" width="0.2" layer="51"/>
+<wire x1="1.4" y1="1.4" x2="1.2" y2="1.4" width="0.2" layer="51"/>
+<wire x1="1.2" y1="1.4" x2="1.2" y2="1.1" width="0.2" layer="51"/>
+<wire x1="1.2" y1="1.1" x2="1.2" y2="0.9" width="0.2" layer="51"/>
+<wire x1="0.7" y1="0.8" x2="1" y2="1.1" width="0.2" layer="51" curve="-90"/>
+<wire x1="1" y1="1.1" x2="1.2" y2="1.1" width="0.2" layer="51"/>
+<wire x1="1.1" y1="0.9" x2="0.9" y2="0.9" width="0.2" layer="51"/>
+<smd name="1" x="-1.19" y="0" dx="1.4" dy="3.2" layer="1" roundness="32" cream="no"/>
+<smd name="2" x="1.19" y="0" dx="1.4" dy="3.2" layer="1" roundness="32" cream="no"/>
+<wire x1="-0.6" y1="1.5" x2="-0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-0.6" y1="-1.5" x2="-1.5" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-1.5" y1="1.5" x2="-0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="-1.5" x2="0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="1.5" x2="1.5" y2="1.5" width="0.025" layer="51"/>
+<wire x1="1.5" y1="-1.5" x2="0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-1.5" y1="-1.5" x2="-1.5" y2="1.5" width="0.025" layer="51"/>
+<wire x1="-0.6" y1="1.5" x2="0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="1.5" y1="1.5" x2="1.5" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="-1.5" x2="-0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-2.16" y1="-1.81" x2="-2.16" y2="1.81" width="0.05" layer="39"/>
+<wire x1="-2.16" y1="1.81" x2="2.16" y2="1.81" width="0.05" layer="39"/>
+<wire x1="2.16" y1="1.81" x2="2.16" y2="-1.81" width="0.05" layer="39"/>
+<wire x1="2.16" y1="-1.81" x2="-2.16" y2="-1.81" width="0.05" layer="39"/>
+<circle x="0" y="0" radius="0.25" width="0.05" layer="39"/>
+<wire x1="0.35" y1="0" x2="-0.35" y2="0" width="0.05" layer="39"/>
+<wire x1="0" y1="0.35" x2="0" y2="-0.35" width="0.05" layer="39"/>
+<polygon width="0.2" layer="31">
+<vertex x="-1.7" y="1.5"/>
+<vertex x="-0.9" y="1.5"/>
+<vertex x="-0.9" y="-1.5"/>
+<vertex x="-1.7" y="-1.5"/>
+</polygon>
+<polygon width="0.2" layer="31">
+<vertex x="0.9" y="1.5"/>
+<vertex x="1.7" y="1.5"/>
+<vertex x="1.7" y="-1.5"/>
+<vertex x="0.9" y="-1.5"/>
+</polygon>
+<text x="-1.9" y="2.1" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-0.7" y="-1.07" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+</package>
+<package name="LPS3015">
+<description>LPS3015 Series</description>
+<wire x1="-1.475" y1="1.475" x2="1.475" y2="1.475" width="0.2032" layer="51"/>
+<wire x1="1.475" y1="1.475" x2="1.475" y2="-1.475" width="0.2032" layer="51"/>
+<wire x1="1.475" y1="-1.475" x2="-1.475" y2="-1.475" width="0.2032" layer="51"/>
+<wire x1="-1.475" y1="-1.475" x2="-1.475" y2="1.475" width="0.2032" layer="51"/>
+<wire x1="-0.45" y1="1.55" x2="0.45" y2="1.55" width="0.2032" layer="21"/>
+<wire x1="-0.45" y1="-1.55" x2="0.45" y2="-1.55" width="0.2032" layer="21"/>
+<smd name="1" x="-1.27" y="0" dx="3.3" dy="1.14" layer="1" rot="R90" stop="no" thermals="no" cream="no"/>
+<smd name="2" x="1.27" y="0" dx="3.3" dy="1.14" layer="1" rot="R90" stop="no" thermals="no" cream="no"/>
+<text x="-1.905" y="1.905" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-1.905" y="-2.8575" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+<rectangle x1="-1.95" y1="-0.85" x2="-1.2" y2="0.85" layer="29"/>
+<rectangle x1="-1.95" y1="0.85" x2="-0.6" y2="1.75" layer="29" rot="R180"/>
+<rectangle x1="-1.95" y1="-1.75" x2="-0.6" y2="-0.85" layer="29" rot="R180"/>
+<rectangle x1="0.6" y1="0.85" x2="1.95" y2="1.75" layer="29" rot="R180"/>
+<rectangle x1="0.6" y1="-1.75" x2="1.95" y2="-0.85" layer="29" rot="R180"/>
+<rectangle x1="1.2" y1="-0.85" x2="1.95" y2="0.85" layer="29"/>
+<rectangle x1="-1.75" y1="-0.85" x2="-1.2" y2="0.85" layer="31"/>
+<rectangle x1="-1.75" y1="0.85" x2="-0.75" y2="1.55" layer="31" rot="R180"/>
+<rectangle x1="-1.75" y1="-1.55" x2="-0.8" y2="-0.85" layer="31" rot="R180"/>
+<rectangle x1="1.2" y1="-0.85" x2="1.75" y2="0.85" layer="31" rot="R180"/>
+<rectangle x1="0.8" y1="-1.55" x2="1.75" y2="-0.85" layer="31"/>
+<rectangle x1="0.8" y1="0.85" x2="1.75" y2="1.55" layer="31"/>
+</package>
+<package name="INDC300X300X120L90N">
+<description>Inductor, Chip; 3.00 mm L X 3.00 mm W X 1.20 mm H body&lt;p&gt;&lt;i&gt;PCB Libraries Packages&lt;/i&gt;</description>
+<smd name="1" x="-1.19" y="0" dx="1.54" dy="3.22" layer="1" roundness="32" rot="R180"/>
+<smd name="2" x="1.19" y="0" dx="1.54" dy="3.22" layer="1" roundness="32"/>
+<wire x1="-0.6" y1="1.5" x2="-0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-0.6" y1="-1.5" x2="-1.5" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-1.5" y1="1.5" x2="-0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="-1.5" x2="0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="1.5" x2="1.5" y2="1.5" width="0.025" layer="51"/>
+<wire x1="1.5" y1="-1.5" x2="0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-1.5" y1="-1.5" x2="-1.5" y2="1.5" width="0.025" layer="51"/>
+<wire x1="-0.6" y1="1.5" x2="0.6" y2="1.5" width="0.025" layer="51"/>
+<wire x1="1.5" y1="1.5" x2="1.5" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="0.6" y1="-1.5" x2="-0.6" y2="-1.5" width="0.025" layer="51"/>
+<wire x1="-1.6" y1="-1.6" x2="-1.6" y2="1.6" width="0.12" layer="51"/>
+<wire x1="-1.6" y1="1.6" x2="1.6" y2="1.6" width="0.12" layer="51"/>
+<wire x1="1.6" y1="1.6" x2="1.6" y2="-1.6" width="0.12" layer="51"/>
+<wire x1="1.6" y1="-1.6" x2="-1.6" y2="-1.6" width="0.12" layer="51"/>
+<wire x1="-0.24" y1="1.6" x2="0.24" y2="1.6" width="0.12" layer="21"/>
+<wire x1="-0.24" y1="-1.6" x2="0.24" y2="-1.6" width="0.12" layer="21"/>
+<wire x1="-2.16" y1="-1.81" x2="-2.16" y2="1.81" width="0.05" layer="39"/>
+<wire x1="-2.16" y1="1.81" x2="2.16" y2="1.81" width="0.05" layer="39"/>
+<wire x1="2.16" y1="1.81" x2="2.16" y2="-1.81" width="0.05" layer="39"/>
+<wire x1="2.16" y1="-1.81" x2="-2.16" y2="-1.81" width="0.05" layer="39"/>
+<circle x="0" y="0" radius="0.25" width="0.05" layer="39"/>
+<wire x1="0.35" y1="0" x2="-0.35" y2="0" width="0.05" layer="39"/>
+<wire x1="0" y1="0.35" x2="0" y2="-0.35" width="0.05" layer="39"/>
+</package>
 </packages>
 <symbols>
 <symbol name="L">
@@ -131,6 +252,23 @@ pitch 5 mm, dia 10.5 mm</description>
 <wire x1="-3.4925" y1="2.8575" x2="3.4925" y2="2.8575" width="0.254" layer="94"/>
 <text x="-5.08" y="6.35" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
 <text x="-5.08" y="3.81" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
+<pin name="2" x="5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1" rot="R180"/>
+<pin name="1" x="-5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1"/>
+</symbol>
+<symbol name="LI-1">
+<description>Power Inductor</description>
+<wire x1="-3.81" y1="0.635" x2="-1.905" y2="0.635" width="0.254" layer="94" curve="-180"/>
+<wire x1="-1.905" y1="0.635" x2="0" y2="0.635" width="0.254" layer="94" curve="-180"/>
+<wire x1="0" y1="0.635" x2="1.905" y2="0.635" width="0.254" layer="94" curve="-180"/>
+<wire x1="1.905" y1="0.635" x2="3.81" y2="0.635" width="0.254" layer="94" curve="-180"/>
+<wire x1="-3.81" y1="0.635" x2="-3.81" y2="0" width="0.254" layer="94"/>
+<wire x1="3.81" y1="0.635" x2="3.81" y2="0" width="0.254" layer="94"/>
+<wire x1="-3.81" y1="0" x2="-5.08" y2="0" width="0.1524" layer="94"/>
+<wire x1="3.81" y1="0" x2="5.08" y2="0" width="0.1524" layer="94"/>
+<wire x1="-3.4925" y1="2.2225" x2="3.4925" y2="2.2225" width="0.254" layer="94"/>
+<wire x1="-3.4925" y1="2.8575" x2="3.4925" y2="2.8575" width="0.254" layer="94"/>
+<text x="-3.81" y="3.81" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
+<text x="-3.81" y="-2.54" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
 <pin name="2" x="5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1" rot="R180"/>
 <pin name="1" x="-5.08" y="0" visible="off" length="point" direction="pas" swaplevel="1"/>
 </symbol>
@@ -176,6 +314,57 @@ pitch 5 mm, dia 10.5 mm</description>
 <technology name="822J">
 <attribute name="PARTNO" value="09-100019-00"/>
 <attribute name="VAL" value="8.2mH"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LPS3015" prefix="L">
+<description>Shielded Power Inductor</description>
+<gates>
+<gate name="G$1" symbol="LI-1" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LPS3015">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LQH3NPN" prefix="L">
+<description>FIXED IND 1.5UH 1.1A 49 MOHM SMD
+&lt;br&gt;
+&lt;a href="http://www.murata.com/~/media/webrenewal/support/library/catalog/products/inductor/chip/o05e.ashx"&gt;Murata Chip Inductors Catalog&lt;/a&gt;</description>
+<gates>
+<gate name="G$1" symbol="LI" x="0" y="0"/>
+</gates>
+<devices>
+<device name="JR" package="IND1212">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="1R5M">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="http://goo.gl/5rHUqN"/>
+<attribute name="DESC" value="FIXED IND 1.5UH 1.1A 49 MOHM SMD"/>
+<attribute name="FEAT" value=""/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="LQH3NPN1R5MJRL"/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="RATE" value="1.1A"/>
+<attribute name="SIZE" value="1212 (3x3x1.1mm)"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="-40°C ~ 105°C"/>
+<attribute name="TOL" value="±20%"/>
+<attribute name="TYPE" value="Wirewound Shielded"/>
+<attribute name="VALUE" value="1.5uH"/>
 </technology>
 </technologies>
 </device>

@@ -14,8 +14,8 @@
 
 	ASSIGN F1 'display last';
 	ASSIGN A+F1 'grid last';
-	ASSIGN S+F1 'run GRID_DOUBLE';
-	ASSIGN C+F1 'run GRID_HALF';
+	#ASSIGN S+F1 'run GRID_DOUBLE';
+	#ASSIGN C+F1 'run GRID_HALF';
 	ASSIGN CA+F1 'grid FINE_MM';
 	ASSIGN CS+F1 'grid';
 	ASSIGN SA+F1 'grid FINE_IN';
@@ -40,20 +40,25 @@ BRD:
 	ASSIGN CA+G 	'Display'; #mouse
 #	ASSIGN CS+G 	''; #mouse mimmick old shift+click to place via. Must be in ROUTE
 	ASSIGN C+H 		HOLE;
-	ASSIGN C+I 		INFO; #mouse
-	ASSIGN CA+I 	SHOW; #mouse
+	
+	#thumb+middle click #Evoluent 6+4 buttons = C+I
+	ASSIGN C+I 		INFO;
+	ASSIGN CA+I 	SHOW;
+	ASSIGN CSA+I 	'RUN SHOW-BRD-PART-NETS GND';
+#	ASSIGN CAS+I	CHANGE;
+	
 	ASSIGN CSA+I 	'RUN SHOW-GROUP-PARTS'; #mouse
 	ASSIGN A+M		'run toggle 47';
 	ASSIGN C+M 		MOVE; #mouse thumb+forefinger=C+M
-#	ASSIGN CA+M 	'MITER 0'; #mouse thumb+forefinger=C+M
-	ASSIGN CA+M 	'SET WIRE_BEND 3; SPLIT'; #mouse thumb+forefinger=C+M
+	ASSIGN CSA+M 	'MITER -0'; #mouse thumb+forefinger=C+M
+	ASSIGN CA+M 	'SET WIRE_BEND 3; SPLIT'; #mouse Alt-thumb+forefinger=C+M
 	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
-	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
-	ASSIGN C+L 		'SET WIRE_BEND 1; MITER 0; ratsnest; ROUTE'; #mouse
-	ASSIGN CA+L 	'LINE; CHANGE LAYER 21; LINE'; #mouse
+#	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
+	ASSIGN C+L 		'SET WIRE_BEND 1; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round.
+	ASSIGN CA+L 	'LINE'; #mouse, (LINE; CHANGE LAYER 21;)
 #	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse Follow-me settings are not great.
 	ASSIGN C+T 		TEXT;
-	ASSIGN C+T 		PASTE;
+#	ASSIGN C+T 		PASTE;
 	ASSIGN C+X 		CHANGE;
 	ASSIGN C+Y 		REDO;
 	ASSIGN C+Z 		UNDO;
@@ -62,13 +67,16 @@ BRD:
 	ASSIGN SC+D 	DRC;
 	ASSIGN SC+N 	NAME;
 	ASSIGN SC+P 	POLYGON;
-	ASSIGN C+R 		RIPUP; #mouse
-	ASSIGN CA+R		DELETE; #mouse
+	ASSIGN CA+R 	RIPUP; #mouse Swapped with delete. 
+	ASSIGN C+R		DELETE; #mouse Better than ripup with Cmd.Delete.WireJointsWithoutCtrl =1
 	ASSIGN CSA+R 	SLICE; #mouse
 	ASSIGN SC+S 	SMASH;
 	ASSIGN SC+V 	VALUE;
 	ASSIGN C+F 		'RUN find.ulp';
 	ASSIGN ALT+BS 	'edit .sch';
+	
+	ASSIGN A+W		'RUN trace-layer +';
+	ASSIGN A+S		'RUN trace-layer -';
 	
 	# --------------ROUTE SHORTCUTS
 	ASSIGN C+1		'ROUTE 0.15mm';
@@ -81,8 +89,8 @@ BRD:
 	ASSIGN C+8		'ROUTE 1.00mm';
 	
 	# ---------DIAGNAL GRID OVERLAY
-	ASSIGN A+1		'RUN TOGGLE 252; #1.0MM Diagnal Grid
-	ASSIGN A+2		'RUN TOGGLE 253'; # 0.1MM Diagnal Grid
+	ASSIGN A+1		'GRID OFF; RUN TOGGLE 252; #1.0MM Diagnal Grid
+	ASSIGN A+2		'GRID OFF; RUN TOGGLE 253'; # 0.1MM Diagnal Grid
 	ASSIGN A+3		'ROUTE 0.25mm';
 	ASSIGN A+4		'ROUTE 0.30mm';
 	ASSIGN A+5		'ROUTE 0.40mm';
@@ -211,8 +219,6 @@ LBR:
 	ASSIGN C+I 		INFO;
 	ASSIGN CA+I 	SHOW;
 	ASSIGN C+M 		MOVE;
-	ASSIGN CA+M 	'RUN MOVEBY';
-	ASSIGN CSA+M 	'RUN GRP-ROTATE 45'; #mouse
 	ASSIGN C+N 		NAME;
 	ASSIGN C+T 		TEXT;
 	ASSIGN C+V 		Paste;
@@ -231,9 +237,17 @@ LBR:
 
 PAC:
 
+	ASSIGN CSA+M 	'MITER -0'; #mouse thumb+forefinger=C+M
+	ASSIGN CA+M 	'SET WIRE_BEND 3; SPLIT'; #mouse Alt-thumb+forefinger=C+M
+	ASSIGN CS+M 	'RUN MOVEBY';
+	ASSIGN CSA+M 	'RUN GRP-ROTATE 45'; #mouse
 
 	ASSIGN C+R 		DELETE;
 	ASSIGN CA+R 	SLICE;
+	
+	
+	ASSIGN A+W		'RUN trace-layer +';
+	ASSIGN A+S		'RUN trace-layer -';
 
 	#ASSIGN F2 		'run toggle 1 23';
 	ASSIGN A+F2 	'display all';

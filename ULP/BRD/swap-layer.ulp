@@ -1,0 +1,340 @@
+#usage "<b>Change all objects from one layer to an other</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+string Help = "\nObjects in copper layers can be exchanged for\n" +
+              "other copper layers, but not for non-copper layers.\n" +
+              "Objects in non-copper layers can be exchanged for\n" +
+              "other non-copper layers, but not for copper layers.";
+
+string Version = "4.4"; // 2007.03.16  change also Layer 20
+
+int    isLayer      = 1, toLayer = 16 ;
+int    swap         = 0;
+string usedLayer[]  = { "NONE" };
+int    usedLayerN[] = { 0 };
+
+string Font[]       = { "VECTOR", "PROPORTIONAL", "FIXED" } ;
+
+string Pour[]       = { "SOLID", "HATCH" };
+string Orphans[]    = { "OFF", "ON" };
+string Thermals[]   = { "OFF", "ON" };
+
+enum   { type_wire, type_polygon };
+
+string c, cmdheader, cmdripup, cmdwire;
+
+// check problem by crossing layer
+int checkLayer(int is1, int to1, int swap) {
+  if (is1 == 0 || to1 == 0) return 1;
+    // do not change in Via - Pad - Signal - layer
+  for (int l = 17; l < 20; l++) {
+    if (is1 == l || to1 == l ) return l;
+  }
+     // you can not swap other to copper layer and back
+  if ( (is1 > 19 && to1 < 20 || is1 < 20 && to1 > 19) ) return 4;
+  // do not use duble
+  if (is1 == to1 ) return 2;
+
+  // not use Originlayer
+  if (is1 == 23 || to1 == 23 ) return 23;
+  if (is1 == 24 || to1 == 24 ) return 23;
+  return 0;
+}
+
+void delete(real x, real y, int type) {
+  if (isLayer > 16) {
+    sprintf(c, "DELETE (S%.4f %.4f);\n ", x, y );
+    cmdripup += c;
+  }
+  else {
+    if (type == type_polygon) {
+      sprintf(c, "DELETE (S%.4f %.4f);\n", x, y );
+      cmdripup += c;
+    }
+    else {
+      sprintf(c, "RIPUP (%.4f %.4f);\n", x, y );
+      cmdripup += c;
+    }
+  }
+  return;
+}
+
+
+void ch_layer(int islay, int tolay, int display) {
+  real dx, dy;
+  board(B) {
+    B.signals(S) {
+      S.wires(W) {
+        if (W.layer == islay) {
+          delete(u2mm(W.x1 + W.x2) / 2, u2mm(W.y1 + W.y2) / 2, type_wire);
+          sprintf(c, "WIRE '%s' %.4f %+.1f (%.4f %.4f) (%.4f %.4f);\n",
+                      S.name, u2mm(W.width), W.curve, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+          cmdwire += c;
+        }
+      }
+      S.polygons(P) {
+        if (P.layer == islay) {
+          if(islay < 17) {
+            sprintf(c, "CHANGE RANK %d;\n", P.rank);
+            cmdwire += c;
+            sprintf(c, "CHANGE ORPHANS %s;\n", Orphans[P.orphans]);
+            cmdwire += c;
+            sprintf(c, "CHANGE ISOLATE %.4f;\n", u2mm(P.isolate));
+            cmdwire += c;
+            sprintf(c, "CHANGE SPACING %.4f;\n", u2mm(P.spacing));
+            cmdwire += c;
+            sprintf(c, "CHANGE THERMAL %s;\n", Thermals[P.thermals]);
+            cmdwire += c;
+            sprintf(c, "CHANGE POUR %s;\n", Pour[P.pour]);
+            cmdwire += c;
+          }
+          int first = 1;
+          P.wires(W) {
+            if (first) {
+              dx = u2mm(W.x1);
+              dy = u2mm(W.y1);
+              delete(dx, dy, type_polygon);
+              sprintf(c, "POLYGON '%s' %.4f %+.1f (%.4f %.4f) (%.4f %.4f)\n",
+                          S.name, u2mm(W.width), W.curve, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+              cmdwire += c;
+              first = 0;
+            }
+            else {
+              sprintf(c, " %+.1f (%.4f %.4f)\n", W.curve, u2mm(W.x2), u2mm(W.y2));
+              cmdwire += c;
+            }
+          }
+          sprintf(c, ";\n");  // close the polygon
+          cmdwire += c;
+        }
+      }
+    }
+    B.wires(W) {
+      if (W.layer == islay) {
+        delete(u2mm(W.x1 + W.x2) / 2, u2mm(W.y1 + W.y2) / 2, type_wire);
+        sprintf(c, "WIRE %.1f %+.1f (%.4f %.4f) (%.4f %.4f);\n",
+                    u2mm(W.width), W.curve,  u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+        cmdwire += c;
+      }
+    }
+    B.polygons(P) {
+      if (P.layer == islay) {
+        if(islay < 17) {
+          sprintf(c, "CHANGE RANK %d;\n", P.rank);
+          cmdwire += c;
+          sprintf(c, "CHANGE ORPHANS %s;\n", Orphans[P.orphans]);
+          cmdwire += c;
+          sprintf(c, "CHANGE ISOLATE %.4f;\n", u2mm(P.isolate));
+          cmdwire += c;
+          sprintf(c, "CHANGE SPACING %.4f;\n", u2mm(P.spacing));
+          cmdwire += c;
+          sprintf(c, "CHANGE THERMAL %s;\n", Thermals[P.thermals]);
+          cmdwire += c;
+          sprintf(c, "CHANGE POUR %s;\n", Pour[P.pour]);
+          cmdwire += c;
+        }
+        int first = 1;
+        P.wires(W) {
+          if (first) {
+            dx = u2mm(W.x1);
+            dy = u2mm(W.y1);
+            delete(dx, dy, type_polygon);
+            sprintf(c, "POLYGON %.4f %+.1f (%.4f %.4f) (%.4f %.4f)\n", u2mm(P.width),
+                        W.curve, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2));
+            cmdwire += c;
+            first = 0;
+          }
+          else {
+            sprintf(c, " %+.1f (%.4f %.4f)\n", W.curve, u2mm(W.x2), u2mm(W.y2));
+            cmdwire += c;
+          }
+        }
+        sprintf(c, ";\n");  // close the polygon
+        cmdwire += c;
+      }
+    }
+    B.circles(C) {
+      if (C.layer == islay) {
+        dx = u2mm(C.x + C.radius);
+        dy = u2mm(C.y);
+        delete(dx, dy, type_polygon);
+        sprintf(c, "CIRCLE %.4f (%.4f %.4f) (%.4f %.4f);\n",
+                    u2mm(C.width), u2mm(C.x), u2mm(C.y), u2mm(C.x + C.radius), u2mm(C.y));
+        cmdwire += c;
+      }
+    }
+    B.rectangles(R) {
+      if (R.layer == islay) {
+        dx = u2mm(R.x1);
+        dy = u2mm(R.y1);
+        delete(dx, dy, type_polygon);
+        sprintf(c, "RECT  R%.1f (%.4f %.4f) (%.4f) (%.4f);\n",
+                    R.angle, u2mm(R.x1), u2mm(R.y1), u2mm(R.x2), u2mm(R.y2) );
+        cmdwire += c;
+      }
+    }
+    B.texts(T) {
+      if (T.layer == islay) {
+        dx = u2mm(T.x);
+        dy = u2mm(T.y);
+        delete(dx, dy, type_polygon);
+        string Mirror = "";
+        string Spin = "";
+        if (T.mirror) Mirror = "M";
+        if (T.spin) Spin = "S";
+        sprintf(c, "CH SIZE %.4f ;CH RATIO %d;CH FONT %s;\nTEXT '%s' %s%sR%.1f (%.4f %.4f);\n",
+                    u2mm(T.size), T.ratio, Font[T.font], T.value, Spin, Mirror, T.angle, u2mm(T.x), u2mm(T.y));
+        cmdwire += c;
+      }
+    }
+  }
+  return;
+}
+
+void menue(void) {
+  int err = 0;
+  int isLay = 0;
+  int toLay = 0;
+  int swapLay = 0;
+
+  dlgDialog("Change/Swap Layer to Layer") {
+    dlgGroup("Change layer") {
+      dlgHBoxLayout {
+        dlgLabel("&From A");
+        dlgComboBox(usedLayer, isLay);
+      }
+      dlgHBoxLayout {
+        dlgLabel("&to B");
+        dlgComboBox(usedLayer, toLay);
+      }
+      dlgLabel("\nOnly displayed layers is listed to select!");
+    }
+    dlgCheckBox("Select if you want to SWAP layer A <-> B", swap);
+    dlgLabel(Help);
+    dlgLabel("Version "+Version);
+    dlgHBoxLayout {
+      dlgPushButton("+OK") {
+        isLayer = usedLayerN[isLay];
+        toLayer = usedLayerN[toLay];
+        int error = checkLayer(isLayer, toLayer, swap);
+        if (error) {
+          string h;
+          switch (error) {
+            case  1 : h = "Error: Select layer";
+                      break;
+
+            case  2 : h = "Error: Select different layer";
+                      break;
+
+            case  3 : h = "Error: Select layer";
+                      break;
+
+            case  4 : h = "Error: Do not mix copper layers with drawing layers";
+                      break;
+
+            case  5 : h = "Error: Missing Layer";
+                      break;
+
+            case  6 : h = "Error: Same 'From' layer";
+                      break;
+
+            case  7 : h = "Error: Same 'To' layer";
+                      break;
+
+            case 17 : h = "Error: Do not use PAD layer";
+                      break;
+
+            case 18 : h = "Error: Do not use VIA layer";
+                      break;
+
+            case 19 : h = "Error: Do not use Signal layer";
+                      break;
+
+            case 23 : h = "Error: Do not use Origin layer";
+                      break;
+
+            default : sprintf(h, "Error select layer. #%d", error);
+          }
+          dlgMessageBox(h, "OK");
+        }
+        else {
+          dlgAccept();
+          return;
+        }
+      }
+      dlgStretch(1);
+      dlgPushButton("-&Cancel") { dlgReject(); exit (0);}
+    }
+  };
+  return;
+}
+
+
+// main
+if (board) board(B) {
+  string displayLayer = ";\nDISPLAY NONE ";
+  int lay = 0;
+  B.layers(L) {
+    if (L.number != 17 && L.number != 18 && L.number != 19 && L.number != 23 && L.number != 24) { // select no Pad, Via, Unrouted, tOrigin, bOrign Layer
+      if (L.visible) {
+        string l;
+        lay++;
+        usedLayer[lay] = L.name;
+        usedLayerN[lay] = L.number;
+        sprintf( l, " %d", L.number);
+        displayLayer += l;
+      }
+    }
+  }
+  displayLayer += ";\n";
+  menue();
+  sprintf(c, "GRID mm FINEST;\nSET WIRE_BEND 2;\n");
+  cmdheader += c;
+  sprintf(c, "SET UNDO_LOG OFF;\n");
+  cmdheader += c;
+  if (swap) {
+    sprintf(c, "DISPLAY NONE %d;\n", isLayer);
+    cmdripup += c;
+    cmdwire += c;
+    sprintf(c, "CHANGE LAYER %d;\n", toLayer);
+    cmdwire += c;
+    ch_layer(isLayer, toLayer, isLayer);
+
+    sprintf(c, "DISPLAY NONE %d;\n", toLayer);
+    cmdripup += c;
+    cmdwire += c;
+    sprintf(c, "CHANGE LAYER %d;\n", isLayer);
+    cmdwire += c;
+    ch_layer(toLayer, isLayer, toLayer);
+  }
+  else {
+    sprintf(c, "DISPLAY NONE %d;\n", isLayer);
+    cmdripup += c;
+    cmdwire += c;
+    sprintf(c, "CHANGE LAYER %d;\n", toLayer);
+    cmdwire += c;
+    ch_layer(isLayer, toLayer, isLayer);
+  }
+  sprintf(c, ";\nGRID LAST;\nSET UNDO_LOG ON;\n");
+  displayLayer += c;
+  if (argv[1] == "TEST") {
+    dlgDialog("test") {
+      dlgTextEdit(cmdheader);
+        dlgTextEdit(cmdripup);
+      dlgTextEdit(cmdwire);
+      dlgTextEdit(displayLayer);
+      dlgHBoxLayout {
+        dlgPushButton("OK") dlgAccept();
+        dlgPushButton("-Cancel") { dlgAccept(); exit(0); }
+      }
+    };
+  }
+  exit (cmdheader + cmdripup + cmdwire + displayLayer);
+}
+else {
+  dlgMessageBox("Run this ULP from a Board", "OK");
+  exit (0);
+}

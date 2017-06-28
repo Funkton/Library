@@ -1,0 +1,136 @@
+//EAGLE ULP "scroll-layer.ulp" v1.1
+//(C) 2013-08-09 Cory Henderson, Simple Media Networks
+// cory@simplemedianetworks.com
+
+// CHANGES:
+// 08/09/2013: v1.1 Fixed bug where layers wouldn't scroll correctly
+//				if a layer was visible but not used, a.k.a. nothing
+//				had been placed on the layer yet
+// 07/30/2013: v1.0 Initial ULP
+
+#usage "en: <b>Scroll Layer</b><p>\n"
+			"This program allows one to scroll through copper layers, "
+			"similar to <i>editprev-sheet</i> or <i>editnext-sheet</i>, "
+			"but for board view. Edit ULP to change showed layers.<p>"
+			"Usage:<br>"
+			"<tt>RUN scroll-layer [-UD]<p>"
+			"Options:<br>"
+			"<table>"
+			"<tr><td><i>-U</i></td><td>Up Mode: Will scroll up in layer numbers. For "
+			"example, if you are currently in layer 1 (top), and working in a 4-layer board, "
+			"the next layer will be layer 2, then up to layer 15, 16, then all."
+			"</td></tr>"
+			"<tr><td><i>-D</i></td><td>Down Mode: Opposite direction of -U"
+			"</td></tr>"
+			"</table><p><hr>"
+			"<b>Notes:</b><ul>"
+			"<li>Blank layers will be skipped, even if active"
+			"<li>If no flag is given, ULP assumes up mode"
+			"<li>If multiple flags are given, the last one will be used</ul><p>"
+			"<author>Author:<br>Cory Henderson, Simple Media Networks<br>"
+			"cory@simplemedianetworks.com</author>"
+
+//Declarations and functions
+int argi = 1; //Current index of argv[]
+int updown = 0; //0 for up (as in layer #), 1 for down
+int layers_visible[]; //List of layers that can be seen
+int layers_used[];  // List of layers that are used. ex. for a 2 layer board, only 1 & 16
+					// For a 4 layer board, 1, 2, 15, & 16
+string command[];
+
+// * * * * * * * * * * * * * * * * * * * *
+// * * * * * * * * * * * * * * * * * * * *
+// EDIT THESE TO CHANGE DISPLAYED LAYERS:
+command[0]="DISPLAY None 1 Unrouted tOrigins tPlace tNames Dimension Pads Vias Holes Milling Document tDocu;"; //Output command
+command[1]="DISPLAY None 2 Unrouted Dimension Via Pad;"; //Output command
+command[2]="DISPLAY None 3 Unrouted Dimension Via Pad;"; //Output command
+command[3]="DISPLAY None 4 Unrouted Dimension Via Pad;"; //Output command
+command[4]="DISPLAY None 5 Unrouted Dimension Via Pad;"; //Output command
+command[5]="DISPLAY None 6 Unrouted Dimension Via Pad;"; //Output command
+command[6]="DISPLAY None 7 Unrouted Dimension Via Pad;"; //Output command
+command[7]="DISPLAY None 8 Unrouted Dimension Via Pad;"; //Output command
+command[8]="DISPLAY None 9 Unrouted Dimension Via Pad;"; //Output command
+command[9]="DISPLAY None 10 Unrouted Dimension Via Pad;"; //Output command
+command[10]="DISPLAY None 11 Unrouted Dimension Via Pad;"; //Output command
+command[11]="DISPLAY None 12 Unrouted Dimension Via Pad;"; //Output command
+command[12]="DISPLAY None 13 Unrouted Dimension Via Pad;"; //Output command
+command[13]="DISPLAY None 14 Unrouted Dimension Via Pad;"; //Output command
+command[14]="DISPLAY None 15 Unrouted Dimension Via Pad;"; //Output command
+command[15]="DISPLAY None 16 Unrouted bOrigins bPlace bNames Dimension Pads Vias Holes Milling Document bDocu;"; //Output command
+command[16]="DISPLAY None 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 Unrouted tOrigins bOrigins tPlace bPlace tNames bNames Dimension Pads Vias Holes Milling Document tDocu bDocu;"; //Output command
+// * * * * * * * * * * * * * * * * * * * *
+// * * * * * * * * * * * * * * * * * * * *
+
+void inspect(UL_LAYER La) {
+	if ((La.number >= 1) && (La.number <=16)) {
+		int i=La.number;
+		layers_visible[i-1]=(La.visible && La.used);
+		layers_used[i-1]=La.used;
+	}
+}
+
+{ //Main Function
+	if (argc != 0) {
+		if (argv[1][0] == '-') { //Check for flags
+			for (int a=1; a<=strlen(argv[1]); a++) {
+				switch (argv[1][a]) {
+				case 'U':
+					updown = 0; //Up
+					break;
+				case 'D':
+					updown = 1; //Down
+					break;
+				}
+			}
+			argi++;
+		}
+	}
+	if (board) {
+		board(B)
+			B.layers(La)
+				inspect(La);
+	}
+	
+	// Count how many layers are used and how many are visible
+	int count_vis=0;
+	int count_used=0;
+	for (int i=0;i<16;i++){
+		if (layers_visible[i]) count_vis++;
+		if (layers_used[i]) count_used++;
+	}
+	
+	// if count_vis == count_used, then all layers are currently being shown
+	// if count vis != count_used, then figure out the first visible layer, and use that
+	if (count_vis != count_used){
+		for (int i=0; i<16;i++){
+			if (layers_visible[i]){
+				if (!updown){  // if down
+					
+					// * * * * * * * * * * * * * * * * * * * *
+					// * * * * * * * * * * * * * * * * * * * *
+					// If all layers command not desired, change following line to:
+					// if (i==15) exit(command[0]);
+					if (i==15) exit(command[16]);
+					for (int j=i+1;j<=16;j++){
+						if (layers_used[j]) exit(command[j]);
+					}
+				}
+				else {	// if up
+				
+					// * * * * * * * * * * * * * * * * * * * *
+					// * * * * * * * * * * * * * * * * * * * *
+					// If all layers command not desired, change following line to:
+					// if (i==0) exit(command[15]);
+					if (i==0) exit(command[16]);
+					for (int j=i-1;j>=0;j--){
+						if (layers_used[j]) exit(command[j]);
+					}
+				}
+			}
+		}
+	}
+	
+	// This is the case where count_vis == count_used:
+	if (!updown) exit(command[0]);
+	else exit(command[15]);
+}

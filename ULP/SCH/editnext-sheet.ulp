@@ -16,7 +16,7 @@ if (schematic) {
         }
      if (s < scnt) {
         s++;
-        sprintf(cmd, "EDIT .s%d;\n", s);
+        sprintf(cmd, "EDIT .s%d; window fit;\n", s);
         }
      }
   exit(cmd);

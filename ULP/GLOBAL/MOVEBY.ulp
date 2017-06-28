@@ -34,9 +34,11 @@ Version:
 	- Basic operation. Enter values to move by.
 
 To-Do Feature List:
+[ ] -	Undo argument (inverts previously used values, --u argument)
+[ ] - 	Add apply button to make move and recall ulp.
 
 
-[ ] - Add command line argument handling. Only open dialog if no arguments present. (RUN MOVEBY x y)
+[ ] - Add command line argument handling. Only open dialog if no arguments present. (RUN MOVEBY x y)(see CFGTOGGLE)
 [ ] - Rotate option
 [ ] - Repeat mode: Repeats the last move amounts without the dialog popping up.
 [ ] - Get and display units, use list box to override.
@@ -98,10 +100,10 @@ int Result = dlgDialog("Move By Displacement") {
   dlgHBoxLayout {
    // dlgStretch(1);
     dlgPushButton("+OK")    dlgAccept();
-    dlgPushButton("Cancel") dlgReject();
+    dlgPushButton("-Cancel") dlgReject(); // Without the -, escape key acted like ok
     }
-	};
-
+};
+if (Result == 0) exit (0);
 if (Result) {
 
 // Save last used values to eaglerc.usr
@@ -113,5 +115,6 @@ sprintf(cmd, "MOVE (>0 0) (%s %s);\n", xVal, yVal);
 
 exit(cmd);
 }
+// else {exit(0)}
 }
 

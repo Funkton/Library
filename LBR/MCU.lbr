@@ -6076,7 +6076,7 @@ Supplier Device Package
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="256KB"/>
 <attribute name="MFPN" value="STM32L475RCT3"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="PARTNO" value="01-100590-00"/>
 <attribute name="STATUS" value="Active"/>
 <attribute name="TEMP" value="-40°C ~ 125°C (TA)"/>
 </technology>

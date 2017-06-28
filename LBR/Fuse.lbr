@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -568,6 +568,7 @@ EIA CC1206 (3216 Metric)</description>
 <attribute name="RATE" value="" constant="no"/>
 <attribute name="SIZE" value="1206"/>
 <attribute name="TYPE" value="" constant="no"/>
+<attribute name="VALUE" value="" constant="no"/>
 <attribute name="VOLT" value="" constant="no"/>
 </technology>
 <technology name="6V-500MA-">
@@ -576,6 +577,7 @@ EIA CC1206 (3216 Metric)</description>
 <attribute name="RATE" value="500mA"/>
 <attribute name="SIZE" value="1206"/>
 <attribute name="TYPE" value="PTC"/>
+<attribute name="VALUE" value="6V 500mA" constant="no"/>
 <attribute name="VOLT" value="6V"/>
 </technology>
 </technologies>

@@ -47,6 +47,18 @@ SCRIPT MENU.scr
 	
 	set Directories.IgnoreNonExisting 1;
 	
+	# Let's try to get Eagle to obey dimension settings
+	set Option.DimensionExtExt 1;
+	set Option.DimensionExtOfs 1;
+	set Option.DimensionExtWidth 0.1;
+	set Option.DimensionLineWidth 0.2;
+	set Option.DimensionPrecAngular 1;
+	set Option.DimensionPrecLinear 2;
+	set Option.DimensionShowUnit 1;
+	set Option.DimensionTextOffset 1;
+	set Option.DimensionTextRatio 12;
+	set Option.DimensionTextSize 1.5;
+	set Option.DimensionUnit 2;	
 	
 
 #	set Option.SignalNamesOnPads 0; 
@@ -64,36 +76,64 @@ SCRIPT MENU.scr
 #	Option.DimensionArrowLength #same here, no effect
 #	Option.DisplayMode #No idea what this does. Default=1
 #	Option.PolygonRatsnest #Is this the same as POLYGON_RATSNEST?
+#	Option.DimensionTextOffset #
 
 #----------------------------------#
 #---------- BOARD EDITOR ----------#
 #----------------------------------#
 
 BRD:
-# Context and menu set from Configure/MENU.scr
+		# Context and menu set from Configure/MENU.scr
+
+		#SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
+
+		#New 8.2.2 Layer Presets
+		# Every time eagle.scr runs it errors stating the maximum number of presets has been reached, even though no new presets are being defined.
+	#DISPLAY = 'Preset_Top' None 1 17 18 19 20 21 23 25 39 41 45 51;
+	#DISPLAY = 'Preset_Bottom' None 16 17 18 19 20 22 24 26 40 42 45 52;
+	#DISPLAY = 'Preset_Standard' None 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 39 40 41 42 44 45 51 52;
+	
+	DISPLAY = 'Preset_Top';
+	DISPLAY = 'Preset_Bottom';
+	DISPLAY = 'Preset_Standard';
+	
+	
+	DISPLAY = '_All' _copper _silk 19 20 23 24; #All the useful layout layers, this will replace the standard all on a shortcut and will not turn on documentation
+	
+	DISPLAY = '_copper' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18; #All copper layers, not sure if this is useful or not?
+	DISPLAY = '_silk' 21 22 25 26 ?? 121 122 125 126 221 222 225 226; #every layer that has silkscreen
+	DISPLAY = '_toptoggle' -22 -24 -26 -28 -30 -32 -40 -42 -52 ?? -122 -126; #Turns off all bottom layers except copper
+	DISPLAY = '_bottoggle' -21 -23 -25 -27 -29 -31 -39 -41 -51 ?? -121 -125; #Turns off all top layers except copper
+	DISPLAY = '_doc' 46 47 48 51 52 ?? 50 100 102 120; # Document layers
 
 	SET WIRE_BEND @ 0 1 2; #Only allows 90, 45, and free. Use ctrl+right to switch directions
-	
-	# Setup Default Grid, Drill and Width Values
+		
+		# Setup Default Grid, Drill and Width Values
 
-		GRID ON;
-		GRID DOTS;
-		Grid MM 1;
-		Grid ALT MM 0.5;
+	GRID ON;
+	GRID DOTS;
+	Grid MM 1;
+	Grid ALT MM 0.5;
 
-		Change Shape Round;
-		SET DRILL_MENU 0.008in 0.010in 0.012in 0.014in 0.016in 0.020in 0.024in 0.028in 0.032in 0.036in 0.040in 0.056in 0.066in 0.076in 0.086in 0.125in;
+	Change Shape Round;
+	SET DRILL_MENU 0.008in 0.010in 0.012in 0.014in 0.016in 0.020in 0.024in 0.028in 0.032in 0.036in 0.040in 0.056in 0.066in 0.076in 0.086in 0.125in;
+
+
+	SET WIDTH_MENU 0.05mm 0.1mm 0.20mm 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 0.60mm 0.80mm 1.0mm 2.5mm;
 
 		
-		SET WIDTH_MENU 0.05mm 0.1mm 0.20mm 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 0.60mm 0.80mm 1.0mm 2.5mm;
-
-	
 	CHANGE Drill 12mil;
-	
+
 	CHANGE Width 0.2mm;
 	SET vector_font on;
-	Change Font Vector;
-	Change Ratio 18;
+	Change Font Vector; #This doesn't actually get set on the first running of eagle.scr, must re-run to take effect
+	#Change Ratio 18;
+	
+	# Set dimension tool settings.
+	CHANGE DUNIT MM ON 2;
+	CHANGE DLINE 0.05mm 0 2 1mm;
+	CHANGE SIZE 1.5;
+	CHANGE RATIO 12;
 
 			
 		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.
@@ -110,17 +150,18 @@ BRD:
 #----------------------------------#
 
 SCH:
-# Context and menu set from Configure/MENU.scr
+		# Context and menu set from Configure/MENU.scr
 	GRID ON;
 	GRID DOTS;
 	Grid IN .1;
 	Grid ALT IN .025;
 
-	Change Font Vector;
+	Change Font Vector; #This doesn't actually get set on the first running of eagle.scr, must re-run to take effect
 	SET vector_font on;
 	Change Size 0.050;
 	Change Ratio 12;
-	
+	CHANGE XREF ON;
+
 	SET WIRE_BEND @ 0 4; #Only allow 90 angles
 	
 
@@ -137,22 +178,42 @@ SCH:
 #----------------------------------#
 
 LBR:
-# Context and menu set from Configure/MENU.scr
+		# Context and menu set from Configure/MENU.scr
 
 PAC:
+		#SCRIPT LAYERS.scr #Set layers from master
 	GRID ON;
 	Grid MM 1;
 	Grid ALT MM 0.5;
-	Change Font Vector;
-	
-		Change Shape Round;
-		SET DRILL_MENU 0.008in 0.010in 0.012in 0.014in 0.016in 0.020in 0.024in 0.028in 0.032in 0.036in 0.040in 0.056in 0.066in 0.076in 0.086in 0.125in;
+	Change Font Vector; #This doesn't actually get set on the first running of eagle.scr, must re-run to take effect
 
-		SET WIDTH_MENU 0.05mm 0.1mm 0.20mm 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 0.60mm 0.80mm 1.0mm 2.5mm;
-	
+	Change Shape Round;
+	SET DRILL_MENU 0.008in 0.010in 0.012in 0.014in 0.016in 0.020in 0.024in 0.028in 0.032in 0.036in 0.040in 0.056in 0.066in 0.076in 0.086in 0.125in;
+
+	SET WIDTH_MENU 0.05mm 0.1mm 0.20mm 0.25mm 0.30mm 0.35mm 0.40mm 0.45mm 0.50mm 0.60mm 0.80mm 1.0mm 2.5mm;
+
 	Change Width 0.2mm;
-	
+
 	SET WIRE_BEND @ 0 1 2; #Only allows 90, 45, and free. Use ctrl+right to switch directions
+	
+		# Let's try to get Eagle to obey dimension settings
+	set Option.DimensionExtExt 1;
+	set Option.DimensionExtOfs 1;
+	set Option.DimensionExtWidth 0.1;
+	set Option.DimensionLineWidth 0.2;
+	set Option.DimensionPrecAngular 1;
+	set Option.DimensionPrecLinear 2;
+	set Option.DimensionShowUnit 1;
+	set Option.DimensionTextOffset 1;
+	set Option.DimensionTextRatio 12;
+	set Option.DimensionTextSize 1.5;
+	set Option.DimensionUnit 2;	
+	
+	# Set dimension tool settings.
+	CHANGE DUNIT MM ON 2;
+	CHANGE DLINE 0.05mm 0 2 1mm;
+	CHANGE SIZE 1.5;
+	CHANGE RATIO 12;
 
 SYM:
 	Grid IN .1;
@@ -160,8 +221,8 @@ SYM:
 	Change Font Vector;
 	Change Width 0.016;
 	SET WIRE_BEND @ 0 4; #Only allow 90 angles
-	
-	# Context and menu moved to Configure/MENU.scr
+		
+		# Context and menu moved to Configure/MENU.scr
 		
 
 		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.

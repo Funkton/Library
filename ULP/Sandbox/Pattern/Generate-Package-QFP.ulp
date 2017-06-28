@@ -1,0 +1,261 @@
+#usage "<b>Generate Package QFP (Quad Flat Pack)</b><p>\n"
+"(Copyright 2006) by Weartronics, T. Mühlke, C. Mädiger."
+
+
+string package_name = "SQFP50P1720X2320X290-128N";
+
+real pitch = 0.5;
+real pad_x = 0.3;
+real pad_y = 1.85;
+real pad_space_a = 16.3;
+real pad_space_b = 22.3;
+real keepout_x = 18.7;
+real keepout_y = 24.7;
+real silkscreen_x = 13.6;
+real silkscreen_y = 19.6;
+
+int pins_a = 26;
+int pins_b = 38;
+real component_l1 = 17.2;
+real component_l2 = 23.2;
+real component_t1 = 0.88;
+real component_w1 = 0.22;
+real component_a = 14.0;
+real component_b = 20.0;
+real component_h = 2.9;
+int fiducials = 0;
+
+string Picture = "<img src=qfp.bmp>";
+
+int dlgresult;
+
+dlgresult = dlgDialog("Insert QFP Package Data") 
+	{
+	dlgStretch(0);
+	dlgHBoxLayout
+	dlgLabel(Picture); 
+	dlgGroup("Eagle Package Data")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Name");	
+			dlgCell(1, 1) dlgStringEdit(package_name);
+			dlgCell(2, 0) dlgSpacing(100);
+			}
+		}
+	dlgGroup("IPC-7351 Land Pattern and Statistics")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Pitch E");
+			dlgCell(1, 1) dlgRealEdit(pitch,0.0,99.0);
+			dlgCell(2, 0) dlgLabel("Pad X1");
+			dlgCell(2, 1) dlgRealEdit(pad_x,0.0,99.0);
+			dlgCell(3, 0) dlgLabel("Pad Y1");
+			dlgCell(3, 1) dlgRealEdit(pad_y,0.0,99.0);	
+			dlgCell(4, 0) dlgLabel("Pad Space C1");
+			dlgCell(4, 1) dlgRealEdit(pad_space_a,0.0,99.0);
+			dlgCell(5, 0) dlgLabel("Pad Space C2");
+			dlgCell(5, 1) dlgRealEdit(pad_space_b,0.0,99.0);	
+			dlgCell(6, 0) dlgLabel("Curtyard V1");
+			dlgCell(6, 1) dlgRealEdit(keepout_x,0.0,99.0);	
+			dlgCell(7, 0) dlgLabel("Curtyard V2");
+			dlgCell(7, 1) dlgRealEdit(keepout_y,0.0,99.0);	
+			dlgCell(8, 0) dlgLabel("Silkscreen R1");
+			dlgCell(8, 1) dlgRealEdit(silkscreen_x,0.0,99.0);	
+			dlgCell(9, 0) dlgLabel("Silkscreen R2");
+			dlgCell(9, 1) dlgRealEdit(silkscreen_y,0.0,99.0);	
+			dlgCell(10, 0) dlgSpacing(100);
+			}
+		}
+	dlgGroup("IPC-7351 Component")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Pins A");	
+			dlgCell(1, 1) dlgIntEdit(pins_a,1,999);
+			dlgCell(2, 0) dlgLabel("Pins B");	
+			dlgCell(2, 1) dlgIntEdit(pins_b,1,999);
+			dlgCell(3, 0) dlgLabel("Component L1");
+			dlgCell(3, 1) dlgRealEdit(component_l1);	
+			dlgCell(4, 0) dlgLabel("Component L2");
+			dlgCell(4, 1) dlgRealEdit(component_l2);	
+			dlgCell(5, 0) dlgLabel("Component T1");
+			dlgCell(5, 1) dlgRealEdit(component_t1);	
+			dlgCell(6, 0) dlgLabel("Component W1");
+			dlgCell(6, 1) dlgRealEdit(component_w1);	
+			dlgCell(7, 0) dlgLabel("Component A");
+			dlgCell(7, 1) dlgRealEdit(component_a);	
+			dlgCell(8, 0) dlgLabel("Component B");
+			dlgCell(8, 1) dlgRealEdit(component_b);	
+			dlgCell(9, 0) dlgLabel("Component H");
+			dlgCell(9, 1) dlgRealEdit(component_h);	
+			dlgCell(10, 0) dlgSpacing(100);
+			}
+		}
+	dlgGroup("IPC-7351 Design")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Fiducials (0 or 1)");
+			dlgCell(1, 1) dlgIntEdit(fiducials,0,1);
+			dlgCell(2, 0) dlgSpacing(100);
+			}
+		}
+
+	dlgPushButton("-Cancel") dlgReject();	
+	dlgPushButton("+Ok") dlgAccept();
+	};
+
+if(dlgresult != 1)
+	exit(EXIT_FAILURE);
+
+if(package != 1)
+	exit(EXIT_FAILURE);
+
+
+real _LINE_WIDTH = 0.127;
+real _CLEARANCE = 0.254;
+real _TEXT_SIZE = 0.8128;
+int _TEXT_RATIO = 10;
+
+int ipin;
+
+real xcoord = -(pins_a/2)*pitch;
+
+if(!(pins_a%2))
+	xcoord += pitch/2;
+
+real ycoord = (pins_b/2)*pitch;
+
+if(!(pins_b%2))
+	ycoord -= pitch/2;
+
+string result = "";
+string buffer = "";
+
+void concat()
+{
+	string strings[] = {result, buffer};
+	result = strjoin(strings, ' ');
+}
+
+sprintf(buffer, "GRID mm;"); concat();
+sprintf(buffer, "SET WIRE_BEND 2;"); concat();
+sprintf(buffer, "CHANGE FONT vector;"); concat();
+sprintf(buffer, "CHANGE SIZE %f;", _TEXT_SIZE); concat();
+sprintf(buffer, "CHANGE RATIO %d;", _TEXT_RATIO); concat();
+
+sprintf(buffer, "EDIT %s.pac;", package_name); concat();
+sprintf(buffer, "DESCRIPTION '<b>%s</b><p>\nIPC-7351 Standart';", strupr(package_name)); concat();
+
+sprintf(buffer, "LAYER Top;"); concat();
+
+ipin = 1;
+
+while(ipin <= pins_b)
+{
+	sprintf(buffer, "SMD %f %f -0 R90 '%d' (-%f %f);", pad_x, pad_y, ipin, pad_space_a/2, ycoord); concat();
+	ycoord -= pitch;
+	ipin++;
+}
+
+ycoord += pitch;
+
+while(ipin <= pins_b + pins_a)
+{
+	sprintf(buffer, "SMD %f %f -0 R0 '%d' (%f -%f);", pad_x, pad_y, ipin, xcoord, pad_space_b/2); concat();
+	xcoord += pitch;
+	ipin++;
+}
+
+xcoord -= pitch;
+
+while(ipin <= pins_b + pins_a + pins_b)
+{
+	sprintf(buffer, "SMD %f %f -0 R90 '%d' (%f %f);", pad_x, pad_y, ipin, pad_space_a/2, ycoord); concat();
+	ycoord += pitch;
+	ipin++;
+}
+
+ycoord -= pitch;
+
+while(ipin <= pins_b + pins_a + pins_b + pins_a)
+{
+	sprintf(buffer, "SMD %f %f -0 R0 '%d' (%f %f);", pad_x, pad_y, ipin, xcoord, pad_space_b/2); concat();
+	xcoord -= pitch;
+	ipin++;
+}
+
+xcoord += pitch;
+
+sprintf(buffer, "LAYER tKeepout;"); concat();
+sprintf(buffer, "WIRE 0 (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2); concat();
+
+sprintf(buffer, "LAYER tPlace;"); concat();
+sprintf(buffer, "WIRE %f (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", _LINE_WIDTH, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2); concat();
+sprintf(buffer, "CIRCLE 0 (-%f %f) (-%f %f);", pad_space_a/2 + pad_y/2 - 0.25, ycoord + pad_x/2 + _CLEARANCE + 0.25, pad_space_a/2 + pad_y/2 - 0.25, ycoord + pad_x/2 + _CLEARANCE); concat();
+sprintf(buffer, "CIRCLE 0 (-%f %f) (-%f %f);", silkscreen_x/2 - 1, silkscreen_y/2 - 1, silkscreen_x/2 - 1, silkscreen_y/2 - 0.5); concat();
+
+sprintf(buffer, "LAYER tDocu;"); concat();
+sprintf(buffer, "WIRE %f (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", _LINE_WIDTH, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2); concat();
+sprintf(buffer, "CIRCLE %f (-%f %f) (-%f %f);", _LINE_WIDTH, component_a/2 - 1, component_b/2 - 1, component_a/2 - 1, component_b/2 - 0.5); concat();
+
+ipin = 1;
+
+while(ipin <= pins_b)
+{
+	sprintf(buffer, "RECT (-%f %f) (-%f %f);", component_l1/2, ycoord - component_w1/2, component_a/2, ycoord + component_w1/2); concat();
+	ycoord -= pitch;
+	ipin++;
+}
+
+ycoord += pitch;
+
+while(ipin <= pins_b + pins_a)
+{
+	sprintf(buffer, "RECT (%f -%f) (%f -%f);", xcoord - component_w1/2, component_l2/2, xcoord + component_w1/2, component_b/2); concat();
+	xcoord += pitch;
+	ipin++;
+}
+
+xcoord -= pitch;
+
+while(ipin <= pins_b + pins_a + pins_b)
+{
+	sprintf(buffer, "RECT (%f %f) (%f %f);", component_l1/2, ycoord - component_w1/2, component_a/2, ycoord + component_w1/2); concat();
+	ycoord += pitch;
+	ipin++;
+}
+
+ycoord -= pitch;
+
+while(ipin <= pins_b + pins_a + pins_b + pins_a)
+{
+	sprintf(buffer, "RECT (%f %f) (%f %f);", xcoord - component_w1/2, component_l2/2, xcoord + component_w1/2, component_b/2); concat();
+	xcoord -= pitch;
+	ipin++;
+}
+
+xcoord += pitch;
+
+sprintf(buffer, "LAYER tNames;"); concat();
+sprintf(buffer, "TEXT '>NAME' (-%f %f);", silkscreen_x/2, pad_space_b/2 + pad_y/2 + _CLEARANCE); concat();
+
+sprintf(buffer, "LAYER tValues;"); concat();
+sprintf(buffer, "TEXT '>VALUE' (-%f -%f);", silkscreen_x/2, pad_space_b/2 + pad_y/2 + _CLEARANCE + _TEXT_SIZE); concat();
+
+if(fiducials)
+{
+	sprintf(buffer, "LAYER Top;"); concat();
+	sprintf(buffer, "CIRCLE 0 (-%f -%f) (-%f -%f);", pad_space_a/2, pad_space_b/2, pad_space_a/2, pad_space_b/2 + 0.5); concat();
+	sprintf(buffer, "CIRCLE 0 (%f %f) (%f %f);", pad_space_a/2, pad_space_b/2, pad_space_a/2, pad_space_b/2 + 0.5); concat();
+
+	sprintf(buffer, "LAYER tStop;"); concat();
+	sprintf(buffer, "CIRCLE 0 (-%f -%f) (-%f -%f);", pad_space_a/2, pad_space_b/2, pad_space_a/2, pad_space_b/2 + 1.5); concat();
+	sprintf(buffer, "CIRCLE 0 (%f %f) (%f %f);", pad_space_a/2, pad_space_b/2, pad_space_a/2, pad_space_b/2 + 1.5); concat();
+}
+
+sprintf(buffer, "WINDOW fit;"); concat();
+
+exit(result);

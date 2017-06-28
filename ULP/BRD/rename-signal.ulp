@@ -10,7 +10,8 @@ string Version = "Version 1.1"; // check if schematic editor window open
 
 string fileName;
 
-string suffix = argv[1];
+// string suffix = argv[1];
+string suffix = "_1"; // Let's hard code this in so it doesn't get messed up if run from the ULP button instead of giving argument.
 
 // ### Functions ###
 
@@ -37,7 +38,8 @@ if (board) {
         }
       }
     }
-    exit ("SCRIPT '" + fileName + "';");
+    //exit ("SCRIPT '" + fileName + "';");
+	exit (0);
   }
 }
 else dlgMessageBox("Start this ULP in Board!", "OK");

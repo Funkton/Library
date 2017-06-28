@@ -1,0 +1,125 @@
+string cmd = "";
+
+int Result = 0;
+string msg = "";
+string Alignment[] = { "TL", "L", "BL", "T", "C", "B", "TR", "R", "BR"};
+int align = 0;
+
+//use dlgRadioButton only in dlgGroup!
+
+Result = dlgDialog("EAGLE Version 4 / ULP Demonstration") {
+  dlgHBoxLayout {
+     dlgStretch(0);
+     dlgGroup("Align From...") {
+        dlgStretch(0);
+        dlgGridLayout {
+           dlgCell(0, 0)  dlgRadioButton("", align);
+           dlgCell(1, 0)  dlgRadioButton("", align);
+           dlgCell(2, 0)  dlgRadioButton("", align);
+		   
+           dlgCell(0, 1)  dlgRadioButton("", align);
+           dlgCell(1, 1)  dlgRadioButton("", align);
+           dlgCell(2, 1)  dlgRadioButton("", align);
+		   
+           dlgCell(0, 2)  dlgRadioButton("", align);
+           dlgCell(1, 2)  dlgRadioButton("", align);
+           dlgCell(2, 2)  dlgRadioButton("", align);
+           }
+        }
+     dlgStretch(0);
+     dlgVBoxLayout {
+        dlgHBoxLayout {
+           dlgSpacing(20);
+           dlgStretch(0);
+           dlgPushButton("+OK") dlgAccept();
+           dlgStretch(1);
+           }
+        dlgHBoxLayout {
+           dlgSpacing(20);
+           dlgStretch(0);
+           dlgPushButton("-ESC") dlgReject();
+           dlgStretch(1);
+           }
+        }
+     dlgStretch(1);
+     }
+   dlgStretch(1);
+  };
+  
+  if (Result){
+  
+  sprintf(cmd, "%s", Alignment[align]);
+  
+  dlgMessageBox(cmd);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* int hor = 1;
+int ver = 1;
+string fileName;
+int Result = dlgDialog("Enter Parameters") {
+  dlgHBoxLayout {
+    dlgStretch(1);
+    dlgLabel("This is a simple dialog");
+    dlgStretch(1);
+    }
+  dlgHBoxLayout {
+    dlgGroup("Horizontal") {
+      dlgRadioButton("&Top", hor);
+      dlgRadioButton("&Center", hor);
+      dlgRadioButton("&Bottom", hor);
+      }
+    dlgGroup("Vertical") {
+      dlgRadioButton("&Left", ver);
+      dlgRadioButton("C&enter", ver);
+      dlgRadioButton("&Right", ver);
+      }
+	  
+    }
+  dlgHBoxLayout {
+    dlgLabel("File &name:");
+    dlgStringEdit(fileName);
+    dlgPushButton("Bro&wse") {
+      fileName = dlgFileOpen("Select a file", fileName);
+      }
+    }
+  dlgGridLayout {
+    dlgCell(0, 0) dlgLabel("Row 0/Col 0");
+    dlgCell(1, 0) dlgLabel("Row 1/Col 0");
+    dlgCell(2, 0) dlgLabel("Row 2/Col 0");
+    dlgCell(0, 1) dlgLabel("Row 0/Col 1");
+    dlgCell(1, 1) dlgLabel("Row 1/Col 1");
+    dlgCell(2, 1) dlgLabel("Row 2/Col 1");
+    dlgCell(0, 2) dlgLabel("Row 0/Col 2");
+    dlgCell(1, 2) dlgLabel("Row 1/Col 2");
+    dlgCell(2, 2) dlgLabel("Row 2/Col 2");
+    }
+  dlgSpacing(10);
+  dlgHBoxLayout {
+    dlgStretch(1);
+    dlgPushButton("+OK")    dlgAccept();
+    dlgPushButton("Cancel") dlgReject();
+    }
+  };  */

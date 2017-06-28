@@ -1,76 +1,85 @@
-# Phase IV Engineering, inc
-# Innovative Wireless Sensing
-# 2820 Wilderness Place, Suite C
-# Boulder, CO 80301
-#
-#
-# File: COLORS.SCR
-# Description: Color Palette settings
-# Author: Cameron Nicks, PCB Designer
-# 
-#
-#   This file must be copied to scr/eagle.scr in the Eagle installation
-#   directory whenever changes are made or a new version of Eagle is installed.
-#   It will be run automatically when Eagle is started and when various windows
-#   are brought up.
-#
-
-################################################# COLORS
-
-# Group-2 Normal Color
-SET PALETTE 16 0xC8FF7B00
-SET PALETTE 17 0xC8469B00
-SET PALETTE 18 0xB4466A22
-SET PALETTE 19 0xB46A6A46
-SET PALETTE 20 0xB46A8E6A
-SET PALETTE 21 0xB4466A6A
-SET PALETTE 22 0xB4228E6A
-SET PALETTE 23 0x50FFFFFF
-# Group-2 Hi-Light
-SET PALETTE 24 0xFFFF7B00
-SET PALETTE 25 0xFF469B00
-SET PALETTE 26 0xB4558823
-SET PALETTE 27 0xB4888856
-SET PALETTE 28 0xB489BB88
-SET PALETTE 29 0xB4568889
-SET PALETTE 30 0xB445EEAA
-SET PALETTE 31 0x78FFFFFF
-
-# Group-3 Normal Color
-SET PALETTE 32 0xB4666666
-SET PALETTE 33 0xB4339999
-SET PALETTE 34 0xB4CC66FF
-SET PALETTE 35 0xB4996600
-SET PALETTE 36 0xB499CC99
-SET PALETTE 37 0xB4009933
-SET PALETTE 38 0xB4333399
-SET PALETTE 39 0xB4478F8E
-# Group-3 Hi-Light
-SET PALETTE 40 0xB4999999
-SET PALETTE 41 0xB433CC99
-SET PALETTE 42 0xB4CC99FF
-SET PALETTE 43 0xB4999900
-SET PALETTE 44 0xB499FF99
-SET PALETTE 45 0xB400CC33
-SET PALETTE 46 0xB4336699
-SET PALETTE 47 0xB455BCBB
-
-# Group-4 Normal Color
-SET PALETTE 48 0xB49999CC
-SET PALETTE 49 0xB4FF3333
-SET PALETTE 50 0xB49999FF
-SET PALETTE 51 0xB43399CC
-SET PALETTE 52 0xB4FF33CC
-SET PALETTE 53 0xB4FF6611
-SET PALETTE 54 0xB4999933
-SET PALETTE 55 0xB4FF33FF
-# Group-4 Hi-Light
-SET PALETTE 56 0xB499CCCC
-SET PALETTE 57 0xB4FF6633
-SET PALETTE 58 0xB499CCFF
-SET PALETTE 59 0xB433CCCC
-SET PALETTE 60 0xB4FF66CC
-SET PALETTE 61 0xB4FF9911
-SET PALETTE 62 0xB499CC33
-SET PALETTE 63 0xB4FF66FF
- 
+set color_layer 1 36;
+set color_layer 2 18;
+set color_layer 3 4;
+set color_layer 4 1;
+set color_layer 5 4;
+set color_layer 6 1;
+set color_layer 7 4;
+set color_layer 8 1;
+set color_layer 9 4;
+set color_layer 10 1;
+set color_layer 11 4;
+set color_layer 12 1;
+set color_layer 13 4;
+set color_layer 14 1;
+set color_layer 15 5;
+set color_layer 16 3;
+set color_layer Pads 2;
+set color_layer Vias 2;
+set color_layer Unrouted 38;
+set color_layer Dimension 7;
+set color_layer tPlace 39;
+set color_layer bPlace 39;
+set color_layer tOrigins 55;
+set color_layer bOrigins 54;
+set color_layer tNames 39;
+set color_layer bNames 39;
+set color_layer tValues 7;
+set color_layer bValues 7;
+set color_layer tStop 16;
+set color_layer bStop 23;
+set color_layer tCream 7;
+set color_layer bCream 7;
+set color_layer tFinish 6;
+set color_layer bFinish 6;
+set color_layer tGlue 7;
+set color_layer bGlue 7;
+set color_layer tTest 7;
+set color_layer bTest 7;
+set color_layer tKeepout 4;
+set color_layer bKeepout 1;
+set color_layer tRestrict 49;
+set color_layer bRestrict 41;
+set color_layer vRestrict 2;
+set color_layer Drills 7;
+set color_layer Holes 7;
+set color_layer Milling 3;
+set color_layer Measures 15;
+set color_layer Document 7;
+set color_layer Reference 7;
+set color_layer Mechanical 7;
+set color_layer tDocu 7;
+set color_layer bDocu 7;
+set color_layer tGND_GNDA 7;
+set color_layer bGND_GNDA 7;
+set color_layer wert 7;
+set color_layer tCAD 7;
+set color_layer tCarbon 7;
+set color_layer bCarbon 7;
+set color_layer PanelOutline 7;
+set color_layer Stencil 7;
+set color_layer V-Score 3;
+set color_layer ReferenceLS 7;
+set color_layer Rect_Pads 7;
+set color_layer DimOutline 39;
+set color_layer _tPlace 14;
+set color_layer _bPlace 14;
+set color_layer _tNames 39;
+set color_layer _bNames 39;
+set color_layer DrillLegend 15;
+set color_layer DrillLegend_01-16 2;
+set color_layer DrillLegend_01-20 3;
+set color_layer docuMeasures 7;
+set color_layer Mechanical2 7;
+set color_layer tNotes 14;
+set color_layer bNotes 14;
+set color_layer FabDoc1 6;
+set color_layer FabDoc2 2;
+set color_layer FabDoc3 7;
+set color_layer Eagle3D_PG1 7;
+set color_layer Eagle3D_PG2 7;
+set color_layer Eagle3D_PG3 7;
+set color_layer Mechanical3 3;
+set color_layer tDocuLIB 12;
+set color_layer 1MMGRID 23;
+set color_layer 0.1MMGRID 23;

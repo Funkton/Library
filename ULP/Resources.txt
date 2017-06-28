@@ -1,0 +1,6 @@
+Resource list:
+
+Repository: goo.gl/y1y1zn
+
+Legacy:
+https://github.com/das-labor/legacy/tree/master/tools/eagle-ulp

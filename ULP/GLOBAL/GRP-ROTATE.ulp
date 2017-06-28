@@ -49,7 +49,7 @@ real yOrg = 0;
 string mir = "R"; //Mirror flag (R, MR)
 int error = 0; // error flag placeholder
 string inc = (argv[1]); //Rotate by increment
-string dir = "-"; // Default direction setting. Blank = CCW, "-" = CW
+string dir = (argv[2]); // Default direction setting. Blank = CCW, "-" = CW
 
 // R = CCW, MR = Mirrored CCW (I still don't understand why the default rotation in Eagle is CCW. Wish I had an option to set it to CW.)
 

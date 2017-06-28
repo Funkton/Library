@@ -1,0 +1,180 @@
+real Length[];
+real CordenadasX[];
+real CordenadasY[];
+real CordenadasX2[];
+real CordenadasY2[];
+real X;
+real Y;
+real X2;
+real Y2;
+real MaxX;
+real MinX=30;
+real MaxY;
+real MinY;
+real SeparacionX=0.5;
+real SeparacionY=0.5;
+int i=0;
+int i3=0;
+int i4=0;
+int columnas=2;
+int filas=2;
+real gridb;
+string Signal_[];
+string Replicar_img = "<img src=\"replicar.png\">";
+string namebrd;
+real WireLength(real x2, real x1, real y2, real y1) {
+	X=x1;
+	Y=y1;
+	X2=x2;
+	Y2=y2;
+  	return sqrt((pow(x2 - x1, 2) + pow(y2 - y1, 2)) );
+}
+if (board)
+{
+board(B)
+{
+
+gridb = B.grid.distance;
+int Result = dlgDialog("Replicate Board ") 
+	{
+  		dlgLabel("                  Created by: Emerson Ospino Urbano                    ");
+		dlgPushButton("+OK") dlgAccept();
+		dlgPushButton("-Cancelar"	) { if (dlgMessageBox("¿Estas Seguro?", "Si", "No") == 0) exit(0); } 
+		
+  	};
+int haveButton = 1;
+dlgDialog("Replicate Board") {
+  	dlgLabel("Ingresar datos deseados:");
+		if (haveButton)
+     		dlgPushButton("Procesar") dlgAccept();
+		dlgPushButton("-Cancelar") { if (dlgMessageBox("¿Estas Seguro?", "Si", "No") == 0) exit(0); }
+		dlgLabel(Replicar_img, 1);
+				dlgHBoxLayout 
+		{
+  		dlgLabel("X:                            ");
+  		dlgIntEdit(columnas, 0, 250);
+  		}
+		
+		dlgHBoxLayout 
+		{
+  		dlgLabel("Y:                            ");
+  		dlgIntEdit(filas, 0, 250);
+  		} 
+
+		dlgHBoxLayout 
+		{
+  		dlgLabel("Separación X(mm): ");
+  		dlgRealEdit(SeparacionX, 0, 99);
+  		} 
+
+		dlgHBoxLayout 
+		{	
+  		dlgLabel("Separación Y(mm): ");
+  		dlgRealEdit(SeparacionY, 0, 99);
+  		} 
+
+  	}; 
+
+	B.signals(S) {
+      	S.polygons(P) { 
+			P.contours(W) {     
+      		Length[i] = WireLength(u2mm(W.x2), u2mm(W.x1), u2mm(W.y2), u2mm(W.y1));
+			CordenadasX[i]=X;
+			CordenadasY[i]=Y;
+			CordenadasX2[i]=X2;
+			CordenadasY2[i]=Y2;
+			Signal_[i]= S.name;	
+			++i;
+			}
+		}
+		S.wires(r){
+			if(r.layer< 20 ){
+			Length[i] = WireLength(u2mm(r.x2), u2mm(r.x1), u2mm(r.y2), u2mm(r.y1));
+			CordenadasX[i]=X;
+			CordenadasY[i]=Y;
+			CordenadasX2[i]=X2;
+			CordenadasY2[i]=Y2;
+			++i;
+			}
+		}
+	}
+	
+		
+		--i;
+		for (int i2 = 0; i2 < i; i2++) {
+		CordenadasX[i+i2+1]=CordenadasX2[i2];
+		CordenadasY[i+i2+1]=CordenadasY2[i2];
+		i3=i+i2;
+		}
+
+		int temp=i3;
+		int maximo_pos = 0;
+        		for (int i_ = 1; i_ < temp; i_++) {
+                		if (CordenadasX[i_] > CordenadasX[maximo_pos]) {
+                        	maximo_pos = i_;
+                		}
+		}
+		MaxX = CordenadasX[maximo_pos];
+
+		temp=i3;
+		maximo_pos = 0;
+        		for (i_ = 1; i_ < temp; i_++) {
+                		if (CordenadasY[i_] > CordenadasY[maximo_pos]) {
+                        	maximo_pos = i_;
+                		}
+		}
+		MaxY = CordenadasY[maximo_pos];
+
+		temp=i3;
+		int minimo_pos = 0;
+        		for (i_ = 1; i_ < temp; i_++) {
+                		if (CordenadasX[i_] < CordenadasX[minimo_pos]) {
+                        		minimo_pos = i_;
+                		}
+		}
+		MinX = CordenadasX[minimo_pos];	
+
+		temp=i3;	
+		minimo_pos = 0;
+        		for (i_ = 1; i_ < temp; i_++) {
+                		if (CordenadasY[i_] < CordenadasY[minimo_pos]) {
+                        	minimo_pos = i_;
+                		}
+		}
+		MinY = CordenadasY[minimo_pos];
+	
+		real SepX=MaxX-MinX;	
+		real SepY=MaxY-MinY;
+		real Y0=MinY;
+		real X0=MinX;
+
+	string ulp_path;
+	char bkslash = '/';
+	int pos = strrchr(argv[0], bkslash);
+	if (pos >= 0) {
+   	ulp_path = strsub(argv[0], 0, pos + 1);
+   	}
+	output(ulp_path + "Panelizar.scr", "wt") {
+		printf("display none;\n");
+		printf("group;\n");
+		printf("Layer 116 outlines;LAYER 125 _tnames;LAYER 126 _bnames;display none;display 125 126;group all;delete (c > 0 0);display all;set confirm yes;run panelize;grid mm;\n");
+		printf("Group all;\n");
+		printf("Cut;\n");
+		printf("display none;display 125 126;group all;delete (c > 0 0);display all;");
+		printf("EDIT _X%d.brd;\n",filas*columnas);
+		printf("grid mm;\n");
+		int z;
+		for(int x_ = 0; x_ < columnas; x_++){
+			for(int y_=0; y_ < filas; y_++){
+				printf("paste  (%f %f)\n",gridb/2+x_*(SepX)+(SepX/2)+X0+x_*(SeparacionX*1.016),gridb/2+y_*(SepY)+((SepY/2))+Y0+y_*(SeparacionY*1.01));
+			} 
+		}
+		printf("set confirm off;grid on dots %f;\n",gridb);
+	}
+	exit("; SCR '" + ulp_path + "Panelizar.scr';\n");	  
+	}
+	}
+	else
+	{
+		;
+	}

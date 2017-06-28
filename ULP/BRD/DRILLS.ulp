@@ -1,4 +1,4 @@
-2#usage "<b>Drill Legend for Eagle Board.</b><p>"
+#usage "<b>Drill Legend for Eagle Board.</b><p>"
        "This ULP add a drill legend in a board in Layer 144 (default).<br>"
        "Sort both drill tools and drill diameters in the same ascending order as the drill legend.<br>"
        "You could also generate the drill configuration for the CamProcessor.<p>"
@@ -21,23 +21,29 @@
 
  * THIS PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY FOR POSSIBLE DAMAGE */
 
-string Version = "2.10"; // 2011-06-15  check if drillegend layer exist
-                         //             generate a layer for any stack deep
-//                2.02      2005-09-14  Place also the symbols of drills on board. alf@cadsoft.de
-//                2.03      2008-07-30  place correct symbol  alf@cadsoft.de
-//                2.04      2008-09-04  "_DL.scr" extension lower case
-//                2.10      2008-12-22  Place legend, define layer for stack (Vias) and
-//                                      draw symbols in Stack-Layer
-//                2.11      2011-12-20  corrected drill calculation for higher resolution in V6 alf@cadsoft.de
+string Version = "2.13";
+//					2.02	2005-09-14	Place also the symbols of drills on board. alf@cadsoft.de
+//					2.03	2008-07-30	place correct symbol  alf@cadsoft.de
+//					2.04	2008-09-04	"_DL.scr" extension lower case
+//					2.10	2008-12-22	Place legend, define layer for stack (Vias) and draw symbols in Stack-Layer
+//					2.11	2011-06-15	check if drillegend layer exist, generate a layer for any stack deep
+//					2.12	2011-12-20	corrected drill calculation for higher resolution in V6 alf@cadsoft.de
+//					2.13	2017-06-18	Want to change default legend layer to 48 (document). Must remove layer existance check.
+//										Comment out symbol drawing. Give legend a title. C.Nicks
 //
+/*
+To re-enable drawing of drill symbols, uncomment line 833
+To Do:
+Change layers to only use 144 145 (44 is drills, 45 is holes)
+*/
 
 #require 5.0001;
 
  /************** DEFAULT SETTINGS ***********************/
 
 int    Legend           = 1;     // ** mode for drawing drill-symbol 2005-09-14 **
-int    SymbolLayer      = 48;	//Changed to Document layer. 2017-05-25 C.Nicks
-string SymbolLayerName  = "Document";
+int    SymbolLayer      = 144;	// Want to changedto Document layer, but need to scrub out layer checks. 2017-06-18 C.Nicks
+string SymbolLayerName  = "Drilegend";
 string Legend_layer     ; sprintf(Legend_layer, "LAYER %d %s;\n", SymbolLayer, SymbolLayerName) ;  // ** the layer of drill symbols are drawing 2005-09-14 **
 int    SymbolSize       = 40;    /*Symbol diameter*/
 int    SymbolWidth      = 4;     /*Symbol wire width*/
@@ -51,7 +57,9 @@ int    Idrl_stack = 0;           // index
 
 string TextFont[]     = {"Vector", "Proportional", "fixed"};
 real   TextSize       = 70;
-int    TextRatio      = 14;
+int    TextRatio      = 12;
+real   LabelSize       = 100;
+int    LabelRatio      = 12;
 real   TextOffset     = 1.5;
 int    IdxFnt         = 0; //Vector
 
@@ -130,6 +138,8 @@ board(B) {
   ScrName = filesetext(B.name, "_DL.scr");  // 2008-09-04  extension lower case
   ProjectPath = filedir(B.name);
 
+  
+  //Layer existance check 
   B.layers(L) {
     if(L.used == 1) {
       if (L.number == SymbolLayer) {

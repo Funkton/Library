@@ -1,0 +1,360 @@
+//Author:yahya.tawil@gmail.com
+
+#usage 	   "<html><p>This ULP makes creating packages for libraries much easier<br />"
+		   "You can use is to draw multiple SMDs/PADs, lines and rectangles</p>"
+		   "<p>PAD</p>"
+		   "<ul><li><strong>Select Shape</strong>: Select the shape of pad (Square-Round-Octagon-Long-Offset).</li>"
+		   "<li><strong>Select Axis</strong>: Select the axis of pads. Adding them horizontally or vertically.</li>"			   
+		   "<li><strong>Select PAD Angle</strong>: Select the angle of pad (0-45-90-180).</li>"
+		   "<li><strong>Count of PADs</strong>: Select how many pads you want to add.</li>"	
+		   "<li><strong>Pitch (Distance)</strong>: Select the distance between every 2 pads.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"
+		   "<p>SMD</p>"
+		   "<ul><li><strong>Select Axis</strong>: Select the axis of SMDs. Adding them horizontally or vertically.</li>"			   
+		   "<li><strong>Select SMD Angle</strong>: Select the angle of SMD (0-45-90-180).</li>"
+		   "<li><strong>Count of SMDs</strong>: Select how many SMDs you want to add.</li>"	
+		   "<li><strong>Roundness</strong>: Roundness of SMD.</li>"
+		   "<li><strong>Pitch (Distance)</strong>: Select the distance between every 2 SMDs.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li>"
+		   "<li><strong>Size </strong>: Size of SMD (X & Y).</li></ul>"		
+		   "<p>Line</p>"
+		   "<ul><li><strong>Select Axis</strong>: Adding line horizontally or vertically.</li>"			   
+		   "<li><strong>Select Layer</strong></li>"
+		   "<li><strong>Width</strong>: Select width of the wire.</li>"	
+		   "<li><strong>Length</strong>: Select length of the wire.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"
+		   "<p>Rectangle</p>"
+		   "<ul><li><strong>Select Axis</strong>: Adding line horizontally or vertically.</li>"			   
+		   "<li><strong>Select Layer</strong></li>"
+		   "<li><strong>Size</strong>: Select size of rectangle.</li>"
+		   "<li><strong>Origin </strong>: Select X and Y of the origin.</li></ul>"		   
+		   "<p><strong>Usage:</strong> RUN LibIt.ulp<br />"
+		   "<strong>Author:<a href=\"mailto:yahya.tawil@gmail.com\">yahya.tawil@gmail.com</a></strong></p>"   
+		   "</html>"
+
+
+	/* LOG
+				Version		Date			Author			Comment
+				---------+----------------+--------------+---------------------------------------------------------------
+				V1.0		31 March 2017	Yahya Tawil		First Create. An entry for 4element Eagle ULPs contest 2017. Tested on Version 7.5.0 for Linux (32 bit) 
+	*/
+	
+	/*
+	Enhancements made by Cameron Nicks
+	- Complete re-write of rectangle section. Origin alignment settings, and previously used values populate the fields.
+	
+	ToDo:
+		DONE - Add option to rectangle that draws from centered origin. C.Nicks
+		- Add line style options to line and rectangle
+		- Add Box option (like rectangel) but with each side length definable.
+		- Rebuild dialog into tab pages (full lib tools)
+		Partial- Save and restore previously used settings. Rectangle 
+		- Add ability to select multiple layers. (Top and bottom selections)
+		- Miter corners (Rectangle)
+		- Add place circle dialog
+		- Add polygon type to rectangle.
+	*/
+int CNT_P,CNT_S;
+int sel_P = 0 ;
+int sel_L = 0 ;
+int UsedGrid = 0;
+int Result;
+real Pitch = 0.0;
+
+string Alignment[] = { "TL", "L", "BL", "T", "C", "B", "TR", "R", "BR"}; // Alignment options
+string lastWidth = cfgget("libtools.lastWidth.1", "0"); // Load last used width, cfg are always strings
+string lastDimWidth = cfgget("libtools.lastDimWidth.1", "0"); 
+string lastDimHeight = cfgget("libtools.lastDimHeight.1", "0");
+string lastOrgX = cfgget("libtools.lastOrgX.1", "0"); 
+string lastOrgY = cfgget("libtools.lastOrgY.1", "0");
+string lastAlign = cfgget("libtools.lastAlign.1", "4");
+real Width = strtod(lastWidth);
+real DimWidth = strtod(lastDimWidth);
+real DimHeight = strtod(lastDimHeight);
+real OrgX = strtod(lastOrgX);// Origins
+real OrgY = strtod(lastOrgY);
+
+int align = strtol(lastAlign); // Origin Alignment, Center default
+
+string Units[] = {"mic","mm","mil","Inch"};
+string Layer[] = {"Top","Bottom","tPlace","bPlace","tStop","bStop","tKeepout","bKeepout","tRestrict","bRestrict","Document","Reference","tDocu","bDocu"};
+
+
+int Sel_Unit = 0; // initially selects "mm"
+int Sel_Layer = 12; // initially selects "tDocu"
+
+string CMD;
+void CurrentUnit(void){
+
+}
+
+/*
+This Function contains all stuffs related to Rectangle dialog
+*/
+
+// Start Rectangle Function
+void Rectangle(void){
+	CMD ="GRID ";
+	if(Sel_Unit == 0){
+		CMD +="MM; ";	
+	}
+	else if(Sel_Unit == 1){
+		CMD +="INCH; ";	
+	}
+		
+Result = dlgDialog("Rectangle"){
+	dlgVBoxLayout{
+		dlgGroup("Draw Rectangle"){
+		
+			dlgGridLayout {
+					
+				dlgCell (1, 0, 1, 1) dlgGroup("Layer:"){
+				dlgStretch(0);
+					dlgListBox(Layer, Sel_Layer); //Layer Selection
+					dlgStretch(0);
+					};
+				
+
+				// Settings Group
+				dlgCell (1, 2) dlgVBoxLayout {
+					dlgStretch(0);
+					dlgGroup("Size:") {
+						dlgHBoxLayout {
+							dlgLabel("Width X:");
+							dlgRealEdit(DimWidth);
+						}
+						dlgHBoxLayout {
+							dlgLabel("Height Y:");
+							dlgRealEdit(DimHeight);
+						}
+						dlgHBoxLayout {
+							dlgLabel("Line Width:");
+							dlgRealEdit(Width);	
+						}
+					}
+						// Origin Settings
+					dlgGroup("Origin:"){
+						dlgHBoxLayout {
+							dlgLabel("X:");
+							dlgRealEdit(OrgX);
+						}
+						
+						dlgHBoxLayout {
+							dlgLabel("Y:");
+							dlgRealEdit(OrgY);
+						}
+						
+						dlgLabel("Align:");
+						dlgGridLayout {
+						   dlgCell(0, 0)  dlgRadioButton("TL", align);	// 0
+						   dlgCell(1, 0)  dlgRadioButton("L", align);	// 1
+						   dlgCell(2, 0)  dlgRadioButton("BL", align);	// 2
+						   dlgCell(0, 1)  dlgRadioButton("T", align);	// 3
+						   dlgCell(1, 1)  dlgRadioButton("C", align);	// 4
+						   dlgCell(2, 1)  dlgRadioButton("B", align);	// 5
+						   dlgCell(0, 2)  dlgRadioButton("TR", align);	// 6
+						   dlgCell(1, 2)  dlgRadioButton("R", align);	// 7
+						   dlgCell(2, 2)  dlgRadioButton("BR", align);	// 8
+						}
+						dlgStretch(0);
+				   }
+				};
+				
+			
+			
+				dlgCell (2, 0) dlgPushButton("+&Run") {
+						
+									// Move calculation out of run for active update of 					
+						
+						real X_L = 0; // X coord
+						real X_R = 0; // X coord
+						real Y_B = 0; // Y Bottom
+						real Y_T = 0; // Y Top
+						
+						
+						if (align == 0){//dlgMessageBox ("Org+X, Org-Y");
+							X_L = OrgX; // X coord
+							X_R = OrgX+DimWidth; // X coord
+							Y_B = OrgY-DimHeight; // Y Bottom
+							Y_T = OrgY; // Y Top
+						} else if (align == 1){//dlgMessageBox ("Org+X");
+							X_L = OrgX; // X coord
+							X_R = OrgX+DimWidth; // X coord
+							Y_B = OrgY-DimHeight/2; // Y Bottom
+							Y_T = OrgY+DimHeight/2; // Y Top
+						} else if (align == 2){//dlgMessageBox ("Org+X, Org+Y");
+							X_L = OrgX; // X coord
+							X_R = OrgX+DimWidth; // X coord
+							Y_B = OrgY; // Y Bottom
+							Y_T = OrgY+DimHeight; // Y Top
+						} else if (align == 3){//dlgMessageBox ("Org-Y");
+							X_L = OrgX-DimWidth/2; // X coord
+							X_R = OrgX+DimWidth/2; // X coord
+							Y_B = OrgY-DimHeight; // Y Bottom
+							Y_T = OrgY; // Y Top
+						} else if (align == 4){//dlgMessageBox ("Center");
+							X_L = OrgX-DimWidth/2; // X coord
+							X_R = OrgX+DimWidth/2; // X coord
+							Y_B = OrgY-DimHeight/2; // Y Bottom
+							Y_T = OrgY+DimHeight/2; // Y Top
+						} else if (align == 5){//dlgMessageBox ("Org+Y");
+							X_L = OrgX-DimWidth/2; // X coord
+							X_R = OrgX+DimWidth/2; // X coord
+							Y_B = OrgY; // Y Bottom
+							Y_T = OrgY+DimHeight; // Y Top
+						} else if (align == 6){//dlgMessageBox ("Org-X, Org-Y");
+							X_L = OrgX-DimWidth; // X coord
+							X_R = OrgX; // X coord
+							Y_B = OrgY-DimHeight; // Y Bottom
+							Y_T = OrgY; // Y Top
+						} else if (align == 7){//dlgMessageBox ("Org-X");
+							X_L = OrgX-DimWidth; // X coord
+							X_R = OrgX; // X coord
+							Y_B = OrgY-DimHeight/2; // Y Bottom
+							Y_T = OrgY+DimHeight/2; // Y Top
+						} else if (align == 8){//dlgMessageBox ("Org-X, Org+Y");
+							X_L = OrgX-DimWidth; // X coord
+							X_R = OrgX; // X coord
+							Y_B = OrgY; // Y Bottom
+							Y_T = OrgY+DimHeight; // Y Top
+						}
+					
+						
+						
+						string tmp;
+						//string Alignment[] = { "TL", "L", "BL", "T", "C", "B", "TR", "R", "BR"}; // Alignment options
+						// Setup layer and width
+						CMD += "LAYER "; 
+						CMD += Layer[Sel_Layer];
+						CMD +="; CHANGE WIDTH ";
+						sprintf(tmp,"%f;",Width);  					
+						CMD += tmp;
+					
+						//Changed WIRE to LINE for V8+
+						
+						sprintf(tmp,"LINE (%f %f) (%f %f); ",X_L,Y_B,X_R,Y_B); 	// Bottom leg
+						CMD+=tmp;
+						sprintf(tmp,"LINE (%f %f) (%f %f); ",X_R,Y_B,X_R,Y_T); 	// Right leg
+						CMD+=tmp;
+						sprintf(tmp,"LINE (%f %f) (%f %f); ",X_L,Y_T,X_R,Y_T); 	// Top Leg
+						CMD+=tmp;
+						sprintf(tmp,"LINE (%f %f) (%f %f); ",X_L,Y_B,X_L,Y_T);  // Left Leg
+						CMD += tmp;
+						
+						// Save settings
+						sprintf(lastWidth, "%f", Width);
+						sprintf(lastDimWidth, "%f", DimWidth);
+						sprintf(lastDimHeight, "%f", DimHeight);
+						sprintf(lastOrgX, "%f", OrgX);
+						sprintf(lastOrgY, "%f", OrgY);
+						sprintf(lastAlign, "%d", align);
+						cfgset("libtools.lastWidth.1", lastWidth);
+						cfgset("libtools.lastDimWidth.1", lastDimWidth);
+						cfgset("libtools.lastDimHeight.1", lastDimHeight);
+						cfgset("libtools.lastOrgX.1", lastOrgX);
+						cfgset("libtools.lastOrgY.1", lastOrgY);
+						cfgset("libtools.lastAlign.1", lastAlign);
+						
+						exit(CMD);
+
+						  //dlgMessageBox(CMD,"OK");
+						  /* Result = dlgDialog("Rectangle") {
+								string Text = CMD;
+								dlgVBoxLayout {
+									dlgLabel("&Command");
+									dlgTextView(Text);
+								}
+								dlgPushButton("+&Let's do it") {
+									exit(CMD);}
+									
+								dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+							}; */
+				  
+				  }
+				dlgCell (2, 1) dlgPushButton("-Cancel") {
+					dlgReject(); exit(-1);
+				}
+				
+			}//end grid
+		}//end group
+
+	}//end V box
+ };
+ //end dialog
+}
+// end rectangle function
+
+/*
+This Function contains all stuffs related to PAD dialog
+*/
+/* void FirstDL(void)
+{
+	Result = dlgDialog("LibIt !") 
+{
+
+		dlgVBoxLayout 
+		{
+			dlgLabel("Select What to Add:");
+			dlgComboBox(WhatToAdd , Sel_WhatToAdd );
+			dlgLabel("Select Unit:");
+			dlgComboBox(Units, Sel_Unit ) ;
+		}
+
+		dlgHBoxLayout 
+		{
+		  dlgPushButton("+&Next") {
+			  if(Sel_WhatToAdd==0)
+			{
+				//dlgAccept();
+				PAD();
+			}
+			else if(Sel_WhatToAdd == 1)
+			{
+				//dlgAccept();
+				SMD();
+			}
+			else if(Sel_WhatToAdd == 2)
+			{
+				//dlgAccept();
+				Line();	
+			}
+			else
+			{
+				Rectangle();  
+			}
+		  }	
+		  dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+		  dlgPushButton("&Info") { dlgMessageBox(usage,"OK"); }
+		}
+ 	};
+} */
+
+/*
+Main Function
+*/
+void main(void) {
+	
+	
+	if (library){library(L)
+		{
+			string Unit; // 0:mic, 1:mm, 2:mil, 3:Inch
+			UsedGrid = L.grid.unit;
+			// if(UsedGrid !=1 || UsedGrid !=3)
+			// {
+			sprintf( Unit, "Current unit is %d !", UsedGrid);
+			dlgMessageBox(Unit,"OK");
+			//exit(-1);	
+			
+			
+		}
+		}
+		
+	
+	if(schematic)
+	{
+		dlgMessageBox("! Open this ULP from Board or Library Editor","+OK");
+		exit(-1);		
+	}
+	Rectangle();
+}
+

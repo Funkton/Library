@@ -1,0 +1,110 @@
+﻿#usage "<b>Rename libraries</b>\n"
+       "<p>"
+       "<author>Author: Dipl.-Ing. Klaus Schreier, klaus@sely.org, www.sely.org</author>"
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+string Info = "<b>Libraries umbenennen / Rename libraries</b><p>\n" +
+       "Es wird der Libraryname aller Komponenten der gegebenen Library umbenannt (Kommando REPLACE).<br>\n" +
+       "Damit dies möglich ist, muss die neue Library geladen sein!<p>\n" +
+       "All library names of given library will be changed to new one (command replace).<br>\n" +
+       "To do this operation the new library has to be loaded!<br>\n";
+
+string findname = "";
+string newname = "";
+string Version = "1.0.0.0";
+string Date="2009.01.09";
+string librariesinfile[];
+int    librariesinfileusedcount[];
+int    librariesinfilecount = 0;
+
+void menue(void) {
+	string sellistlibrariesinfile[];
+	if (schematic) {
+		schematic(S) {
+			S.parts(P) {
+				int i;
+				int found = 0;
+				for (i=0; i<librariesinfilecount; ++i) {
+					if (librariesinfile[i] == P.device.library) {
+						found = -1;
+						break;
+					}
+				}
+				
+				if (found == 0) {
+					librariesinfile[librariesinfilecount] = P.device.library;
+					librariesinfileusedcount[librariesinfilecount] = 1;
+					++librariesinfilecount;
+				} else {
+					++librariesinfileusedcount[i];
+				}
+			}
+		}
+	}
+	
+	for (int i=0; i<librariesinfilecount; ++i) {
+		sprintf (sellistlibrariesinfile[i], "%s\t%d", 
+			 librariesinfile[i], 
+			 librariesinfileusedcount[i]);
+	}
+	
+	int selectednew;
+	int selectedfind;
+	int Result = dlgDialog("Rename libraries") {
+		dlgLabel(Info);
+		
+		dlgHBoxLayout {
+			dlgVBoxLayout {
+				dlgLabel("Zu ersetzende Library / library to replace:");
+				dlgListView("library\telementcount", sellistlibrariesinfile, selectedfind);
+			};
+			dlgSpacing(50);
+			dlgVBoxLayout {
+				dlgLabel("Neue Library / new library:");
+				dlgListView("library", used_libraries, selectednew);
+			};
+		};
+		dlgHBoxLayout {
+			string x;
+			sprintf(x, "\nVersion %s (%s)\nwww.sely.org", Version, Date);
+			dlgLabel(x);
+			dlgStretch(1);
+			dlgPushButton("-&Cancel") dlgReject();
+			dlgPushButton("+&OK") dlgAccept();
+		}
+	};
+	if (!Result) exit (0);
+	
+	newname = used_libraries[selectednew];
+	findname = librariesinfile[selectedfind];
+	
+	return ;
+}
+
+
+// *** Board coord. ***
+string replace_cmd = "";
+string last;
+int counter = 0;
+if (schematic) {
+  menue();
+  schematic(S) {
+    S.parts(P) {
+      if (P.device.library == findname) {
+        sprintf (replace_cmd, "%s; REPLACE %s %s@%s", replace_cmd, P.name, P.device.name, newname);
+        sprintf (last, "REPLACE %s %s@%s", P.name, P.device.name, newname);
+        ++counter;
+      }
+    }
+  }
+  string message;
+  sprintf (message, "Soll der Libraryname von %d Bauelemente ersetzt werden?<BR>Replace libraryname of %d elements?", counter, counter);
+  if (dlgMessageBox(message, "&Yes", "&No") == 0) {
+    exit (replace_cmd);
+  } else {
+    exit (0);
+  }  
+} else {
+  dlgMessageBox("Kann nur auf den Schaltplan angewendet werden!<BR>Can only be used in schematic!", "OK");
+  exit (0);
+}

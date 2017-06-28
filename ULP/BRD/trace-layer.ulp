@@ -1,0 +1,122 @@
+#usage "Trace layer, to display layers step by step.<p>"
+       "RUN trace-layer +<br>"
+       "RUN trace-layer -<br>"
+       "Layers 17 Pad, 18 Via, 19 Unrouted, 23 tOrigin and 24 bOrigin are not separated displayed"
+
+// Version 1.0  - 2007.06.06 support@cadsoft.de
+
+int    supplyLayer[];
+int    usedLayer[];
+int    mLayer = 0;
+int    lastUsed;
+string cmd;
+string message = "";
+
+string layerFile = filesetext(argv[0], ".trl");
+string f[];
+int    isFile = fileglob(f, layerFile);
+
+void checkLayer(void) {
+  if (argv[1] == "+") {
+    if (mLayer == 23 || mLayer == 24) mLayer = 25;
+    if (mLayer == 17 || mLayer == 18 || mLayer == 19) mLayer = 20;
+    lastUsed = mLayer;
+  }
+  if (argv[1] == "-") {
+    if (mLayer == 23 || mLayer == 24) mLayer = 22;
+    if (mLayer == 17 || mLayer == 18 || mLayer == 19) mLayer = 16;
+    lastUsed = mLayer;
+  }
+  return;
+}
+
+if (isFile) {
+  string rLayer;
+  int n = fileread(rLayer, layerFile);
+  mLayer = strtol(rLayer);
+}
+
+
+if (argv[1] == "-") {
+  mLayer --;
+  if (board) {
+    if (mLayer < 1) {
+      if (!mLayer) message = "The first layer.";
+      mLayer = 1;
+    }
+  }
+  else if (schematic) {
+    if (mLayer < 91) mLayer = 91;
+  }
+}
+
+if (argv[1] == "+") {
+  mLayer ++;
+  if (mLayer >255) {
+    mLayer = 255;
+    if (!mLayer) message = "The last layer.";
+  }
+}
+
+
+checkLayer();
+if (board) {
+  board(B) {
+    B.layers(L) {
+      if (L.used) {
+        usedLayer[L.number] = 1;
+      }
+      string ln = L.name;
+      if (ln[0] == '$') {
+        usedLayer[L.number] = 1;
+        supplyLayer[L.number] = 1;
+      }
+    }
+    if (argv[1] == "+") {
+      if (!usedLayer[mLayer]) {
+        do {
+          mLayer++;
+          if (usedLayer[mLayer]) break;
+        } while (mLayer < 256);
+        if (mLayer >= 255) message = "The last Layer.";
+      }
+    }
+    if (argv[1] == "-") {
+      if (!usedLayer[mLayer]) {
+        do {
+          mLayer--;
+          if (usedLayer[mLayer]) break;
+        } while (mLayer > 1);
+      }
+    }
+
+    checkLayer();
+    if (usedLayer[mLayer]) {
+      if (mLayer < 17) {
+        if (supplyLayer[mLayer]) {
+          sprintf(cmd, "DISPLAY NONE %d;\n", mLayer);
+          message ="<font color=\"red\"><b>ATTENTION</b></font> this is a <b>Supply</b> layer, <b>do not use</b> this Layer in CAM-Job with <b>Pad</b>- and/or <b>Via</b>-Layer.";
+        }
+        else {
+          sprintf(cmd, "DISPLAY NONE %d 17 18;\n", mLayer);
+        }
+      }
+      else {
+        sprintf(cmd, "DISPLAY NONE %d;\n", mLayer);
+      }
+      lastUsed = mLayer;
+    }
+  }
+}
+checkLayer();
+if (lastUsed) {
+  output(layerFile, "wtD") {
+    printf("%d", lastUsed);
+  }
+}
+if (message) {
+  string s;
+  sprintf(s, "RUN ulpmessage '%s';\n", message);
+  cmd += s;
+}
+exit (cmd);

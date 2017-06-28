@@ -1,0 +1,44 @@
+// Useful functions
+
+enum   { type_wire, type_polygon };
+//Delete
+void delete(real x, real y, int type) {
+  if (isLayer > 16) {
+    sprintf(c, "DELETE (S%.4f %.4f);\n ", x, y );
+    cmdripup += c;
+  }
+  else {
+    if (type == type_polygon) {
+      sprintf(c, "DELETE (S%.4f %.4f);\n", x, y );
+      cmdripup += c;
+    }
+    else {
+      sprintf(c, "RIPUP (%.4f %.4f);\n", x, y );
+      cmdripup += c;
+    }
+  }
+  return;
+}
+
+// Shows how to retreive current grid information.
+string getGrid (){
+	board(B) {
+	string s;
+	sprintf(s, "GRID Information:\nGridsize=%f, Multiple=%d, Unit=%d, UnitDist=%d\n\nNo way to get alt distance from ulp?", B.grid.distance, B.grid.multiple, B.grid.unit, B.grid.unitdist);
+	  
+		dlgMessageBox(s);
+	return s;
+	}
+}
+
+/* Shows a message box with a simple text message */
+void msgBox(string msg){
+    dlgMessageBox(msg);
+}
+
+/* checks if a part is a valid part or a supply symbol or hole */
+int isPartValid(UL_PART P){
+    if( (P.value != "") && (strstr(P.device.library, "supply") < 0) && (strstr(P.device.library, "holes") < 0) )
+    	return 1;
+    return -1;
+} 	

@@ -1,0 +1,731 @@
+// 5 july 2004:   Bugfix: In getfind();
+//                         Lastfind was missing c: in front of the name. The file was written but not found again.
+//                Bugfix: In show_S() and show_B();
+//                         If the grid was not inch, the zoom function was scaling wrong.
+//                         Removed the limitcheck.
+// OE. (oyvind67@operamail.com)
+
+#usage	"<qt><b>POWER SEARCH</b>\n"
+	"<p>"
+ 	"Finds any object on your schematic or board design."
+	"<p>"
+	"Unlike the basic FIND.ULP that is shipped with EAGLE, <b>POWER SEARCH</b> is truly a<br>"
+	"time saver.  You can step through the list with FINDNEXT.ULP, count the number of parts<br>"
+	"invoke the INFO command or search on PAD or PIN."
+	"<p>"
+	"<h3>"
+	"Please assign F12 to FINDFRST.ULP, and Cntl+F12 for FINDNEXT.ULP"
+	"</h3>"
+	"Note: Design is based on FIND.ULP already included with EAGLE."
+	"</qt>"
+
+enum	{OFF, ON};	//	Compiler short cut, {OFF = 0, ON = 1}
+string	find;		//	Global expression to "find" in the schema / layout
+string	foundelement = "";
+int	fcnt = 0;	//	This counts the number of finds.
+int	MaxFind = 1000;	//	Stop counting after this number, usefull for like finding PE
+int	all = MaxFind;	//	Set counter limit to MaxFind
+int	Result;
+real	Zof = -1.75;	//	Set Zoom Out
+real	Zo = 2;		//	Set ZoomOffSet , additive window command --> top+ left-, bottom- right+
+int	ZoB = OFF;	//	Flag -> Zoom Out
+int	DisTotal = OFF;	//	Flag -> set if user wants to count the number of finds.
+int	test = OFF;	//	Flag -> Set for debug
+int	RunInfo = OFF;	//	Flag -> Set to display info on part
+int	MakeList = OFF;	//	Flag -> Set to display list
+int	FindPins = OFF;	//	Flag -> FIND on PINS
+int	FindPads = OFF;	//	Flag -> FIND on PADS
+int	FindComp = ON;	//	Flag -> FIND on components
+int	FindNets = OFF;	//	Flag -> FIND on PINS
+int	FindEmbd = OFF;	//	Flag -> FIND on Embedded data ()
+int	CaseSens = OFF;	//	Flag -> Is the find case sensitive?
+
+string	RunOnExit ="";	//	Sets up the RunOnExit
+string	TEMP = "";	//	Scratch pad string
+int	WildCard = -1;	//	WildCard search position, such as C*
+int	ExitFail = OFF; //	Quit with no find
+
+
+
+/* *******************************************************
+Variable	gridunit
+LongName	Define the Grid Units
+
+Description	Defines when converting the EAGLE native
+		units to real units, what is the scale?
+
+		In this case, default to "3", which is
+		Inches.  By changing the gridunit variable,
+		you can change the global reference.
+
+Special Note	This variable's value gets clobbered in
+		MAIN routine, so it's temporary
+******************************************************* */
+int gridunit = 3;
+string unit[] = { "Micron", "mm", "Mil", "Inch" };
+
+
+
+/* *******************************************************
+Function	u2u
+LongName	Convert Eagle units to Real Units
+
+Dependants	gridunit	|	User defined
+		GRID_UNIT_MIC	=	0
+		GRID_UNIT_MM	=	1
+		GRID_UNIT_MIL	=	2
+		GRID_UNIT_INCH	=	3
+
+Description	This function converts the EAGLE native
+		units (some kind of integer) to a "real"
+		measurement based on the global variable
+		"gridunit"
+******************************************************* */
+real u2u(int val) {
+  switch (gridunit) {
+     case GRID_UNIT_MIC  : return u2mic(val);
+     case GRID_UNIT_MM   : return u2mm(val);
+     case GRID_UNIT_MIL  : return u2mil(val);
+     case GRID_UNIT_INCH : return u2inch(val);
+  }
+}
+
+
+string dpbacksl(string fs) {
+  int l = 0;
+  do {
+    if (fs[l] == '\\') {
+      string fs1 = strsub(fs, 0 , l + 1);
+      string fs2 = strsub(fs, l + 1 );
+      fs = fs1 + "\\" + fs2;
+      l += 2;
+    }
+    l++;
+  } while (fs[l]);
+  return fs;
+}
+
+
+
+
+/* *******************************************************
+Function	showrepeat
+LongName	Debug, show data on screen
+
+Description	Used as a debugging tool to display
+		data on the screen, i.e. TEXT
+******************************************************* */
+void showrepeat(string text) {
+  dlgDialog("FIND.ULP") {
+    dlgHBoxLayout dlgSpacing(600);
+    dlgHBoxLayout {
+      dlgVBoxLayout dlgSpacing(300);
+      dlgTextEdit(text);
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+&OK") dlgAccept();
+      dlgStretch(1);
+    }
+  };
+  return;
+}
+
+
+
+
+/* *******************************************************
+Function	returnfind()
+LongName	Display message if no items found
+
+Description	If fcnt (Find Counter) = 0 (not > 0),
+		then display to the user that there
+		were no items found.
+******************************************************* */
+string returnfind(void) {
+	string rs = "";
+	string message = "";
+
+	if(!fcnt)	// No items found, fcnt = 0 (not 1)
+	{
+	message = "     Not found.\n";
+	dlgMessageBox(message);
+	}
+	else
+	{
+		if(DisTotal)	// Does user want to see the total number?
+		{
+		sprintf(message,"&nbsp;&nbsp;Found&nbsp;<b>%d</b>&nbsp;item(s)&nbsp;&nbsp;",fcnt);
+		dlgMessageBox(message);
+		}
+
+		if(MakeList)	// Does user want to see the total number?
+		{
+		foundelement = "Search report for '"+find+"'\n"+foundelement;
+		showrepeat(foundelement);
+
+		}
+	}
+
+
+
+	return dpbacksl(rs);
+}
+
+
+
+
+/* *******************************************************
+Function	check()
+LongName	Debug Mode, display integer data
+
+Description	This function not normally used.
+******************************************************* */
+void check(string repeat) {
+	//	repeat contains all the found items, as a delimited list
+	repeat += returnfind();
+	if (fcnt>1)
+		repeat += "RUN ulpmessage \'No more items.\'";
+
+	if (ExitFail)
+		repeat = "";
+
+	if (test) showrepeat(repeat);	//	Active when test = ON
+	//	Clean up for final send off
+
+	output("c:\TempData.txt", "wt") {	//	Let's write the found list into a temp txt file
+		printf(repeat);			//	Simple printf to text file shall do, delimited
+	}
+
+	string lines[];
+	string newlines[];
+	int nLines = fileread(lines, "c:\TempData.txt");	//	Let's read it back
+	int oLines = fileread(newlines, "c:\TempData.txt");	//	Let's read it again
+
+	//
+	//	Following lines sorts the data for multiple searches.
+	//
+	if (nLines > 3) {
+	string SortMe[];				//	temporary string array to hold sorting data
+	int h=0;					//	counter variable
+	string temptext;				//	string scratch pad
+	for(h = 0;h < nLines;h++)
+		{
+		int pos1 = strrstr(lines[h],"SHOW");	//	find on "SHOW" string, get position
+		int pos2 = strrstr(lines[h],") (");	//	find on ") (" string, get position
+		//
+		//	create a sortable list based on part name, then location of x
+		//
+		sprintf(temptext,"%s%s*%d",strsub(lines[h],pos1 + 4),strsub(lines[h],pos2),h);
+		SortMe[h] = temptext;
+		}
+
+	//
+	//	Sort list.  We entered the data of each line based on criteria in for loop
+	//
+	sort(nLines,SortMe);
+	//
+	//	write data back into main list.
+	//
+	for(h = 0;h < nLines;h++)
+		{
+		int pos = strrstr(SortMe[h],"*");
+		pos = strtol(strsub(SortMe[h],pos+1));
+		//
+		//	Note: we needed the array "newlines" to remember the text as we re-sort the list
+		//
+		lines[h] = newlines[pos];
+		}
+	}
+
+
+
+	int CountOut = 1;	//	Start at the next item, ahh, this is why we read it back ....
+	string RunOnClose = lines[0];	//	Sent the first line item to be sent back, shift the rest ...
+	//
+	//	The next section re-writes the text file by ring-shifting the data.  The text
+	//	file is treated like a LIFO data set (Last In, First Out)
+	//
+	if (nLines > 1)		// Do this only if there are more than one item
+	{
+		output("c:\TempData.txt", "wt") 	//	Recreate the data file, but ring-shifted.
+		{
+			do
+			{
+				printf(lines[CountOut]);	//	Since CountOut = 1, but the data starts at
+				printf("\n");			//	lines[0], we are writing at n+1 position.
+				CountOut++;			//	increment counter
+			} while (CountOut < nLines);		//	Stop at last data.
+		printf(RunOnClose);				//	Now write the first line last.
+		}
+	}
+	exit (RunOnClose);				//	Run the first line.  On next iteration, it
+							//	will be shifted to last line.
+}
+
+
+
+/* *******************************************************
+Function	helpENG()
+LongName	Help, in English
+
+Dependants	usage	|	defined above in header
+
+Description	By changing the usage, you can display
+		in another language.
+******************************************************* */
+void helpENG(void) {
+   dlgMessageBox(usage, "OK");
+   return;
+}
+
+
+
+
+
+/* *******************************************************
+Function	getfind()
+LongName	Get what to find from user
+
+FuncReturn	f	->	user input data
+
+Dependants	all	->	count down for finds
+		fpinpad	->	Data array, see globals
+
+Description	Find out what we need to find in the design
+******************************************************* */
+string getfind() {
+//	Define the local variables
+//
+//	f	->	the data to find
+//	all	->	how many to find, set to MaxFind
+//	pin	->	Part, Pin, Pad?
+
+	string a[];
+	int FileExists = fileglob(a, "c:\lastfind.txt");
+
+	string f;
+	string LastAll;
+
+	if (FileExists) {
+		string LastFind[];
+		int oLines = fileread(LastFind, "c:\lastfind.txt");
+		f 	= LastFind[0];
+	}
+
+	all = MaxFind;
+	Result = dlgDialog("Global Search"){
+	dlgHBoxLayout {
+		dlgVBoxLayout {
+			dlgSpacing(5);
+			dlgHBoxLayout {
+  				dlgStretch(0);
+				dlgLabel("&FIND : ");
+				dlgSpacing(5);
+				dlgStringEdit(f);
+				dlgStretch(0);
+				}
+			dlgSpacing(5);
+			dlgGroup("Search On: ") {
+			if(schematic) {
+					dlgCheckBox("Designators 	", FindComp);
+					dlgCheckBox("Pin Numbers	( 1, 2, 3 ... )", FindPads);
+					dlgCheckBox("Pin Names		( A1, OE, PE ... )", FindPins);
+					dlgCheckBox("Net names		", FindNets);					}
+					dlgCheckBox("Textual data	", FindEmbd);
+					}
+			dlgSpacing(5);
+			dlgGroup("OPTIONS ") {
+				dlgCheckBox("&Zoom In (x2)", ZoB);
+				dlgCheckBox("Automatically run INFO", RunInfo);
+				dlgCheckBox("Create a list of all finds", MakeList);
+				dlgCheckBox("Count and display total searches ", DisTotal);
+				dlgCheckBox("Case Sensitive (u | U) ", CaseSens);
+				}
+			dlgSpacing(5);
+			dlgHBoxLayout {
+				dlgPushButton("+Find") {
+					dlgAccept(1);
+					all--;		//	This find is considered #1, so we can
+							//	decrease the counter "all"
+					}
+			dlgPushButton("-Cancel") {
+				ExitFail = ON;
+				dlgReject();
+				}
+ 			}
+		}
+	}
+   	};
+	if (Result && !f) {
+		dlgMessageBox("No search string!", "OK");
+		f = "";
+	}
+	else
+	{
+
+		output("c:\lastfind.txt", "wt") {	//	Let's write the found list into a temp txt file
+		printf("%s\n", f);			//	Simple printf to text file shall do, delimited
+		}
+
+
+		if (strstr(f,"*")!= -1) {
+			WildCard = strstr(f,"*");
+			f = strsub(f, 0, WildCard);
+		}
+
+	}
+
+
+
+	return f;
+}
+
+
+
+
+
+/* *******************************************************
+Function	show_B()
+LongName	Write data set as delimited text (\n)
+
+Description	Format data set as board.
+******************************************************* */
+string show_B(real x, real y, string findb, int fist) {
+	//
+	//	Note, zoom? are left over from original source code
+	//	that was slightly faulty when used on large sheets
+	//	or large parts.  It has been replaced.
+	fcnt++;	//	If this function is called, then we found something, so increment the find counter
+	string cmd = "";	//	House keeping
+	string tempstr = "";
+	real OffSet, x1, x2, y1, y2;
+
+	OffSet = Zo + ZoB * Zof;	//	Offset = Zoom + (OFF|ON) & ZoomFactor
+   switch (gridunit) {
+     case GRID_UNIT_MIC  : OffSet*=25400;  break;
+     case GRID_UNIT_MM   : OffSet*=25;  break;
+     case GRID_UNIT_MIL  : OffSet*=1000; break;
+     case GRID_UNIT_INCH : OffSet*=1;  break;
+  }
+
+	x1 = (x - OffSet);		//	Apply zoom factor
+	x2 = (x + OffSet);
+	y1 = (y - OffSet);
+	y2 = (y + OffSet);
+
+//	x1 = min(x1, 32);		//	Ensure we don't go beyond screen limits
+//	x2 = min(x2, 32);
+//	y1 = min(y1, 32);
+//	y2 = min(y2, 32);
+
+	sprintf(cmd, "EDIT .brd;WINDOW (%.6f %.6f) (%.6f %.6f);SHOW '%s';", x1, y2, x2, y1, findb);
+	if(RunInfo){	//	Does user want to see the info on the part?
+		sprintf(tempstr,"INFO (%.6f %.6f);", x ,y);
+		cmd += tempstr;
+	}
+	cmd += "\n";
+	return cmd;
+}
+
+
+
+
+
+/* *******************************************************
+Function	show_S()
+LongName	Write data set as delimited text (\n)
+
+Description	Format data set as Schematics.
+******************************************************* */
+string show_S(int s, real x, real y, string finds) {
+	fcnt++;	//	If this function is called, then we found something, so increment the find counter
+ 	string cmd = "";	//	House keeping
+	string tempstr = "";
+	real OffSet, x1, x2, y1, y2;
+
+	OffSet = Zo + (ZoB|FindPins|FindPads)*Zof;	//	Offset = Zoom + (OFF|ON) & ZoomFactor
+   switch (gridunit) {
+     case GRID_UNIT_MIC  : OffSet*=25400;  break;
+     case GRID_UNIT_MM   : OffSet*=25;  break;
+     case GRID_UNIT_MIL  : OffSet*=1000; break;
+     case GRID_UNIT_INCH : OffSet*=1;  break;
+  }
+	x1 = (x - OffSet);			//	Apply zoom factor
+	x2 = (x + OffSet);
+	y1 = (y - OffSet);
+	y2 = (y + OffSet);
+
+//	x1 = min(x1, 32);			//	Ensure we don't go beyond screen limits
+//	x2 = min(x2, 32);
+//	y1 = min(y1, 32);
+//	y2 = min(y2, 32);
+	sprintf(cmd, "EDIT .s%d;WINDOW (%.6f %.6f) (%.6f %.6f);SHOW '%s';", s, x1, y2, x2, y1, finds);
+	if(RunInfo){	//	Does user want to see the info on the part?
+		sprintf(tempstr,"INFO (%.6f %.6f);", x ,y);
+		cmd += tempstr;
+	}
+	cmd += "\n";
+	return cmd;
+}
+
+
+
+
+
+
+int findBus(string name, string sfind) {
+  string bn[];
+  int b = strsplit(bn, name, ',');
+  for (int x = 0; x <= b; x++) {
+    if(bn[x] == sfind) return 1;
+  }
+  return 0;
+}
+
+
+
+
+
+// Main
+
+
+string WhatToFind = getfind();	//	Get the data from the USER
+
+if (!CaseSens)
+	WhatToFind = strupr(WhatToFind);
+
+if (!find) find = WhatToFind;
+if (!find) exit (0);	//	I guess the USER entered nothing, or hit cancel
+
+
+
+
+// *** Board coord. ***
+if (board) {
+   board(B) {
+      gridunit = (B.grid.unit);
+      B.elements(E) {
+         if (E.name == find) {
+            RunOnExit += show_B(u2u(E.x), u2u(E.y), find, all);
+            sprintf(foundelement, "Element %s on (%.3f %.3f)", E.name ,u2u(E.x), u2u(E.y) );
+            check(RunOnExit);
+         }
+      }
+      B.signals(S) {
+         if (S.name == find) {
+            S.contactrefs(C) {
+               RunOnExit += show_B(u2u(C.contact.x), u2u(C.contact.y), find, all);
+               if (all <= 0) check (RunOnExit);
+               all--;
+            }
+         }
+      }
+      B.signals(S) {
+         if (S.name == find ) {
+            S.wires(W) {
+               RunOnExit += show_B( u2u((W.x1 + W.x2)/2), u2u((W.y1 + W.y2)/2), find, all);
+               if (all <= 0) check(RunOnExit);
+               all--;
+            }
+         }
+      }
+      B.signals(S) {
+         if (S.name == find ) {
+            S.vias(V) {
+               RunOnExit += show_B(u2u(V.x), u2u(V.y), find, all);
+               sprintf(foundelement, "Element on (%.3f %.3f) %s<br><b>VIA</b><br><table><tr><td>Layer</td><td>Diameter</td><td>Restring</td></tr><tr><td>Top</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Inner</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Bottom</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Drill</td><td>%.3f</td></tr></table>",
+                                                    u2u(V.x), u2u(V.y),
+                                                    unit[gridunit],
+                                                    u2u(V.diameter[1]),
+                                                    u2u( (V.diameter[1] - V.drill) / 2),
+                                                    u2u(V.diameter[2]),
+                                                    u2u( (V.diameter[2] - V.drill) / 2),
+                                                    u2u(V.diameter[16]),
+                                                    u2u( (V.diameter[16] - V.drill) / 2),
+                                                    u2u(V.drill)
+                                                    );
+               if (all <= 0) check(RunOnExit);
+               all--;
+            }
+         }
+      }
+      B.elements(E) {
+         if (E.value == find) {
+            RunOnExit += show_B(u2u(E.x), u2u(E.y), E.name, all);
+            sprintf(foundelement, "Element %s on (%.3f %.3f)", E.name ,u2u(E.x), u2u(E.y) );
+            if (all <= 0) check(RunOnExit);
+            all--;
+         }
+      }
+      B.elements(E) {
+         if (FindPads) {
+            E.package.contacts(C) {
+               if (C.pad) {
+                  if (C.pad.name == find) {
+                     RunOnExit += show_B(u2u(C.pad.x), u2u(C.pad.y), E.name, all);
+                     sprintf(foundelement, "<br>PAD <b>%s</b> on (%.3f %.3f) %s [Element %s]<br><table><tr><td>Layer</td><td>Diameter</td><td>Restring</td></tr><tr><td>Top</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Inner</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Bottom</td><td>%.3f</td><td>%.3f</td></tr><tr><td>Drill</td><td>%.3f</td></tr></table>",
+                                                    C.pad.name,
+                                                    u2u(C.pad.x), u2u(C.pad.y),
+                                                    unit[gridunit],
+                                                    E.name,
+                                                    u2u(C.pad.diameter[1]),
+                                                    u2u( (C.pad.diameter[1] - C.pad.drill) / 2),
+                                                    u2u(C.pad.diameter[2]),
+                                                    u2u( (C.pad.diameter[2] - C.pad.drill) / 2),
+                                                    u2u(C.pad.diameter[16]),
+                                                    u2u( (C.pad.diameter[16] - C.pad.drill) / 2),
+                                                    u2u(C.pad.drill)
+                                                    );
+                     if (all <= 0) check(RunOnExit);
+                     all--;
+                  }
+               }
+               if (C.smd) {
+                  if (C.smd.name == find) {
+                     RunOnExit += show_B(u2u(C.smd.x), u2u(C.smd.y), E.name, all);
+                     sprintf(foundelement, "<br>SMD <b>%s</b> on  (%.3f %.3f)  %s [Element %s]",
+                                                  C.smd.name,
+                                                  u2u(C.smd.x), u2u(C.smd.y),
+                                                  unit[gridunit],
+                                                  E.name
+                                                  );
+                     if (all <= 0) check(RunOnExit);
+                     all--;
+                  }
+               }
+            }
+         }
+      }
+   }
+   if (RunOnExit) check(RunOnExit);
+   dlgMessageBox("<b>" + dpbacksl(find) + "</b> not found!", "OK");
+   exit (0);
+}
+
+
+
+
+
+// *** Schematic coord. ***
+if (schematic) {	//	Detect if ULP is running in the schematic page
+   schematic(S) {
+      gridunit = (S.grid.unit);
+      S.sheets(SH) {
+		sprintf(TEMP, "\nSCHEMATIC SHEET #%d\n", SH.number);
+		foundelement += TEMP;
+
+
+         if (FindPins) {	//	Search on PINs
+foundelement += "\nSearching PINs\n\n";
+            SH.parts(PA) {
+               PA.instances(IN) {
+                  IN.gate.symbol.pins(P) {  // Pin
+                     if (P.name == find || strsub(P.name,0,WildCard) == find) {
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s		%s	%s\n", u2u(P.x), u2u(P.y), IN.name, P.name, PA.value);
+			foundelement += TEMP;
+                        RunOnExit += show_S(IN.sheet, u2u(P.x), u2u(P.y),  PA.name);
+                        if (all <= 0) check(RunOnExit);
+                        all--;
+                     }
+                  }
+               }
+            }
+         }
+
+         if (FindPads) {	//	Search on PADS
+foundelement += "\nSearching PADs\n\n";
+            SH.parts(PA) {
+               PA.instances(IN) {
+                  IN.gate.symbol.pins(P) {
+                     if (P.contact) {
+                        if (P.contact.name == find || strsub(P.contact.name,0,WildCard) == find) {
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s		%s	%s\n", u2u(IN.x), u2u(IN.y), PA.name, P.name, PA.value);
+				foundelement += TEMP;
+				RunOnExit += show_S(IN.sheet, u2u(P.x), u2u(P.y), PA.name);
+                           if (all <= 0) check(RunOnExit);
+                           all--;
+                        }
+                     }
+                  }
+               }
+            }
+         }
+
+	//	Search on PARTs
+	if (FindComp) {
+foundelement += "\nSearching PARTS\n\n";
+         SH.parts(PA) {
+            if (PA.name == find || strsub(PA.name,0,WildCard) == find) {	//	Check this part, do we have a match?
+               PA.instances(IN) {
+                  if (IN.sheet) {
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s		%s\n", u2u(IN.x), u2u(IN.y), IN.name, IN.value);
+			foundelement += TEMP;
+			RunOnExit += show_S(IN.sheet, u2u(IN.x), u2u(IN.y), PA.name);
+
+                     if (all <= 0) check(RunOnExit);
+                     all--;
+                  }
+               }
+            }
+         }
+	}
+
+	if (FindNets) {
+foundelement += "\nSearching NET LIST\n\n";
+         SH.nets(N) {
+            if (N.name == find || strsub(N.name,0,WildCard) == find) {
+               N.segments(SEG) {
+                  SEG.wires(W) {
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s		Width = %.3f\n", u2u(W.x1), u2u(W.y1), N.name, u2u(W.width));
+			foundelement += TEMP;
+			RunOnExit += show_S(SH.number, u2u((W.x1 + W.x2) /2), u2u((W.y1 + W.y2) / 2), find);
+                     if (all <= 0) check(RunOnExit);
+                     all--;
+                  }
+               }
+            }
+         }
+	}
+
+	if (FindNets) {
+foundelement += "\nSearching BUSSED NETs\n\n";
+         SH.busses(B) {
+            if (findBus(B.name, find)) {
+               B.segments(SEG) {
+                  SEG.wires(W) {
+			sprintf(TEMP, "BUS %s in sheet %d on (%.3f %.3f)\n",B.name, SH.number, u2u(W.x1), u2u(W.y1));
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s\n", u2u(W.x1), u2u(W.y1), B.name);
+			foundelement += TEMP;
+                     RunOnExit += show_S(SH.number, u2u((W.x1 + W.x2) /2), u2u((W.y1 + W.y2) / 2), B.name);
+                     if (all <= 0) check(RunOnExit);
+                     all--;
+                  }
+               }
+            }
+         }
+	}
+
+	if (FindEmbd) {
+foundelement += "\nSearching Embedded PARTs\n\n";
+         SH.parts(PA) {
+            PA.instances(IN) {             // Gate
+               if (PA.value == find || strsub(PA.value,0,WildCard) == find) {
+			sprintf(TEMP, "	(%00.3f %00.3f)		%s		%s\n", u2u(IN.x), u2u(IN.y), PA.name, PA.value);
+			foundelement += TEMP;
+
+                  RunOnExit += show_S(IN.sheet, u2u(IN.x), u2u(IN.y), PA.name);
+                  if (all <= 0) check(RunOnExit);
+                  all--;
+               }
+            }
+         }
+      }
+}
+
+   }
+   check(RunOnExit);
+}
+else {
+   dlgMessageBox("Start this ULP from schematic or board!", "OK");
+   exit (0);
+}

@@ -1,0 +1,111 @@
+#usage  "<b> rename nets by adding a suffix to the net name</b>\n"
+         "<p>"
+	"Useful when merging two or more designs to ensure that "
+	"no elements overlap, use in conjunction with cmd-renumber_2.ulp"
+	" for renaming components"
+	"<p>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND,
+// EXPRESSED OR IMPLIED.
+
+/*
+
+ *
+ * Netlist (Script) for RENAME of the networks (Signale) in layout 
+ *  TEST-VERSION Author: A. Zaffran 13.01.2000 alf@cadsoft.de
+ * 
+ * original ULP modified by David Moodie
+ * quick and dirty mod to add a suffix to net names to ensure names are unique
+ * 11-11-2002 change active layers to ensure nets 
+ * avoids renaming components with same co-ords
+ */
+
+
+
+real Grid = 100; // in 100 Mil
+string Version = "RENAMSIG.ULP Version 1.3";
+
+int index[];
+int pg = 0;
+
+
+string n_sub = "_1";          // modify this suffix as required
+string cmd;
+string c;
+numeric string    n[];        // Signalname
+        int       ix[];
+        int       iy[];
+
+void setgridmil (void) 
+
+{
+  cmd+= "GRID mil 50;\n";
+  cmd+= "display none 1  16;\n";
+// set for 2 layer board
+  
+}
+
+
+void namescript(void)
+{
+  // Sort by: name 
+  sort(pg, index, n);  
+  
+  for (int i = 0; i < pg; i++) {
+    sprintf(c, "NAME '%s' (%.2f %.2f);\n", n[i], u2mil(ix[i]), u2mil(iy[i])); cmd +=c;
+//    sprintf(c, "NAME (%.2f %.2f) '%s';\n", u2mil(ix[i]), u2mil(iy[i]), n[i]); cmd +=c;
+    }
+}
+
+
+// ** MAIN **
+if (board) {
+int Result = dlgDialog("Rename Signals") {
+      dlgHBoxLayout {
+         dlgLabel("&n_sub");
+         dlgStringEdit(n_sub);
+                     }
+      
+      dlgHBoxLayout {
+         dlgStretch(0);
+         dlgPushButton("+&OK") dlgAccept();
+         dlgStretch(1);
+         dlgPushButton("-&Cancel") dlgReject();
+         dlgStretch(0);
+         }
+      };
+if (Result ==0) exit(0);
+}
+else {
+   dlgMessageBox("\n    Start this ULP in a Board    \n");
+   exit (0);
+}
+board(B) {
+  output("RENAMSIG.SCR") {
+  
+  setgridmil();
+  
+  
+  // collect all Nets (Signals)
+    B.signals(S) {
+      S.wires(W)    {
+          n[pg]  = S.name + n_sub;
+          ix[pg] = W.x1;
+          iy[pg] = W.y1;
+          pg++;
+          break;
+          }
+      }
+  namescript();
+
+  sprintf(c, "GRID LAST;\n"); cmd +=c;
+  cmd+= "display 1  16 17 18 19 20 21 40 41 -27;\n";
+// set for 2 layer board
+output("renamsig.scr" , "wt") {printf (cmd);    
+}
+}
+
+exit(cmd);
+
+}
+

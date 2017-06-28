@@ -1,0 +1,24 @@
+string lines[], store[];
+string Text = "";
+int nLines = fileread(lines, "c:\TempData.txt");
+int CountOut = 1;
+string RunOnClose = lines[0];
+
+if (nLines > 1)		//	Don't bother shifting the data if there is only one data set.
+{
+
+	output("c:\TempData.txt", "wt") 
+	{
+		do
+		{
+			printf(lines[CountOut]);
+			printf("\n");
+			CountOut++;
+		} while (CountOut < nLines);
+		printf(RunOnClose);
+	}
+}
+
+exit (RunOnClose);
+
+

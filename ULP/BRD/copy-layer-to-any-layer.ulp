@@ -1,0 +1,509 @@
+#usage "<qt><b>Copy Wire (Polygon Wire) to any layer</b><p>"
+       "This ULP copies copper wire and/or polygon from layer (1 or 16) of selected signals into "
+       "any layer in order.<p>"
+       "If the selected layer not a copper layer, than copies also RECT, CIRCLE and TEXT.<br>"
+       "Use:<br><nobr>"
+       "run copy-wire-to-any-layer.ulp [signalname] [signalname] <br>"
+       "run copy-wire-to-any-layer.ulp $nameoff$<br>"
+       "run copy-wire-to-any-layer.ulp -p [signalname] [signalname]<br>"
+       "run copy-wire-to-any-layer.ulp +p [signalname] [signalname]<br>"
+       "run copy-wire-to-any-layer.ulp -p -f [signalname] [signalname]<br>"
+       "run copy-wire-to-any-layer.ulp +p +f [signalname] [signalname]<br>"
+       "$nameoff$ switches off the checking of net names<p>"
+       "Options are case sensitive.<br>"
+       "<b>$nameoff$</b> copy all signals.<br>"
+       "<b>-p</b> copies also polygons.<br>"
+       "<b>+p</b> copies only polygons.<br>"
+       "<b>-f</b> copies only polygon contour as polygon.<br>"
+       "<b>-f</b> copies polygon contour and filling as wire.<br>"
+       "</nobr>"
+       "<author>Author: support@cadsoft.de</author></qt>"
+
+//     THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED.
+
+string Version = "Version 1.5";     //  2008-04-23 check is a polygon placed
+                                    //             changed menu to copy to any layer
+                                    //  2008-05-05 renamed from "copy-wire-to-solder-mask.ulp" to
+                                    //             "copy-wire-to-any-layer.ulp"
+                                    //  2008-10-24 renamed to copy-layer-to-any-layer.ulp
+                                    //             copy also rect, circle, text and non copper layer
+                                    //  2009-01-28 check polygon filling on orphan
+                                    //  2009-04-28 copy also not copper layer with RECT, CIRCLE, TEXT
+
+
+int    NameOff     = 0;    // 0 = copy by signal name
+                           // 1 = copy without signal name (all)
+int    PolygonOn   = 1;    // copy also polygon
+int    onlyPolygon = 0;
+int    fillPolygon = 0;    // copy only polygon contour or copy polygon filling as wire 2006.01.20 alf
+int    PolygonAsPolygon = 1; // 2009.-04-28 alf
+int    PolygonContours  = 0;
+int    ploycontourleft  = 0;
+int    cntp        = 0;
+string isRatsnest;
+string isLayer     = "";
+int    isLayerNb   = 0;
+string toLayer     = "";
+
+string fromName[], toName[];
+       fromName[0] = "";
+       toName[0] = "";
+int    fromNumber;
+int    toNumber;
+int    fcntLay = 0;
+int    fromlNumber[];
+
+int    lNumber[];
+int    cntLay = 0;
+int    selisLayer = 0, seltoLayer = 0;
+
+string signals[]   = { "" };
+string chsignals[] = { "" };
+int    chngsig     = 0;
+int    lastSigCh   = -1;
+int decs;
+
+int n = 1;
+
+string cmd;
+string c;
+
+string Tfont[] = { "VECTOR", "PROPORTIONAL", "FIXED" };
+
+
+// *************************************
+int found(string fnam) {
+  int fnd = 0;
+  do {
+    if (chsignals[fnd] == fnam) {
+      return 1;
+      break;
+    }
+    ++fnd;
+  } while (chsignals[fnd]);
+  return 0;
+}
+
+
+int getlayernumber(string isL) {
+  board(B) B.layers(L) if (L.name == isL) return (L.number);
+  return 0;
+}
+
+
+void changeLayer(void) {
+  sprintf(c, "CHANGE LAYER %d;\n", toNumber);
+  cmd+= c;
+  return;
+}
+
+
+int delfromList(int selct) {
+  if (lastSigCh >= 0) {
+    lastSigCh--;
+    for (int r = selct; r <= lastSigCh; r++) {
+      chsignals[r] = chsignals[r + 1];
+    }
+    chsignals[lastSigCh + 1] = "";
+  }
+  return selct;
+}
+
+void  AddList (string SigName) {
+  int nofound = 1;
+  for (int r = 0; r <= lastSigCh; r++) {
+    if (chsignals[r] == SigName) {
+      nofound = 0;
+      break;
+    }
+  }
+  if (nofound) {
+    lastSigCh++;
+    if (lastSigCh > 0) {
+      for (int x = lastSigCh; x > 0; x--) {
+        chsignals[x] = chsignals[x - 1];
+      }
+    }
+    chsignals[0] = SigName;
+  }
+  return;
+}
+
+
+void AddArgument(int n) {
+  do {
+    AddList(strupr(argv[n]));
+    n++;
+  } while(argv[n]);
+  return;
+}
+
+
+// 2009-04-28 die print funktionen
+void printW(UL_WIRE W) {
+  if (W.layer == fromNumber) {
+    sprintf(c, "WIRE %.4f (%.4f %.4f) %+.1f (%.4f %.4f);\n",
+               u2mm(W.width),
+               u2mm(W.x1), u2mm(W.y1), W.curve, u2mm(W.x2), u2mm(W.y2)
+           );
+    cmd+= c;
+  }
+  return;
+}
+
+
+void printC(UL_CIRCLE C) {
+  if (C.layer == fromNumber) {
+    sprintf(c, "CIRCLE %.4f (%.4f %.4f) (%.4f %.4f);\n",
+               u2mm(C.width),
+               u2mm(C.x), u2mm(C.y), u2mm(C.x + C.radius), u2mm(C.y)
+           );
+    cmd+= c;
+  }
+  return;
+}
+
+
+void printR(UL_RECTANGLE R) {
+  if (R.layer == fromNumber) {
+    sprintf(c, "RECT R%.1f (%.4f %.4f) (%.4f %.4f);\n",
+               R.angle,
+               u2mm(R.x1), u2mm(R.y1), u2mm(R.x2), u2mm(R.y2)
+            );
+    cmd+= c;
+  }
+  return;
+}
+
+
+void printT(UL_TEXT T) {
+  if (T.layer == fromNumber) {
+    string Spin = "";
+    if (T.spin) Spin = "S";
+    sprintf(c, "CHANGE SIZE %.4f;\n", u2mm(T.size) );
+    cmd+= c;
+    sprintf(c, "CHANGE FONT %s;\n", Tfont[T.font] );
+    cmd+= c;
+    sprintf(c, "TEXT %sR%.1f '%s' (%.4f %.4f);\n",
+               Spin,
+               T.angle,
+               T.value, u2mm(T.x), u2mm(T.y)
+            );
+    cmd+= c;
+  }
+  return;
+}
+
+
+void printP(UL_POLYGON P) {
+  if (PolygonAsPolygon) {
+    if (PolygonContours) {
+      int i = -1;
+      int active;
+      int first = 0;
+      if (ploycontourleft) i = -1;
+      else i = 1;
+      do {
+        active = 0;
+        P.contours(W, i) {
+          active = i;
+          if (first != i) {
+            sprintf(c, "POLYGON %.4f (%.4f %.4f) %+.1f (%.4f %.4f) \n",
+                        u2mm(W.width),
+                        u2mm(W.x1), u2mm(W.y1),
+                        W.curve,
+                        u2mm(W.x2), u2mm(W.y2)
+                   );
+            cmd+=c;
+            first = i;
+          }
+          else {
+            sprintf(c, " %+.1f (%.4f %.4f) \n",
+                        W.curve,
+                        u2mm(W.x2), u2mm(W.y2)
+                   );
+            cmd+=c;
+          }
+        }
+        if (ploycontourleft) i--;
+        else i++;
+        cmd += ";\n";  // close the polygon command
+
+      } while (active);
+    }
+    else {
+      int first = 1;
+      P.wires(W) {
+        if (first) {
+          sprintf(c, "POLYGON %.4f (%.4f %.4f) %+.1f (%.4f %.4f) \n",
+                      u2mm(W.width),
+                      u2mm(W.x1), u2mm(W.y1),
+                      W.curve,
+                      u2mm(W.x2), u2mm(W.y2)
+                 );
+          cmd+=c;
+          first = 0;
+        }
+        else {
+          sprintf(c, " %+.1f (%.4f %.4f) \n",
+                      W.curve,
+                      u2mm(W.x2), u2mm(W.y2)
+                 );
+          cmd+=c;
+        }
+      }
+      cmd += ";\n";  // close the polygon command
+    }
+  }
+  else {
+    P.contours(W) printW(W);
+    if (fillPolygon) P.fillings(W) printW(W);
+  }
+  return;
+}
+
+
+// die Contacts werden noch nicht ausgegeben 2009-04-28 alf
+void printCon(UL_CONTACT C) {
+  if (C.smd) {
+    if (C.smd.layer == fromNumber) {
+//      angle
+    }
+  }
+  else { // Pad
+    if (fromNumber >= 1 && fromNumber <= 16) {
+//      diameter[fromNumber]
+//      shape[fromNumber]
+//      angle
+    }
+  }
+  return;
+}
+
+
+
+// alle nicht Kupferlayer ausgeben
+void copy_any_layer(void) {
+  board(B) {
+    B.wires(W)      printW(W);
+    B.circles(C)    printC(C);
+    B.rectangles(R) printR(R);
+    B.texts(T)      printT(T);
+    B.polygons(P)   printP(P);
+
+    B.elements(E) {
+      E.package.wires(W)      printW(W);
+      E.package.circles(C)    printC(C);
+      E.package.rectangles(R) printR(R);
+      E.package.texts(T)      printT(T);
+      E.package.polygons(P)   printP(P);
+      E.package.contacts(C)   printCon(C);
+    }
+  }
+  return;
+}
+
+
+void collectlayer(void) {
+  board(B) B.layers(L) {
+    if (L.used) {
+      fromName[fcntLay] = L.name;
+      fromlNumber[fcntLay] = L.number;
+      fcntLay++;
+      fromName[fcntLay] = "";
+      fromlNumber[fcntLay] = 0;
+    }
+    toName[cntLay] = L.name;
+    lNumber[cntLay] = L.number;
+    cntLay++;
+    toName[cntLay] = "";
+    lNumber[cntLay] = 0;
+  }
+  return;
+}
+
+void menue() {
+  string tempSignal0 = signals[0];
+  string tempSignal1 = signals[1];
+  int srt = 0;
+  int tempNameOff = NameOff;
+  string CopyAllInfo = "<nobr><i>also without signal name</i></nobr>";
+  if (argc > 1) {
+    if (argv[1] == "-p" || argv[1] == "+p" || argv[1] == "$nameoff$") {
+      if (argv[1] == "-p") PolygonOn = 1;
+      if (argv[1] == "+p") onlyPolygon = 1;
+      if (argv[2] == "-f") fillPolygon = 0;   // 2006.01.20 alf
+      if (argv[2] == "+f") fillPolygon = 1;
+      if (argv[1] == "$nameoff$") { NameOff = 1; AddArgument(2); }
+      else if (argv[2] == "$nameoff$") { NameOff = 1; AddArgument(3); }
+      else  AddArgument(2);
+      if (argv[2] == "$nameoff$") { NameOff = 1; AddArgument(3); }
+      else if (argv[3] == "$nameoff$") { NameOff = 1; AddArgument(4); }
+      else  AddArgument(3);
+    }
+    else AddArgument(1);
+  }
+  else {
+    string slist[];
+    int Result = dlgDialog(filename(argv[0])) {
+      dlgHBoxLayout dlgSpacing(250);
+      dlgHBoxLayout {
+        dlgCheckBox("&Copy all ", NameOff);
+        dlgLabel(CopyAllInfo, 1);
+        dlgStretch(1);
+      }
+      dlgSpacing(10);
+      dlgStretch(0);
+      dlgLabel("&Add signal to list");
+      dlgComboBox(signals, chngsig) { AddList(signals[chngsig]); dlgRedisplay();}
+      dlgSpacing(12);
+      dlgLabel("&Delete signal from list");
+      dlgComboBox(chsignals, decs) decs = delfromList(decs);
+      dlgGroup("Polygon") {
+        dlgCheckBox("Copy &polygon with signal name", PolygonOn);
+        dlgCheckBox("Copy &only polygons", onlyPolygon);
+        dlgGroup("wire/poly") {
+          dlgHBoxLayout {
+            dlgRadioButton("Copy polygon as &wire",PolygonAsPolygon);
+            dlgRadioButton("Copy polygon &as polygon",PolygonAsPolygon);
+          }
+        }
+        dlgGroup("outline/inner") {
+          dlgHBoxLayout {
+            dlgRadioButton("Copy polygon defintition",PolygonContours);
+            dlgRadioButton("Copy polygon contours",PolygonContours);
+          }
+        }
+        dlgGroup("outer/inner rotation") {
+          dlgHBoxLayout {
+            dlgRadioButton("left rotation (outer) contour", ploycontourleft);
+            dlgRadioButton("right rotation (inner) contour", ploycontourleft);
+          }
+        }
+        dlgHBoxLayout {
+          dlgRadioButton("Copy conto&ur", fillPolygon);
+          dlgRadioButton("Copy &filling", fillPolygon);
+        }
+      }
+      dlgHBoxLayout {
+        dlgListView("from Layer", fromName, selisLayer, srt) {
+          fromNumber = getlayernumber(fromName[selisLayer]);
+          if (fromNumber > 16) {
+            tempSignal0 = signals[0];
+            tempSignal1 = signals[1];
+            signals[0] = "Kein Kupferlayer";
+            signals[1] = "";
+            tempNameOff = NameOff;
+            NameOff = 1;
+          }
+          else if (signals[0] = "Kein Kupferlayer") {
+            signals[0] = tempSignal0;
+            signals[1] = tempSignal1;
+            NameOff = tempNameOff;
+          }
+        }
+        dlgListView("to Layer", toName, seltoLayer, srt) toNumber = getlayernumber(toName[seltoLayer]);
+        dlgStretch(1);
+      }
+      dlgLabel("If you want to change the default setting, type in the appropriate layer numbers here.");
+      dlgHBoxLayout {
+        dlgIntEdit(fromNumber);
+        dlgIntEdit(toNumber);
+        dlgStretch(1);
+      }
+      dlgSpacing(10);
+      dlgHBoxLayout {
+        dlgPushButton("+OK") {
+          if (!fromNumber || !toNumber) dlgMessageBox("!Select a valid layer", "OK");
+          else if(fromNumber == toNumber) dlgMessageBox("!Select a differnt layer from <-> to", "OK");
+          else if(fromNumber <= 16 && lastSigCh < 0 && !NameOff) dlgMessageBox("!Select one or more signal(s)", "OK");
+          else dlgAccept();
+        }
+        dlgPushButton("-Cancel") dlgReject();
+        dlgStretch(1);
+        dlgLabel(Version);
+        dlgStretch(1);
+        dlgPushButton("&Help") dlgMessageBox(usage, "OK");
+      }
+      dlgStretch(0);
+    };
+    if (Result == 0) exit (0);
+  }
+  isLayerNb = fromNumber; // 2009-04-24
+  return;
+}
+
+
+// main
+if (board) board(B) {
+  isRatsnest = "! Start RATSNEST first!";
+  int cntPoly = 0;
+  B.signals(S) {
+    S.polygons(P) {
+      cntPoly++;
+      P.fillings(F) {
+        isRatsnest = "";
+        break;
+      }
+      if (isRatsnest) { // check a orphan 2009-01-28 alf@cadsoft.de
+        P.wires(W) {
+          sprintf(isRatsnest, "Start RATSNEST and check polygon on (%.4f %.4f) mm!", u2mm(W.x1), u2mm(W.y1) );
+          dlgMessageBox(isRatsnest, "OK");
+          sprintf(isRatsnest, "GRID MM;\nWIN (%.4f %.4f);\nGRID LAST;\n", u2mm(W.x1), u2mm(W.y1) );
+          exit(isRatsnest);
+        }
+      }
+    }
+  }
+  if (cntPoly) {
+    if (isRatsnest) {
+      dlgMessageBox(isRatsnest, "OK");
+      exit(0);
+    }
+  }
+  int s = 0;
+  B.signals(S) {
+    signals[s] = S.name;
+    s++;
+  }
+  collectlayer();
+  menue();
+  sprintf(c, "GRID MM;\nSET WIRE_BEND 2;\nSET UNDO OFF;\n");
+  cmd+= c;
+  changeLayer();
+  if (isLayerNb > 16) copy_any_layer();
+  else {
+    B.signals(S) {
+      if (found(S.name) || NameOff || onlyPolygon) {
+        if (!onlyPolygon) {
+          S.wires(W) {
+            if (fromNumber == W.layer) printW(W);
+          }
+        }
+        // ##### ACHTUNG #####
+        // POLYGONE die kein *echtes* SIGNAL sind, also nicht an einen PAD oder SMD angebunden sind,
+        // werden nicht ausgegeben, weil signals(S) nur durch echte Signale läuft.
+        /**************************************************************************/
+        if (PolygonOn) {
+          S.polygons(POL) {
+            if (fromNumber == POL.layer) {
+              printP(POL);
+            }
+          }
+        }
+      }
+    }
+  }
+  sprintf(c, "SET UNDO ON;\nGRID LAST;\n");
+  cmd+= c;
+dlgDialog("test") {
+  dlgTextEdit(cmd);
+  dlgHBoxLayout {
+    dlgPushButton("+OK") dlgAccept();
+    dlgPushButton("-Cancel") { dlgReject(); exit(-1); }
+    dlgStretch(1);
+  }
+};
+  exit (cmd);
+}
+else dlgMessageBox("! Start this ULP in a Board", "OK");

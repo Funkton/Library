@@ -1,7 +1,43 @@
 This is a wishlist of ULPs or system mods for Eagle.
 
+CORE:
 - Shortcut modifiers. Ability to modify shortcut options from menu (or other shortcuts)
-	Set shortcut to PRESET launcher.
-	Set preset option from text menu (stored in eaglerc.user)
+	
 
-	Usage idea. Set preset options from POUR menu, that way pour preset (F5) can be changed from the menu. (pour gnd or only v nets).
+- LAYER: Create a running history of display settings to enable BACK and FORWARD. Just like web browser.
+
+	
+
+- DISPLAY:
+	-> Highlight layer focus. Currently a thin dotted border.
+	-> On dialog OK, change layer to last in focus. Or at least keep tools from turning on hidden layers.
+		- Keep a history and use the last changed layer for the layers still visible.
+
+- DISPLAY replacement ulp:
+	-> Layer change on exit.
+	-> Checkboxes for show (can it do an apply when changing checkboxes?)
+	-> Highlight modes radio items. No fill, semi-fill, solid-fill.
+	-> Grayscale mode to remove color (setup grayscale section of palette)
+	-> Per project display aliases
+
+ULP:
+
+- Functions to handle cfgget and set and would do the type conversions. (real to str, int to string, etc)
+
+DONE - Found trace-layer.ulp - Ulp to Solo layer and cycle for single layer checking.
+
+- Schematic context item "Add to brd group". Would add selected part to the current board group.
+
+- Display presests which use layer fill changes to create high contrast modes.
+	- Started with scr files to experiment with fill settings
+
+- GROUP INFO: Ulp to run info on group. Group does not allow group activation of INFO tool. I think I remember seeing a ulp somewhere.
+
+- Context menu for polygon to pour individual.
+	-> Pour Manager: 
+
+- UlP to hide all layers (SET USED) that do not contain any objects.
+
+Set shortcut to PRESET launcher.
+	Set preset option from text menu (stored in eaglerc.user)
+	- CFGTOGGLE Usage idea. Set preset options from POUR menu, that way pour preset (F5) can be changed from the menu. (pour gnd or only v nets).

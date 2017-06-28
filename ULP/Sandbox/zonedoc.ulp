@@ -1,0 +1,224 @@
+// This ULP creates 2 layers:
+//   110 = tZone      Top side zone plan
+//   111 = bZone      Bottom side zone plan
+// and draws a zone grid. Two files are created:
+//   ZoneDoc.scr      Creates the grid
+//   workfile.zone    Zone info file. workfile is the actually opened eagle filename
+
+
+int t_ratio = 10;	// Standard ratio to use
+int t_size = 63500;	// Standard text size to use
+
+int g_width = 100, g_ratio = 10, g_size = 63500;
+int g_side = 0, g_layer = 0; // Top
+
+int g_zone_width = 40;  // Zone width is 40mm
+int g_zone_height = 40; // Zone height is 40mm
+int g_zone_dist = 10;   // Distance of zone doc from print outline
+
+int g_min_x = 0, g_min_y = 0;
+int g_max_x = 0, g_max_y = 0;
+
+void PartLine(string Name, string Value, string Package, string Library, string Side, string Zone)
+{
+  printf("%-*s %-*s %-*s %-*s %-*s %s\n",
+         ELEMENT_NAME_LENGTH, Name,
+         ELEMENT_VALUE_LENGTH, Value,
+         PACKAGE_NAME_LENGTH, Package,
+         LIBRARY_NAME_LENGTH, Library,
+         8, Side, Zone);
+}
+
+if (board) board(B) {
+  int x, y;
+  real zx, zy;
+
+  output("ZoneDoc.scr") {
+    int nx, ny;
+    real dx, dy, mx, my;
+    char c = 'A', d = '1';
+
+    printf("GRID mm 0.635;\n");
+    printf("CHANGE WIDTH %f;\n", u2mm(g_width));
+    printf("CHANGE RATIO %d;\n", g_ratio);
+    printf("CHANGE SIZE %f;\n", u2mm(g_size));
+    printf("SET WIRE_STYLE 2;\n");
+    printf("LAYER 110 tZone;\n");
+    printf("LAYER 111 bZone;\n");
+    B.wires(W) {
+      if (W.layer == 20) {  // Only draw wires on the dimension layer
+        g_min_x = min(min(g_min_x, W.x1), W.x2);
+        g_min_y = min(min(g_min_y, W.y1), W.y2);
+        g_max_x = max(max(g_max_x, W.x1), W.x2);
+        g_max_y = max(max(g_max_y, W.y1), W.y2);
+      }
+    }
+    printf("CHANGE LAYER 110;\n");
+    nx = u2mm(g_max_x - g_min_x) / g_zone_width;
+    if (nx * g_zone_width < u2mm(g_max_x - g_min_x)) nx++;
+    ny = u2mm(g_max_y - g_min_y) / g_zone_height;
+    if (ny * g_zone_height < u2mm(g_max_y - g_min_y)) ny++;
+    dx = (g_zone_width - u2mm(g_size)) / 2;
+    dy = g_zone_dist + 5;
+    zx = u2mm(g_min_x) + (u2mm(g_max_x - g_min_x) - nx * g_zone_width) / 2;
+    zy = u2mm(g_min_y) + (u2mm(g_max_y - g_min_y) - ny * g_zone_height) / 2;
+    mx = zx + nx * g_zone_width;
+    my = zy + ny * g_zone_height;
+    for (x = 0; x < nx; x++) {
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx + x * g_zone_width, zy - g_zone_dist - 10,
+             zx + x * g_zone_width, zy - g_zone_dist);
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx + x * g_zone_width, my + g_zone_dist + 10,
+             zx + x * g_zone_width, my + g_zone_dist);
+      printf("TEXT '%c' R0 (%f %f);\n", c, zx + dx + x * g_zone_width, zy - dy - u2mm(g_size) / 2);
+      printf("TEXT '%c' R0 (%f %f);\n", c, zx + dx + x * g_zone_width, my + dy - u2mm(g_size) / 2);
+      c++;
+    }
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx + x * g_zone_width, zy - g_zone_dist - 10,
+           zx + x * g_zone_width, zy - g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx + x * g_zone_width, my + g_zone_dist + 10,
+           zx + x * g_zone_width, my + g_zone_dist);
+    for (y = 0; y < ny; y++) {
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx - g_zone_dist - 10, zy + y * g_zone_height,
+             zx - g_zone_dist, zy + y * g_zone_height);
+      printf("WIRE (%f %f) (%f %f);\n", 
+             mx + g_zone_dist + 10, zy + y * g_zone_height,
+             mx + g_zone_dist, zy + y * g_zone_height);
+      printf("TEXT '%c' R0 (%f %f);\n", d, zx - dy - 0.8 * u2mm(g_size) / 2, zy + dx + y * g_zone_height);
+      printf("TEXT '%c' R0 (%f %f);\n", d, mx + dy - 0.8 * u2mm(g_size) / 2, zy + dx + y * g_zone_height);
+      d++;
+    }
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy + y * g_zone_height,
+           zx - g_zone_dist, zy + y * g_zone_height);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist + 10, zy + y * g_zone_height,
+           mx + g_zone_dist, zy + y * g_zone_height);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, zy - g_zone_dist,
+           mx + g_zone_dist, zy - g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist, zy - g_zone_dist,
+           mx + g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, my + g_zone_dist,
+           mx + g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, zy - g_zone_dist,
+           zx - g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy - g_zone_dist - 10,
+           mx + g_zone_dist + 10, zy - g_zone_dist - 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist + 10, zy - g_zone_dist - 10,
+           mx + g_zone_dist + 10, my + g_zone_dist + 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, my + g_zone_dist + 10,
+           mx + g_zone_dist + 10, my + g_zone_dist + 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy - g_zone_dist - 10,
+           zx - g_zone_dist - 10, my + g_zone_dist + 10);
+    printf("CHANGE LAYER 111;\n");
+    for (x = 0; x < nx; x++) {
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx + x * g_zone_width, zy - g_zone_dist - 10,
+             zx + x * g_zone_width, zy - g_zone_dist);
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx + x * g_zone_width, my + g_zone_dist + 10,
+             zx + x * g_zone_width, my + g_zone_dist);
+      printf("TEXT '%c' MR0 (%f %f);\n", c, zx + dx + x * g_zone_width + 0.8 * u2mm(g_size) / 2, zy - dy - u2mm(g_size) / 2);
+      printf("TEXT '%c' MR0 (%f %f);\n", c, zx + dx + x * g_zone_width + 0.8 * u2mm(g_size) / 2, my + dy - u2mm(g_size) / 2);
+      c++;
+    }
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx + x * g_zone_width, zy - g_zone_dist - 10,
+           zx + x * g_zone_width, zy - g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx + x * g_zone_width, my + g_zone_dist + 10,
+           zx + x * g_zone_width, my + g_zone_dist);
+    for (y = 0; y < ny; y++) {
+      printf("WIRE (%f %f) (%f %f);\n", 
+             zx - g_zone_dist - 10, zy + y * g_zone_height,
+             zx - g_zone_dist, zy + y * g_zone_height);
+      printf("WIRE (%f %f) (%f %f);\n", 
+             mx + g_zone_dist + 10, zy + y * g_zone_height,
+             mx + g_zone_dist, zy + y * g_zone_height);
+      printf("TEXT '%c' MR0 (%f %f);\n", d, zx - dy + 0.8 * u2mm(g_size) / 2, zy + dx + y * g_zone_height);
+      printf("TEXT '%c' MR0 (%f %f);\n", d, mx + dy + 0.8 * u2mm(g_size) / 2, zy + dx + y * g_zone_height);
+      d++;
+    }
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy + y * g_zone_height,
+           zx - g_zone_dist, zy + y * g_zone_height);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist + 10, zy + y * g_zone_height,
+           mx + g_zone_dist, zy + y * g_zone_height);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, zy - g_zone_dist,
+           mx + g_zone_dist, zy - g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist, zy - g_zone_dist,
+           mx + g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, my + g_zone_dist,
+           mx + g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist, zy - g_zone_dist,
+           zx - g_zone_dist, my + g_zone_dist);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy - g_zone_dist - 10,
+           mx + g_zone_dist + 10, zy - g_zone_dist - 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           mx + g_zone_dist + 10, zy - g_zone_dist - 10,
+           mx + g_zone_dist + 10, my + g_zone_dist + 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, my + g_zone_dist + 10,
+           mx + g_zone_dist + 10, my + g_zone_dist + 10);
+    printf("WIRE (%f %f) (%f %f);\n", 
+           zx - g_zone_dist - 10, zy - g_zone_dist - 10,
+           zx - g_zone_dist - 10, my + g_zone_dist + 10);
+  }
+  output(filesetext(B.name, ".zone")) {
+    printf("%s\n\n", EAGLE_SIGNATURE);
+    printf("Partlist with zone info exported from %s at %s\n\n", B.name, t2string(time()));
+    PartLine("Part", "Value", "Package", "Library", "Side", "Zone");
+    printf("\n");
+    numeric string ename[], evalue[], pname[], lname[], s[];
+    string side, zone;
+    int cnt = 0, index[];
+    real px[], py[];
+
+    B.elements(E) {
+      ename[cnt] = E.name;
+      evalue[cnt] = E.value;
+      pname[cnt] = E.package.name;
+      lname[cnt] = E.package.library;
+      px[cnt] = u2mm(E.x);
+      py[cnt] = u2mm(E.y);
+      if (E.mirror) s[cnt] = "111"; else s[cnt] = "110";
+      cnt++;
+    }
+    sort(cnt, index, ename);
+    for (int i = 0; i < cnt; i++) {
+      zone = "A1";
+      x = zx + g_zone_width;
+      while (px[index[i]] >= x) {
+        x += g_zone_width;
+        zone[0]++;
+      }
+      y = zy + g_zone_height;
+      while (py[index[i]] >= y) {
+        y += g_zone_height;
+        zone[1]++;
+      }
+      if (s[index[i]] == "110") side = "Top"; else side = "Bottom";
+      PartLine(ename[index[i]], evalue[index[i]],
+               pname[index[i]], lname[index[i]], side, zone);
+    }
+    printf("\n");
+  }
+}

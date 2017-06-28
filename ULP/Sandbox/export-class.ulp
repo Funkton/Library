@@ -1,0 +1,81 @@
+#usage "<b>Export Net-Classes</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+#require 5.0200;
+
+string Version = "1.2"; // 2008-10-24 export Matrix - alf@cadsoft.de
+                        // 2009-01-20 corrected drill options - alf@cadsoft.de
+
+
+string grid[] = { "MIC", "MM", "MIL", "INCH" };
+int Gridval = 1;              // 0=mic 1=mm 2=mil 3=inch    ***
+                              // choose the value for the units you're working with
+
+string cmd, s;
+string projectm;
+
+real u2u(int val) {
+  switch(Gridval) {
+    case 0 : return u2mic(val);
+    case 1 : return u2mm(val);
+    case 2 : return u2mil(val);
+    case 3 : return u2inch(val);
+  }
+}
+
+void savescr(string projectname) {
+  string file = dlgFileSave("save CLASS script", filesetext(projectname, "-class.scr"), "*.scr");
+  if (file) {
+    output(file, "wt" ) printf("%s", cmd);
+    exit(0);
+  }
+  else return;
+}
+
+void menue(string projectname) {
+  int Result = dlgDialog("Export Net CLASSes") {
+     dlgHBoxLayout dlgSpacing(600);
+     dlgHBoxLayout {
+       dlgVBoxLayout dlgSpacing(400);
+       dlgTextEdit(cmd);
+     }
+     dlgHBoxLayout {
+        dlgPushButton("+&Cancel") dlgAccept();
+        dlgPushButton("&Save script") savescr(projectname);
+        dlgStretch(1);
+        }
+     };
+  if (Result == 0) exit (0);
+  return;
+  }
+
+void class(UL_CLASS C) {
+  int classn = C.number;
+  for (int n = 0; n <= C.number; n++) {
+    if (C.name) {
+      sprintf(s, "CLASS %d '%s' %.4f %.4f %.4f %d:%.4f;\n", C.number, C.name, u2u(C.width), u2u(C.clearance), u2u(C.drill), n, u2u(C.clearance[n]) );
+      cmd += s;
+    }
+  }
+}
+
+// main
+if (board) board(B) {
+   projectm = B.name;
+   sprintf(cmd, "# export from %s\n# at %s with %s Version %s\nGRID %s;\n", B.name, t2string(time()), EAGLE_SIGNATURE, Version, grid[Gridval]);
+   B.classes(C) class(C);
+}
+
+else if (schematic) schematic(S) {
+   projectm = S.name;
+   sprintf(cmd, "# export from %s\n# at %s with %s Version %s\nGRID %s;\n", S.name, t2string(time()), EAGLE_SIGNATURE, Version, grid[Gridval]);
+   S.classes(C) class(C);
+}
+
+else if (library) dlgMessageBox("start this ULP in Board or Schematic", "OK");
+
+cmd += "GRID LAST;\nCLASS";
+menue(projectm);

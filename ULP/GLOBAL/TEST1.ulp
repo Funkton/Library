@@ -1,7 +1,0 @@
-#usage "<b>Testing Usage Description</b>"
-"<html><p><img src="https://raw.githubusercontent.com/samyk/samytools/master/eagle/img/throughlayers-ulp.gif" height="148" width="148">"</html>
-
-
-output("TEST.txt") {
-    printf("Hello World\n");
-}

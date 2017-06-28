@@ -1,0 +1,1015 @@
+﻿//EAGLE ULP "explode.ulp"
+//(C) 2012-03-16 Andreas Weidner
+
+/* TODO: - If the current group contains NON-vector texts, a warning should be
+           displayed that decomposed text lines will differ from the
+           currently displayed text. Since this requires the read-out of the
+           'Persistent in this drawing' setting, which cannot be done in
+           EAGLE 6.1.3, the CORRECT implementation of this must wait */
+
+#require 5.1000
+//Earlier EAGLE versions (from 5.0 upwards) MAY be able to run this ULP, but
+//were not tested
+
+#usage "en: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Decompose schematic objects into pure graphics</h3>\n"
+    "This program deletes all objects in the current schematics group "
+    "(including their board counterparts) and replaces visible objects by a "
+    "pure graphical representation (without electrical function) to create "
+    "schematic documentation graphics without affecting the board. The user "
+    "can set decomposing options in a dialog box.<p>"
+    "<author>&copy; 2012-03-16 Andreas Weidner</author></td></tr></table>"
+    "<br><br>"
+    "<b>Usage:</b><dl>"
+    "<dt><tt>RUN explode</tt></dt></dl><hr>"
+    "<b>Notes:</b><ol>"
+    "<li>Information from the layer <b>Pins</b> will be ignored, even if it "
+    "is visible.</li>"
+    "<li>When decomposing texts or polygons into single wires, depending on "
+    "the group complexity, <b>lots</b> of objects might be created, so that "
+    "EAGLE slows down considerably.</li>"
+    "<li>EAGLE 5 has a maximum object count of around 65000 - shortly before "
+    "this is reached, serious warning messages are displayed, which should "
+    "only be ignored under peril of abnormal program termination. EAGLE 6 "
+    "supports a <b>much</b> higher number of objects.</li>"
+    "<li>In case of potential problems with the current group, warnings are "
+    "displayed in the dialog to enable the user to cancel the operation.</li>"
+    "</ol>",
+  "de: <table width=100% cellpadding=5 cellspacing=0 bgcolor=#E0E0E0>"
+    "<tr><td><h3>Schaltplanobjekte in reine Graphik auflösen</h3>\n"
+    "Dieses Programm löscht alle Objekte in der aktuellen Schaltplangruppe "
+    "(inklusive ihrer Platinen-Äquivalente) und ersetzt Sichtbares durch eine "
+    "rein graphische Darstellung (ohne elektrische Funktion) zur Erzeugung "
+    "von Schaltplandokumentation ohne Platinenbeeinflussung. Der Benutzer "
+    "kann Umwandlungsoptionen per Dialogbox einstellen.<p>"
+    "<author>&copy; 2012-03-16 Andreas Weidner</author></td></tr></table>"
+    "<br><br>"
+    "<b>Aufruf:</b><dl>"
+    "<dt><tt>RUN explode</tt></dt></dl><hr>"
+    "<b>Hinweise:</b><ol>"
+    "<li>Informationen aus der <b>Pins</b>-Ebene werden ignoriert, auch wenn "
+    "diese sichtbar ist.</li>"
+    "<li>Beim Auflösen von Texten oder Polygonen in einzelne Linien werden "
+    "je nach Komplexität evtl. <b>sehr</b> viele Objekte erzeugt, sodaß "
+    "EAGLE deutlich langsamer arbeitet.</li>"
+    "<li>EAGLE 5 hat eine maximale Objektanzahl von ungefähr 65000 - kurz "
+    "bevor diese erreicht ist, werden ernste Warnungen angezeigt, die nur "
+    "auf die Gefahr eines abrupten Programmabruchs hin ignoriert werden "
+    "sollten. EAGLE 6 kann <b>deutlich</b> mehr Objekte verwalten.</li>"
+    "<li>Bei potentiellen Problemen mit der aktuellen Gruppe werden im Dialog "
+    "Warnungen angezeigt, damit der Benutzer die Aktion abbrechen kann.</li>"
+    "</ol>"
+
+//----- FUNCTIONS COPIED FROM THE INCLUDE FILE 'awtools.inc'
+//----- (Unsorted. To make this ULP independent of any includes. If
+//----- 'awtools.inc' IS available, just uncomment the next line and delete all
+//----- lines up to the global dialog variables)
+
+//#include "awtools.inc"
+
+string AWIntToStr(int x) {
+  //Returns the integer X formatted as string
+  string Text;
+  sprintf(Text,"%d",x);
+  return Text;
+  }
+
+string AWRealToStr(real x) {
+  //Returns the real number X formatted as string (fixed point, no exponent)
+  string Text;
+  int DotPos,Nr;
+  sprintf(Text,"%f",x);
+  DotPos=strstr(Text,".");
+  if (DotPos>=0)
+    for (Nr=strlen(Text)-1;Nr>=DotPos;Nr--) {
+      if ((Text[Nr]!='0') && (Text[Nr]!='.'))
+        break;
+      else
+        Text=strsub(Text,0,strlen(Text)-1);
+      }
+  return Text;
+  }
+
+string AWMic(int Value) {
+  //Converts VALUE (given in editor units) to microns and returns the
+  //corresponding string
+  string Result;
+  if (frac(u2mic(Value))==0)
+    sprintf(Result,"%d",int(u2mic(Value)));
+  else
+    sprintf(Result,"%f",u2mic(Value));
+  return Result;
+  }
+
+string AWText2Script(string Text,int Backslashes,int ExclamationMarks) {
+  //Converts the string TEXT so that it can be used in a script (each single
+  //quote replaced by two single quotes). If BACKSLASHES!=0, each single
+  //backslash is replaced by two backslashes. If EXCLAMATIONMARKS!=0, each
+  //exclamation mark is escaped with a backslash)
+  int Pos;
+  //Double all single quotes
+  Pos=strstr(Text,"'");
+  while (Pos!=-1) {
+    Text=strsub(Text,0,Pos+1)+strsub(Text,Pos);
+    Pos=strstr(Text,"'",Pos+2);
+    }
+  //Double all backslashes, if desired
+  if (Backslashes) {
+    Pos=strstr(Text,"\\");
+    while (Pos!=-1) {
+      Text=strsub(Text,0,Pos+1)+strsub(Text,Pos);
+      Pos=strstr(Text,"\\",Pos+2);
+      }
+    }
+  //Escape exclamation marks, if desired
+  if (ExclamationMarks) {
+    Pos=strstr(Text,"!");
+    while (Pos!=-1) {
+      Text=strsub(Text,0,Pos)+"\\"+strsub(Text,Pos);
+      Pos=strstr(Text,"!",Pos+2);
+      }
+    }
+  return Text;
+  }
+
+int AWIsGerman() {
+  //Returns 1, if a German EAGLE version is running (0 otherwise)
+  if (language()=="de")
+    return 1;
+  return 0;
+  }
+
+string AWLocalise(string EnglishText,string GermanText) {
+  //Depending on the current EAGLE language, returns ENGLISHTEXT or GERMANTEXT
+  //and replaces HTML syntax by the proper EAGLE characters
+  string Text;
+  //Select the desired language string
+  if (AWIsGerman())
+    Text=GermanText;
+  else
+    Text=EnglishText;
+  return Text;
+  }
+
+void AWLabel(string EnglishText,string GermanText) {
+  //Creates a dialog label with either ENGLISHTEXT or GERMANTEXT
+  dlgLabel("<html><nobr>"+AWLocalise(EnglishText,GermanText)+"</nobr></html>");
+  }
+
+void AWError(string EnglishText,string GermanText) {
+  //Shows an error with either ENGLISHTEXT or GERMANTEXT
+  dlgMessageBox(":<html><nobr>"+AWLocalise(EnglishText,GermanText)+
+    "</nobr></html>");
+  }
+  
+void AWExitOnNoSchematic() {
+  //Exit, if the program was not run from within a schematics
+  if (schematic)
+    return;
+  AWError("This program can only be run from<br>within the <b>schematics "+
+    " editor</b>!","Dieses Programm kann nur im<br><b>Schaltplan-Editor</b> "+
+    "ausgeführt werden!");
+  exit(0);
+  }
+
+string AWNowText(int Seconds) {
+  //Returns the current date and time in international form, either with
+  //(SECONDS!=0) or without (SECONDS=0) seconds (YYYY-MM-DD HH:MM:SS)
+  if (Seconds)
+    return t2string(time(),"yyyy-MM-dd, hh:mm:ss");
+  return t2string(time(),"yyyy-MM-dd, hh:mm");
+  }
+
+int AWYesNo(string EnglishText,string GermanText) {
+  //Asks the user either ENGLISHTEXT or GERMANTEXT and lets him choose YES or
+  //NO. Returns 1 for YES or 0 for NO
+  if (dlgMessageBox(";<html><nobr>"+AWLocalise(EnglishText,GermanText)+
+      "</nobr></html>",AWLocalise("&Yes","&Ja"),AWLocalise("&No","&Nein"))==0)
+    return 1;
+  else
+    return 0;
+  }
+
+//----- DIALOG GLOBAL VARIABLES -----
+
+int dlgDestinationLayer=0;
+  //Destination layer for the created graphics
+int dlgExplodeStyles=0;
+  //1, if non-solid wires should be decomposed into line segments
+int dlgExplodeTexts=0;
+  //1, if texts should be decomposed into lines
+int dlgExplodePolygons=0;
+  //1, if polygons should be decomposed into lines
+int errThinPolygons=0;
+  //1, if the group contains polygons with less than 0.1mm line width
+int errNetSegments=0;
+  //1, if the group contains PARTS of net segments (and not the WHOLE net
+  //segment)
+int errPolygonParts=0;
+  //1, if the group contains PARTS of polygons (and not the WHOLE polygon)
+int errLabelsUngrouped=0;
+  //1, if the group contains some net, but NOT some connected labels
+int errMustGates=0;
+  //1, if the group contains gates with addlevel 'must'
+int errNoVectorFont=0;
+  //1, if the group contains text with a a non-vector font
+
+//----- GLOBAL 'CONSTANTS' -----
+
+string StyleNames[]={"Continuous","LongDash","ShortDash","DashDot"};
+  //Wire styles used by 'CHANGE Style'
+string CapNames[]={"Flat","Round"};
+  //Arc caps used by 'CHANGE Cap'
+string FontNames[]={"Vector","Proportional","Fixed"};
+  //Font styles used by 'CHANGE Font'
+int InvalidLayers[]={91,92,93};
+  //Layers in which NO graphics should be placed (nets, busses, pins)
+int InvalidLayerNr=3;
+  //Invalid layers count
+
+//----- LAYER FUNCTIONS -----
+
+string LayerNames[];
+  //Names (plus numbers in brackets) of all available (used) schematics layers
+int LayerNumbers[];
+  //Numbers of all available (used) schematics layers
+int LayerNumber=0;
+  //Available (used) schematics layers count
+int LayerVisible[];
+  //1 for each layer that is currently visible (0 otherwise)
+
+int MemoriseLayer(UL_LAYER Layer,int Index) {
+  //Writes name and number of the LAYER into the position INDEX of the global
+  //arrays LAYERNAMES and LAYERNUMBERS. Returns the next unused index of the
+  //arrays
+  int Nr,LayerValid=1;
+  //Check, whether the layer is one of the unsupported layers
+  for (Nr=0;Nr<InvalidLayerNr;Nr++)
+    if (Layer.number==InvalidLayers[Nr])
+      LayerValid=0;
+  //If not, and the layer is visible, add it to the layer collection
+  if (LayerValid==1) {
+    LayerNames[Index]+=Layer.name+"  ("+AWIntToStr(Layer.number)+")";
+    LayerNumbers[Index]=Layer.number;
+    Index++;
+    }
+  return Index;
+  }
+
+void CollectLayers(void) {
+  //Collects all currently used layers and writes their names and numbers
+  //into the global variables LAYERNAMES and LAYERNUMBERS
+  schematic(S)
+    S.layers(L) {
+      //Check, whether the layer is visible or not
+      if ((L.used) && (L.visible))
+        LayerVisible[L.number]=1;
+      else
+        LayerVisible[L.number]=0;
+      //Memorise the layer's name and number for dialog display
+      LayerNumber=MemoriseLayer(L,LayerNumber);
+      //If the layer 'Info' is available, this is the default destination layer
+      //for the created graphics
+      if ((LayerNumber>0) && (LayerNumbers[LayerNumber-1]==97))
+        dlgDestinationLayer=LayerNumber-1;
+      }
+  }
+
+//----- GROUP ANALYSIS FUNCTIONS -----
+
+int GroupContainsOnlyText() {
+  //Returns 1 if the current group contains only text (0 otherwise)
+  sheet(SH) {
+    SH.busses(B)
+      B.segments(S) {
+        S.labels(L)
+          if (ingroup(L))
+            return 0;
+        S.wires(W)
+          if (ingroup(W))
+            return 0;
+        }
+    SH.circles(C)
+      if (ingroup(C))
+        return 0;
+    SH.frames(F)
+      if (ingroup(F))
+        return 0;
+    SH.nets(N)
+      N.segments(S) {
+        S.wires(W)
+          if (ingroup(W))
+            return 0;
+        S.labels(L)
+          if (ingroup(L))
+            return 0;
+        S.junctions(J)
+          if (ingroup(J))
+            return 0;
+        }
+    SH.parts(P)
+      P.instances(I)
+        if (ingroup(I))
+          return 0;
+    SH.polygons(P)
+      if (ingroup(P))
+        return 0;
+    SH.rectangles(R)
+      if (ingroup(R))
+        return 0;
+    SH.wires(W)
+      if (ingroup(W))
+        return 0;
+    SH.texts(T)
+      if (ingroup(T))
+        return 1;
+    }
+  return 0;
+  }
+
+int GroupContainsOnlyPolygons() {
+  //Returns 1 if the current group contains only polygons (0 otherwise)
+  sheet(SH) {
+    SH.busses(B)
+      if (ingroup(B))
+        return 0;
+    SH.circles(C)
+      if (ingroup(C))
+        return 0;
+    SH.frames(F)
+      if (ingroup(F))
+        return 0;
+    SH.nets(N)
+      if (ingroup(N))
+        return 0;
+    SH.parts(P)
+      P.instances(I)
+        if (ingroup(I))
+          return 0;
+    SH.rectangles(R)
+      if (ingroup(R))
+        return 0;
+    SH.texts(T)
+      if (ingroup(T))
+        return 0;
+    SH.wires(W)
+      if (ingroup(W))
+        return 0;
+    SH.polygons(P)
+      if (ingroup(P))
+        return 1;
+    }
+  return 0;
+  }
+
+int GroupContainsNetParts() {
+  //Returns 1 if the current group contains some net PARTS and not the WHOLE
+  //net (0 otherwise)
+  int GroupFlag,Grouped,Ungrouped;
+  sheet(SH)
+    SH.nets(N)
+      N.segments(S) {
+        Grouped=0;
+        Ungrouped=0;
+        S.wires(W) {
+          GroupFlag=ingroup(W);
+          if (GroupFlag)
+            Grouped=1;
+          else
+            Ungrouped=1;
+          }
+        if ((Grouped) && (Ungrouped))
+          return 1;
+        }
+  return 0;
+  }
+
+int GroupContainsPolygonParts() {
+  //Returns 1 if the current group contains some polygon PARTS and not the
+  //WHOLE polygon (0 otherwise)
+  sheet(SH)
+    SH.polygons(P)
+      if (ingroup(P))
+        P.wires(W)
+          if (ingroup(W)<3)
+            return 1;
+  return 0;
+  }
+
+int GroupContainsThinPolygons() {
+  //Returns 1 if the current group contains polygons with a line width of less
+  //than 0.1mm (0 otherwise)
+  sheet(SH)
+    SH.polygons(P)
+      if (ingroup(P))
+        P.wires(W)
+          if (u2mic(W.width)<100)
+            return 1;
+  return 0;
+  }
+
+int GroupContainsNoLabels() {
+  //Returns 1 if the current group contains some net, but NOT some connected
+  //labels
+  int SegmentFullInGroup,LabelInGroup;
+  sheet(SH)
+    SH.nets(N)
+      N.segments(S) {
+        SegmentFullInGroup=1;
+        S.wires(W)
+          if (!ingroup(W))
+            SegmentFullInGroup=0;
+        if (SegmentFullInGroup) {
+          LabelInGroup=1;
+          S.labels(L)
+            if (!ingroup(L))
+              LabelInGroup=0;
+          if (!LabelInGroup)
+            return 1;
+          }
+        }
+  return 0;
+  }
+
+int GroupContainsMustGates() {
+  //Returns 1 if the current group contains gates with addlevel 'must'
+  sheet(SH)
+    SH.parts(P)
+      P.instances(I)
+        if ((ingroup(I)) && (I.gate.addlevel==GATE_ADDLEVEL_MUST))
+          return 1;
+  return 0;
+  }
+
+int GroupContainsNoVectorText() {
+  //Returns 1 if the current group contains text with a non-vector font (and
+  //the user interface settings ALLOW non-vector fonts)
+  if (cfgget("EAGLE:Interface.VectorFont")=="1")
+    return 0;
+  //TODO: The following line must be corrected...
+  if (cfgget("EAGLE:Option.PersistentInThisDrawing")=="1")
+  //----
+    return 0;
+  sheet(SH) {
+    SH.parts(P)
+      P.instances(I) {
+        if (ingroup(I)) {
+          I.gate.symbol.texts(T)
+            if (T.font!=FONT_VECTOR)
+              return 1;
+          I.texts(T)
+            if (T.font!=FONT_VECTOR)
+              return 1;
+          I.gate.symbol.frames(F) {
+            F.texts(T)
+              if (T.font!=FONT_VECTOR)
+                return 1;
+            }
+          }
+        I.texts(T)
+          if ((ingroup(T)) && (T.font!=FONT_VECTOR))
+            return 1;
+        I.gate.symbol.frames(F)
+          F.texts(T)
+            if ((ingroup(T)) && (T.font!=FONT_VECTOR))
+              return 1;
+        }
+    SH.frames(F) {
+      if (ingroup(F))
+        F.texts(T)
+          if (T.font!=FONT_VECTOR)
+            return 1;
+      F.texts(T)
+        if ((ingroup(T)) && (T.font!=FONT_VECTOR))
+          return 1;
+      }    
+    SH.texts(T)
+      if ((ingroup(T)) && (T.font!=FONT_VECTOR))
+        return 1;
+    }
+  return 0;
+  }
+
+//----- OBJECT DRAWING FUNCTIONS -----
+
+int ObjectNr=0;
+  //Number of new graphical objects that will be created be decomposing the
+  //desired objects
+
+string GetXY(int x,int y) {
+  //Returns the (bracketed) point string with the micron coordinates (X,Y)
+  string Result;
+  sprintf(Result,"(%s %s)",AWMic(x),AWMic(y));
+  return Result;
+  }
+
+string GetOrientation(real Angle,int Mirror,int Spin) {
+  //Returns the orientation string necessary to define an object with ANGLE
+  //degrees rotation that is probably MIRRORed or SPINned
+  string Text;
+  sprintf(Text,"R%s",AWRealToStr(Angle));
+  if (Mirror)
+    Text="M"+Text;
+  if (Spin)
+    Text="S"+Text;
+  return Text;
+  }
+
+void DrawArc(UL_ARC A,int Style) {
+  //Writes the arc A with the STYLE into the opened script file
+  string Text;
+  real ClickAngle;
+  //Exit, if the arc is not visible or not inside the current group
+  if (!LayerVisible[A.layer])
+    return;
+  //Draw the arc
+  sprintf(Text,"CHANGE CAP %s;\n",CapNames[A.cap]);
+  printf("%s",Text);
+  sprintf(Text,"ARC %s %s %s %s;\n",AWMic(A.width),GetXY(A.x2,A.y2),
+    GetXY(2*A.xc-A.x2,2*A.yc-A.y2),GetXY(A.x1,A.y1));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  //By some reason, arcs are ALWAYS drawn with wire style 'continuous', no
+  //matter which style is currently active. Therefore, the wire style must
+  //be changed AFTER drawing the arc. This is done by 'clicking' slightly
+  //off the first arc point (in the hope that there is no other object nearer
+  //this 'off-point' than the arc itself
+  if (Style==WIRE_STYLE_CONTINUOUS)
+    return;
+  if ((A.angle1+1)<A.angle2)
+    ClickAngle=A.angle1+1;
+  else
+    ClickAngle=A.angle1+0.1;
+  ClickAngle=ClickAngle*PI/180;
+  sprintf(Text,"CHANGE STYLE %s %s;\n",StyleNames[Style],
+    GetXY(A.xc+int(A.radius*cos(ClickAngle)),
+    A.yc+int(A.radius*sin(ClickAngle))));
+  printf("%s",Text);
+  }
+
+void DrawWire(UL_WIRE W,int CheckGroup) {
+  //Writes the wire W into the opened script file. If CHECKGROUP!=0, the wire
+  //is only written if it is contained in the current group
+  string Text;
+  //Exit, if the wire is not visible or not inside the current group
+  if (((CheckGroup) && (!ingroup(W))) || (!LayerVisible[W.layer]))
+    return;
+  //If non-solid lines should be decomposed, do just this
+  if ((dlgExplodeStyles) && (W.style!=WIRE_STYLE_CONTINUOUS)) {
+    sprintf(Text,"CHANGE STYLE %s;\n",StyleNames[WIRE_STYLE_CONTINUOUS]);
+    printf("%s",Text);
+    W.pieces(P)
+      if (P.arc)
+        DrawArc(P.arc,WIRE_STYLE_CONTINUOUS);
+      else {
+        sprintf(Text,"WIRE %s %s %s;\n",AWMic(P.width),GetXY(P.x1,P.y1),
+          GetXY(P.x2,P.y2));
+        printf("%s",Text);
+        //Count one object higher
+        ObjectNr++;
+        }
+    return;
+    }
+  //If the wire is an arc, draw this
+  if (W.arc) {
+    DrawArc(W.arc,W.style);
+    return;
+    }
+  //Otherwise, draw a line
+  sprintf(Text,"CHANGE STYLE %s;\n",StyleNames[W.style]);
+  printf("%s",Text);
+  sprintf(Text,"WIRE %s %s %s;\n",AWMic(W.width),GetXY(W.x1,W.y1),
+    GetXY(W.x2,W.y2));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawRectangle(UL_RECTANGLE R,int CheckGroup) {
+  //Writes the rectangle R into the opened script file. If CHECKGROUP!=0, the
+  //rectangle is only written if it is contained in the current group
+  string Text;
+  //Exit, if the rectangle is not visible or not inside the current group
+  if (((CheckGroup) && (!ingroup(R))) || (!LayerVisible[R.layer]))
+    return;
+  //Draw the rectangle
+  sprintf(Text,"RECT R%s %s %s;\n",AWRealToStr(R.angle),GetXY(R.x1,R.y1),
+    GetXY(R.x2,R.y2));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawCircle(UL_CIRCLE C,int CheckGroup) {
+  //Writes the circle C into the opened script file. If CHECKGROUP!=0, the
+  //circle is only written if it is contained in the current group
+  string Text;
+  //Exit, if the circle is not visible or not inside the current group
+  if (((CheckGroup) && (!ingroup(C))) || (!LayerVisible[C.layer]))
+    return;
+  //Draw the circle
+  sprintf(Text,"CIRCLE %s %s %s;\n",AWMic(C.width),GetXY(C.x,C.y),
+    GetXY(C.x+C.radius,C.y));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawText(UL_TEXT T,int CheckGroup) {
+  //Writes the text T into the opened script file. If CHECKGROUP!=0, the text
+  //is only written if it is contained in the current group
+  string Text;
+  //Exit, if the text is not visible or not inside the current group
+  if (((CheckGroup) && (!ingroup(T))) || (!LayerVisible[T.layer]))
+    return;
+  //If texts should be decomposed into lines, convert them to wires
+  if (dlgExplodeTexts) {
+    T.wires(W)
+      DrawWire(W,0);
+    return;
+    }
+  //Otherwise, first set the standard text attributes...
+  sprintf(Text,"CHANGE SIZE %s;\n",AWMic(T.size));
+  printf("%s",Text);
+  sprintf(Text,"CHANGE RATIO %d;\n",T.ratio);
+  printf("%s",Text);
+  sprintf(Text,"CHANGE FONT %s;\n",FontNames[T.font]);
+  printf("%s",Text);
+  //...and draw the text itself
+  sprintf(Text,"TEXT '%s' %s %s;\n",AWText2Script(T.value,0,0),
+    GetOrientation(T.angle,T.mirror,T.spin),GetXY(T.x,T.y));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawPolygon(UL_POLYGON P,int CheckGroup) {
+  //Writes the polygon P into the opened script file. If CHECKGROUP!=0, the
+  //polygon is only written if it is contained in the current group
+  string Text;
+  int Point,IsThin=0;
+  //Exit, if the polygon is not visible or not inside the current group
+  if (((CheckGroup) && (!ingroup(P))) || (!LayerVisible[P.layer]))
+    return;
+  //Check, whether the polygon contains wires with width <0.1mm
+  P.wires(W)
+    if (u2mic(W.width)<100)
+      IsThin=1;
+  //If polygons should be decomposed into lines and the polygon width is not
+  //too thin, convert them to wires
+  if ((dlgExplodePolygons) && (!IsThin)) {
+    P.contours(C)
+      DrawWire(C,0);
+    P.fillings(F)
+      DrawWire(F,0);
+    return;
+    }
+  //Otherwise, first write the parameters for all polygon types...
+  if (P.pour==0)
+    printf("%s","CHANGE POUR Solid;\n");
+  else if (P.pour==1)
+    printf("%s","CHANGE POUR Hatch;\n");
+  sprintf(Text,"CHANGE SPACING %s;\n",AWMic(P.spacing));
+  printf("%s",Text);
+  //...and then write the "real" polygon points. The first line contains the
+  //POLYGON command with its first point, all other lines the endpoint of the
+  //next polygon wire
+  Point=0;
+  P.wires(W) {
+    if (Point==0) {
+      sprintf(Text,"POLYGON %s %s",AWMic(P.width),GetXY(W.x1,W.y1));
+      printf("%s",Text);
+      }
+    sprintf(Text,"\n%s",GetXY(W.x2,W.y2));
+    printf("%s",Text);
+    Point++;
+    }
+  printf("%s",";\n");
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawFrame(UL_FRAME F,int CheckGroup) {
+  //Writes the frame F into the opened script file. If CHECKGROUP!=0, the frame
+  //is only written if it is contained in the current group
+  if (((CheckGroup) && (!ingroup(F))) || (!LayerVisible[F.layer]))
+    return;
+  //Draw all frame lines and texts
+  F.texts(T)
+    DrawText(T,0);
+  F.wires(W)
+    DrawWire(W,0);
+  }
+
+void DrawJunction(UL_JUNCTION J) {
+  //Writes the junction J into the opened script file
+  string Text;
+  //Exit, if the polygon is not visible or not inside the current group
+  if ((!ingroup(J)) || (!LayerVisible[LAYER_NETS]))
+    return;
+  //Draw the junction
+  sprintf(Text,"CIRCLE 0 %s %s;\n",GetXY(J.x,J.y),GetXY(J.x+(J.diameter/2),
+    J.y));
+  printf("%s",Text);
+  //Count one object higher
+  ObjectNr++;
+  }
+
+void DrawLabel(UL_LABEL L) {
+  //Writes the label L into the opened script file
+  string Text;
+  //Exit, if the label is not visible or not inside the current group
+  if ((!ingroup(L)) || (!LayerVisible[L.layer]))
+    return;
+  //Draw the label
+  L.wires(W)
+    DrawWire(W,0);
+  DrawText(L.text,0);
+  }
+
+void DrawPin(UL_PIN P) {
+  //Writes the pin P into the opened script file
+  P.circles(X)
+    DrawCircle(X,0);
+  P.wires(X)
+    DrawWire(X,0);
+  P.texts(X)
+    DrawText(X,0);
+  }
+
+void DrawSymbol(UL_SYMBOL S) {
+  //Writes the symbol S into the opened script file
+  ObjectNr++;
+  S.circles(C)
+    DrawCircle(C,0);
+  S.frames(F)
+    DrawFrame(F,0);
+  S.rectangles(R)
+    DrawRectangle(R,0);
+  S.pins(P)
+    DrawPin(P);
+  S.polygons(P)
+    DrawPolygon(P,0);
+  S.texts(T)
+    DrawText(T,0);
+  S.wires(W)
+    DrawWire(W,0);
+  }
+
+void DrawSheet(UL_SHEET SH) {
+  //Writes all objects of the sheet SH into the opened script file, if they are
+  //contained in the current group
+  SH.busses(B)
+    B.segments(S) {
+      S.labels(L)
+        DrawLabel(L);
+      S.wires(W)
+        DrawWire(W,1);
+      }
+  SH.circles(C)
+    DrawCircle(C,1);
+  SH.frames(F)
+    DrawFrame(F,1);
+  SH.nets(N)
+    N.segments(S) {
+      S.wires(W)
+        DrawWire(W,1);
+      S.labels(L)
+        DrawLabel(L);
+      S.junctions(J)
+        DrawJunction(J);
+      }
+  SH.parts(P) {
+    P.instances(I)
+      if (ingroup(I)) {
+        DrawSymbol(I.gate.symbol);
+        I.xrefs(X)
+          DrawSymbol(X.symbol);
+        I.texts(T)
+          DrawText(T,0);
+        }
+      }
+  SH.polygons(P)
+    DrawPolygon(P,1);
+  SH.rectangles(R)
+    DrawRectangle(R,1);
+  SH.texts(T)
+    DrawText(T,1);
+  SH.wires(W)
+    DrawWire(W,1);
+  }
+
+//----- DIALOG FUNCTIONS -----
+
+string dlgWarning="";
+  //The HTML warning text displayed in the dialog
+
+void CreateWarning() {
+  //Creates the warning to be displayed in the dialog
+  dlgWarning="";
+  if ((dlgExplodeStyles) || (dlgExplodeTexts) || (dlgExplodePolygons))
+    dlgWarning+=AWLocalise("<tr><td>&gt;</td><td><b>Hint:</b> Decomposing "+
+      "non-solid wires, texts or polygons might create <b>lots</b> of new "+
+      "objects.</td></tr>","<tr><td>&gt;</td><td><b>Hinweis:</b> Das "+
+      "Auflösen von nicht-durchgezogenen Linien, Texten oder Polygonen "+
+      "erzeugt evtl. <b>viele</b> neue Objekte.</td></tr>");
+  if (errMustGates)
+    dlgWarning+=AWLocalise("<tr><td>&gt;</td><td><b>Warning:</b> The group "+
+      "contains gates with the addlevel <b>must</b>. These cannot be deleted "+
+      "automatically, but need to be removed manually after decomposition."+
+      "</td></tr>","<tr><td>&gt;</td><td><b>Warnung:</b> Die Gruppe enthält "+
+      "Gatter mit dem Addlevel <b>must</b>. Diese können nicht automatisch "+
+      "gelöscht werden und müssen nach dem Auflösen manuell entfernt werden."+
+      "</td></tr>");
+  if (errNetSegments)
+    dlgWarning+=AWLocalise("<tr><td><font color=red>&gt;</font></td><td>"+
+      "<font color=red><b>Warning:</b> Some net segments lie only <b>partly"+
+      "</b> within the current group. Proceeding might involuntarily rename "+
+      "these nets or cut them into several unconnected parts.</font></td>"+
+      "</tr>","<tr><td><font color=red>&gt;</font></td><td><font color=red>"+
+      "<b>Warnung:</b> Einige Netzsegmente liegen nur <b>teilweise</b> in "+
+      "der aktuellen Gruppe und könnten ungewollt umbenannt werden oder in "+
+      "mehrere unverbundene Einzelnetze auseinanderbrechen.</font></td></tr>");
+  if (errLabelsUngrouped)
+    dlgWarning+=AWLocalise("<tr><td>&gt;</td><td><b>Warning:</b> Some net "+
+      "segments lie <b>completely</b> within the current group, but some "+
+      "connected labels do <b>not</b>. Proceeding will delete these labels "+
+      "and <b>not</b> replace them by graphics.</td></tr>","<tr><td>&gt;</td>"+
+      "<td><b>Warnung:</b> Einige Netzsegmente liegen <b>vollständig</b> in "+
+      "der aktuellen Gruppe, aber verbundene Labels <b>nicht</b>. Diese "+
+      "werden gelöscht und <b>nicht</b> durch Graphik ersetzt.</td></tr>");
+  if (errPolygonParts)
+    dlgWarning+=AWLocalise("<tr><td><font color=red>&gt;</font></td><td>"+
+      "<font color=red><b>Warning:</b> Some polygons lie only <b>partly</b> "+
+      "within the current group, so the new polygons might be wrong, and "+
+      "parts of the originals might remain.</font></td></tr>","<tr><td>"+
+      "<font color=red>&gt;</font></td><td><font color=red><b>Warnung:</b> "+
+      "Einige Polygone liegen nur <b>teilweise</b> in der aktuellen Gruppe. "+
+      "Die resultierenden Polygone könnten falsch sein, und Teile der "+
+      "Originale könnten übrigbleiben.</font></td></tr>");
+  if ((errThinPolygons) && (dlgExplodePolygons))
+    dlgWarning+=AWLocalise("<tr><td>&gt;</td><td><b>Hint:</b> Polygons with "+
+      "a line width of less than 0.1mm will <b>not</b> be decomposed into "+
+      "lines.</td></tr>","<tr><td>&gt;</td><td><b>Hinweis:</b> Polygone mit "+
+      "einer Linienbreite von weniger als 0.1mm werden <b>nicht</b> in "+
+      "Linien aufgelöst.</td></tr>");
+  if ((errNoVectorFont) && (dlgExplodeTexts))
+    dlgWarning+=AWLocalise("<tr><td><font color=red>&gt;</font></td><td>"+
+      "<font color=red><b>Warning:</b> When decomposing texts into lines, "+
+      "the <b>vector</b> font lines will be used, which probably differ from "+
+      "the current display of some text.</font></td></tr>","<tr><td>"+
+      "<font color=red>&gt;</font></td><td><font color=red><b>Warnung:</b> "+
+      "Beim Auflösen von Texten in Linien werden die <b>Vektor</b>schrift-"+
+      "Linien verwendet, die sich von der momentanen Textanzeige evtl. "+
+      "unterscheiden.</font></td></tr>");
+  if (dlgWarning)
+    dlgWarning="<table>\n"+dlgWarning+"</table>";
+  else
+    dlgWarning=AWLocalise("No problems found","Keine Probleme gefunden");
+  dlgRedisplay();
+  }
+
+int ShowDialog(void) {
+  //Shows the dialog and returns 0, if it was cancelled
+  int Result;
+  Result=dlgDialog(AWLocalise("Explode schematic objects",
+      "Schaltplanobjekte auflösen")) {
+    AWLabel("This program <b>deletes all objects</b> in the current "+
+      "schematics group<br>(<b>including</b> their board counterparts) and "+
+      "replaces visible objects by a<br>pure graphical representation "+
+      "(without electrical function).","Dieses Programm <b>löscht alle "+
+      "Objekte</b> in der aktuellen Schaltplangruppe<br>(<b>inklusive</b> "+
+      "ihrer Platinen-Äquivalente) und ersetzt davon Sichtbares durch<br>"+
+      "eine rein graphische Darstellung (ohne elektrische Funktion).");
+    //Show the decomposition options
+    dlgGroup(AWLocalise(" OPTIONS: "," OPTIONEN: ")) {
+      dlgHBoxLayout {
+        AWLabel("Destination layer for created graphics:","Zielebene für "+
+          "erzeugte Graphik:");
+        dlgComboBox(LayerNames,dlgDestinationLayer);
+        dlgStretch(0);
+        }
+      dlgCheckBox(AWLocalise("Decompose non-solid wires into line segments",
+          "Nicht-durchgezogene Linien in Liniensegmente auflösen"),
+          dlgExplodeStyles)
+        CreateWarning();
+      dlgCheckBox(AWLocalise("Decompose texts into lines","Texte in Linien "+
+          "auflösen"),dlgExplodeTexts)
+        CreateWarning();
+      dlgCheckBox(AWLocalise("Decompose polygons into lines","Polygone in "+
+          "Linien auflösen"),dlgExplodePolygons)
+        CreateWarning();
+      }
+      CreateWarning();
+      dlgGroup(AWLocalise(" REMARKS: "," BEMERKUNGEN: ")) {
+        AWLabel("Proceed <b>only</b> if you are <b>sure</b> that you can "+
+          "ignore these points:","Fahren Sie <b>nur</b> fort, wenn Sie diese "+
+          "Punkte <b>sicher</b> ignorieren können:");
+        dlgTextView(dlgWarning);
+      }
+    dlgHBoxLayout {
+      dlgStretch(0);
+      dlgPushButton("+OK")
+        dlgAccept(1);
+      dlgPushButton(AWLocalise("-Cancel","-Abbrechen"))
+        dlgReject(0);
+      }
+    };
+  return Result;
+  }
+
+//----- MAIN PROGRAM -----
+
+void main(void) {
+  string Optimiser,ScriptFile;
+  //Exit, if the program was not started from within a schematic or no group is
+  //defined
+  AWExitOnNoSchematic();
+  sheet(SH)
+    if (!ingroup(SH)) {
+      AWError("No group defined!","Keine Gruppe definiert!");
+      exit(0);
+      }
+  //Memorise layer names, numbers and visibility
+  CollectLayers();
+  //If the current group contains only texts, decompose text into wires by
+  //default
+  if (GroupContainsOnlyText())
+    dlgExplodeTexts=1;
+  //Ditto with a polygon-only group
+  if (GroupContainsOnlyPolygons())
+    dlgExplodePolygons=1;
+  //Check for problematic objects inside the current group and flag the
+  //corresponding warnings for display
+  if (GroupContainsNetParts())
+    errNetSegments=1;
+  if (GroupContainsPolygonParts())
+    errPolygonParts=1;
+  if (GroupContainsThinPolygons())
+    errThinPolygons=1;
+  if (GroupContainsNoLabels())
+    errLabelsUngrouped=1;
+  if (GroupContainsMustGates())
+    errMustGates=1;
+  if (GroupContainsNoVectorText())
+    errNoVectorFont=1;
+  //Show the dialog and exit on cancel
+  if (!ShowDialog())
+    exit("");
+  //Get the current state of the OPTIMISER. Optimising should be switched off
+  //in order to make EAGLE more than a thousand times faster in case LOTS of
+  //objects need to be created
+  Optimiser=cfgget("EAGLE:Option.Optimizing");
+  if (!Optimiser)
+    Optimiser="1";
+  if (Optimiser=="0")
+    Optimiser="Off";
+  else
+    Optimiser="On";
+  //Create the name of a temporary script file
+  schematic(S)
+    ScriptFile=filesetext(S.name,"-explode.scr");
+  //Create the script file for the drawing of the group objects
+  output(ScriptFile,"wtD") {
+    printf("%s","# Temporary EAGLE file created by 'explode.ulp' at "+
+      AWNowText(1)+"\n"+
+      "# (can be safely deleted when no EAGLE instance is running)\n\n");
+    printf("%s","GRID Mic Finest;\n"+
+      "SET WIRE_BEND 2;\n"+
+      "CHANGE Layer "+AWIntToStr(LayerNumbers[dlgDestinationLayer])+";\n"+
+      "DELETE (>0 0);\n"+
+      "SET Optimizing Off;\n");
+    sheet(SH)
+      DrawSheet(SH);
+    printf("%s","SET Optimizing "+Optimiser+";\n"+
+      "GRID Last;\n");
+    }
+  //If the decomposition would create LOTS of objects, ask the user whether
+  //to do this or not. If not, delete the temporary script file and exit
+  if (ObjectNr>=10000) {
+    if (!AWYesNo("The decomposition will create<br>&nbsp;&nbsp;&nbsp;<b>"+
+        AWIntToStr(ObjectNr)+" new graphical objects!</b><br>Do you really "+
+        "want to proceed?","Das Auflösen erzeugt<br>&nbsp;&nbsp;&nbsp;<b>"+
+        AWIntToStr(ObjectNr)+" neue Graphikobjekte!</b><br>Möchten Sie "+
+        "wirklich fortfahren?"))
+      exit("SET Confirm Yes;\n"+
+        "REMOVE '"+ScriptFile+"';\n"+
+        "SET Confirm Off;\n");}
+  //If the group contains MUST gates, remove them from the group before
+  //starting the script, otherwise EAGLE will complain when trying to delete
+  //the group
+  if (errMustGates)
+    sheet(SH)
+      SH.parts(P)
+        P.instances(I)
+          if ((ingroup(I)) && (I.gate.addlevel==GATE_ADDLEVEL_MUST))
+            clrgroup(I);
+  //Otherwise, do it and delete the temporary script file. If the script
+  //execution is cancelled, the script file is automatically deleted by EAGLE
+  //at the end of the session
+  exit("SCRIPT '"+ScriptFile+"';\n"+
+    "SET Confirm Yes;\n"+
+    "REMOVE '"+ScriptFile+"';\n"+
+    "SET Confirm Off;\n");
+  }

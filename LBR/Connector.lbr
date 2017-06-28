@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
+<grid distance="1" unitdist="mm" unit="mm" style="dots" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -23,43 +23,43 @@
 <layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
 <layer number="14" name="Route14" color="1" fill="6" visible="no" active="no"/>
 <layer number="15" name="Route15" color="4" fill="6" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="no" active="yes"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="yes"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="yes"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="yes"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="no" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
-<layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
-<layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
-<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
-<layer number="32" name="bCream" color="7" fill="5" visible="no" active="yes"/>
-<layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
-<layer number="34" name="bFinish" color="6" fill="6" visible="no" active="yes"/>
-<layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
-<layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
-<layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
-<layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
-<layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
-<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
-<layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="29" name="tStop" color="7" fill="3" visible="yes" active="yes"/>
+<layer number="30" name="bStop" color="7" fill="6" visible="yes" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="yes" active="yes"/>
+<layer number="32" name="bCream" color="7" fill="5" visible="yes" active="yes"/>
+<layer number="33" name="tFinish" color="6" fill="3" visible="yes" active="yes"/>
+<layer number="34" name="bFinish" color="6" fill="6" visible="yes" active="yes"/>
+<layer number="35" name="tGlue" color="7" fill="4" visible="yes" active="yes"/>
+<layer number="36" name="bGlue" color="7" fill="5" visible="yes" active="yes"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="50" name="Mechanical" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -71,9 +71,22 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
-<layer number="102" name="Stiffener" color="6" fill="4" visible="no" active="yes"/>
-<layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
-<layer number="251" name="SMDround" color="12" fill="11" visible="no" active="no"/>
+<layer number="100" name="PanelOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="101" name="Stencil" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="102" name="V-Score" color="6" fill="4" visible="yes" active="yes"/>
+<layer number="120" name="DimOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="121" name="_tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="122" name="_bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="147" name="docuMeasures" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="150" name="Mechanical2" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="tNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="152" name="bNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="250" name="Mechanical3" color="3" fill="1" visible="yes" active="yes"/>
+<layer number="251" name="tDocuLIB" color="12" fill="11" visible="yes" active="yes"/>
+<layer number="252" name="1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="253" name="0.1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <library>
 <description>Connectors</description>
@@ -811,7 +824,7 @@
 <description>SMTSO-080-X-ET microPEM fastener.&lt;br&gt;
 
 &lt;a href="http://www.pemnet.com/fastening_products/pdf/msmtdata.pdf"&gt;microPEM Surface Mount Fasteners&lt;/a&gt;</description>
-<pad name="1" x="0" y="0" drill="2.4892" diameter="3.937"/>
+<pad name="1" x="0" y="0" drill="2.413" diameter="3.9"/>
 <circle x="0" y="0" radius="1.2065" width="0.0254" layer="51"/>
 <circle x="0" y="0" radius="0.635" width="0.0254" layer="51"/>
 <wire x1="0" y1="1.8288" x2="1.5875" y2="0.9144" width="0.0254" layer="51"/>
@@ -824,7 +837,11 @@
 <wire x1="-1.5494" y1="0.508" x2="-0.508" y2="1.5494" width="0.6604" layer="31" curve="-53.681019"/>
 <wire x1="-0.508" y1="-1.5494" x2="-1.5494" y2="-0.508" width="0.6604" layer="31" curve="-53.681019"/>
 <wire x1="1.5494" y1="-0.508" x2="0.508" y2="-1.5494" width="0.6604" layer="31" curve="-53.681019"/>
-<text x="-2.286" y="2.286" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-2" y="2" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<circle x="0" y="0" radius="0.75" width="0" layer="50"/>
+<circle x="0" y="0" radius="1.75" width="0.1" layer="50"/>
+<wire x1="1.7" y1="0.3" x2="-1.7" y2="0.3" width="0.1" layer="50"/>
+<wire x1="-1.7" y1="-0.3" x2="1.7" y2="-0.3" width="0.1" layer="50"/>
 </package>
 <package name="SFW4R-*STE1">
 <description>FPC/FFC 1mm Connector
@@ -2963,14 +2980,31 @@ Hirose 0.5mm Pitch SMT Board to Board Connector&lt;br&gt;
 <gate name="G$1" symbol="NUT" x="0" y="0"/>
 </gates>
 <devices>
-<device name="-080-2-ET" package="SMTSO-080-2-ET">
+<device name="-080-2ET" package="SMTSO-080-2-ET">
 <connects>
 <connect gate="G$1" pin="1" pad="1"/>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/zSQuxq"/>
+<attribute name="HEIGHT" value="0.062&quot;"/>
+<attribute name="MANF" value="PEM"/>
+<attribute name="MFPN" value="SMTSO-080-2-ET"/>
 <attribute name="PARTNO" value="33-100150-00"/>
+</technology>
+</technologies>
+</device>
+<device name="-080-4ET" package="SMTSO-080-2-ET">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DATASHEET" value="https://goo.gl/zSQuxq"/>
+<attribute name="HEIGHT" value="0.125&quot;"/>
+<attribute name="MANF" value="PEM"/>
+<attribute name="MFPN" value="SMTSO-080-4ET"/>
+<attribute name="PARTNO" value="" constant="no"/>
 </technology>
 </technologies>
 </device>

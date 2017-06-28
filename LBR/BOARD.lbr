@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -939,7 +939,7 @@ Attributes/Variables:
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="DIE1-2" value="FR-4 Core" constant="no"/>
 <attribute name="DIE1-2-THICK" value="Core Thickness" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-2" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
 </technology>
@@ -948,7 +948,7 @@ Attributes/Variables:
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="DIE1-2" value="FR-4 Core" constant="no"/>
 <attribute name="DIE1-2-THICK" value="28 mil" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-2" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
 </technology>
@@ -957,7 +957,7 @@ Attributes/Variables:
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="DIE1-2" value="FR-4 Core" constant="no"/>
 <attribute name="DIE1-2-THICK" value="59 mil" constant="no"/>
-<attribute name="DRD" value="Layers 1-4" constant="no"/>
+<attribute name="DRD" value="Layers 1-2" constant="no"/>
 <attribute name="PLATE1" value="1oz" constant="no"/>
 <attribute name="PLATE2" value="1oz" constant="no"/>
 </technology>
@@ -1178,6 +1178,17 @@ Attributes/Variables:
 <attribute name="SOLDERMASK" value="" constant="no"/>
 <attribute name="SPECIAL" value="" constant="no"/>
 <attribute name="VIATECH" value="" constant="no"/>
+</technology>
+<technology name="-STD-2L">
+<attribute name="ASSEMBLY" value="IPC-A-610, Class 2" constant="no"/>
+<attribute name="BOARDTECH" value="2-Layer FR-4, see layer stack" constant="no"/>
+<attribute name="FAB" value="IPC-6012, Class 2" constant="no"/>
+<attribute name="FINISH" value="" constant="no"/>
+<attribute name="MARKINGS" value="94V-0, Date Code" constant="no"/>
+<attribute name="OVERLAY" value="White, Non-conductive" constant="no"/>
+<attribute name="SOLDERMASK" value="LPI, Green, High Temp" constant="no"/>
+<attribute name="SPECIAL" value="" constant="no"/>
+<attribute name="VIATECH" value="1-2" constant="no"/>
 </technology>
 <technology name="-STD-4L">
 <attribute name="ASSEMBLY" value="IPC-A-610, Class 2" constant="no"/>

@@ -1,0 +1,881 @@
+#usage     "Evaluates a library symbol or package and\n"
+           "creates an .SCR file to create a scaled entity.\n"
+           "Allows input of a scaling factor (0.1 to 10)\n"
+           "and a tolerance for the current grid (SET YOUR GRID!!!)\n"
+           "ORIGINAL:  V1.00 by Hansj rg S mann, September 1999\n"
+           "REVISED:   V1.01 by Christopher Buckley Dec 2001\n"
+           "MODIFICATION GUY\n"
+
+
+/*** REVISED BY CHRISTOPHER BUCKLEY: See End Of File ***/
+/*** Version 1.01: Dec 23 2001 ***/
+/*** SEE PSSCALE.TXT FOR DETAILS ***/
+
+
+/*
+ *  This EAGLE User Language Program generates a script file
+ *  of a part or a symbol in a library scaled in relation to the origin.
+ *
+ *  Version 1.00 by Hansj rg S mann, September 1999
+ * 
+ *  NO WARRANTY WILL BE GIVEN FOR ANYTHING !!!
+ *
+ *
+ *  Only elements of visible layers will be considered.
+ *
+ *  If the ULP has finished you will get the message "finished".
+ *  If the ULP was not succesfull you will get the message
+ *  "finished (errorlevel x)". The following values for x are
+ *  used by this ULP:
+ * 
+ *     -1 = ULP wasn't run in a library
+ *     -2 = ULP wasn't run in a package or a symbol
+ *     -3 = No valid scale factor is specified
+ *
+ */
+
+
+/*
+ *  program paramters
+ */
+enum {No, Yes};
+
+/* end program paramters *
+
+
+/*
+ *  global constants
+ */
+enum {px, py};
+enum {ECOk = 0,
+       ECNotALibrary = -1,
+       ECNotAPartOrSymbol = -2,
+       ECNoScaleSpec = -3};
+
+
+/*
+ *  global variables
+ */
+
+int ExitCode;
+real Scale = 0;
+string ScaleSpecText = "S=";
+int ScaleSpecPnt[];
+int ActLayer = -1;
+int ActRatio = -1;
+int ActSize = -1;
+int ActSpacing = -1;
+/* 
+ * RAJOUT GUY
+ */
+int ActIsolate = -1;
+/* 
+ * FIN RAJOUT GUY
+ */
+int ActPour = -1;
+/* 
+ * RAJOUT GUY
+ */
+int ActOrphans = -1;
+int ActThermals = -1;
+/* 
+ * FIN RAJOUT GUY
+ */
+
+int ActDrill = -1;
+int ActDiameter = -1;
+int ActWidth = -1;
+int LayerOn[];
+string PourTexts[] = {"solid", "hatch"};
+/* 
+ * RAJOUT GUY
+ */
+string OrphansTexts[]= {"off", "on"};
+string ThermalsTexts[]= {"off", "on"};
+/* 
+ * FIN RAJOUT GUY
+ */
+int GrdUnit;
+string GrdUnitTexts[] = {"mic", "mm", "mil", "inch"};
+string MirrorTexts[] = {"", "M"};
+string ShapeTexts[] = {"Square", "Round", "Octagon", "Xlongoct", "YLongoct"};
+string PinDirTexts[] = {"NC", "In", "Out", "I/O", "OC", "Pwr", "Pas", "Hiz", "Sup"};
+string PinFuncTexts[] = {"None", "Dot", "Clk", "DotClk"};
+string PinLengthTexts[] = {"Point", "Short", "Middle", "Long"};
+string PinVisiTexts[] = {"Off", "Pad", "Pin", "Both"};
+int PinCorrectValues[] = {0, 25400, 50800, 76200};
+int P0[];
+int P1[];
+int P2[];
+int P3[];
+
+
+
+/******************************************************/
+/***   ADDENDUMS BEGIN     ***/
+
+
+
+int    gi_wbend = 2;       /* point to point */
+int    gi_wstyle = 0;      /* continuous */
+real   gf_tol = 0;         /* conversion tolerance */
+string gs_prompt;
+
+
+
+/*
+;  ==================================================
+;  GETS THE USER SPECIFIED SCALING AND GRID RESOLUTION
+;  AND ALLOWS THE USER TO SET THE PATH FOR THE OUTPUT .SCR
+;  OR ALLOWS THE USER TO CANCEL THE PROGRAM
+*/
+
+void gr_getparms(UL_LIBRARY L) {
+
+int    ti_tol;
+
+Scale=1;
+GrdUnit=L.grid.unit;
+
+ti_tol=50;
+gs_prompt=path_scr[0];
+
+ExitCode=dlgDialog("Confirm"){
+   dlgVBoxLayout {
+       dlgHBoxLayout {
+           dlgLabel("SCALE &FACTOR:");
+           dlgStretch(1);
+/* RAJOUT GUY  */
+/*           dlgLabel("<0.1 to 10");  */
+/*           dlgRealEdit(Scale, 0.1, 10.0);  */
+           dlgLabel("<0.1 to 100");
+           dlgRealEdit(Scale, 0.1, 100.0);
+/* FIN RAJOUT GUY */
+       }
+       dlgHBoxLayout {
+           dlgLabel("GRID &TOLERANCE:");
+           dlgStretch(1);
+           dlgLabel("<% +/->");
+/* RAJOUT GUY  */
+/*           dlgIntEdit(ti_tol, 5, 50); */
+         dlgIntEdit(ti_tol, 1, 50);   
+/* FIN RAJOUT GUY  */
+       }
+       dlgVBoxLayout {
+           dlgLabel (" ");
+           dlgLabel("SCRIPT &PATH:");
+           dlgLabel("Use / For \ - EXCLUDE Ending /");
+           dlgTextEdit(gs_prompt);
+       }
+   }
+   dlgHBoxLayout {
+       dlgStretch(1);
+       dlgPushButton("&OK") dlgAccept(ECOk);
+       dlgPushButton("&Cancel") dlgReject(ECNoScaleSpec);
+       dlgStretch(1);
+       }
+   };
+
+gf_tol=L.grid.distance*ti_tol/100;
+
+}/* end fn */
+
+
+
+/*
+;  ==================================================
+;  ROUNDS A VALUE TO THE NEAREST FRACTIONAL EQUIVALENT
+;  EG: af_real = +/- 3.063  gf_tol = 0.125 >> af_real +/- 3.125
+;          af_real = +/- 3.060  gf_tol = 0.125 >> af_real +/- 3.000
+
+;  NOTE:   POSITIVE VALUES BECOME MORE POSITIVE
+;          NEGATIVE VALUES BECOME MORE NEGATIVE
+*/
+
+real gf_tendancy (real af_real) {
+
+   real    tf_real, tf_frac;
+   int ti_int;
+
+   if(gf_tol != 0) {
+       tf_real=af_real/gf_tol;
+       ti_int=trunc(tf_real);
+       tf_frac=frac(tf_real);
+       if(tf_real>=0)
+           tf_frac=trunc(tf_frac+0.5);
+       else
+           tf_frac=trunc(tf_frac-0.5);
+       tf_real=(ti_int+trunc(tf_frac))*gf_tol;
+   }
+   else
+       tf_real=2.21e+308;      /** overflow for div by zero **/
+
+   return tf_real;
+
+}/* endfn */
+
+
+
+/*
+;  ==================================================
+;  ROUNDS A VALUE TO THE NEAREST FRACTIONAL EQUIVALENT
+;  SAME AS gf_tendancy EXCEPT FRACTIONAL PART IGNORED
+;  *** CAUTION *** NUMBERS WILL TEND TOWARDS THE ORIGIN!!!
+;  EG: af_real = +/- 3.063  gf_tol = 0.125 >> af_real +/- 3.000
+;          af_real = +/- 3.060  gf_tol = 0.125 >> af_real +/- 3.000
+*/
+
+real gf_notendancy (real af_real) {
+
+   real    tf_real, tf_frac;
+   int ti_int;
+
+   if(gf_tol != 0) {
+       tf_real=af_real/gf_tol;
+       ti_int=trunc(tf_real);
+       tf_real=ti_int*gf_tol;
+   }
+   else
+       tf_real=2.21e+308;      /** overflow for div by zero **/
+
+   return tf_real;
+
+}/* endfn */
+
+
+
+/***   ADDENDUMS END       ***/
+/******************************************************/
+
+
+
+/*
+ *  calculates and returns a scaled value
+ */
+int CalcScaledValue(real v) {
+   return round(v*Scale);
+}
+
+
+/*
+ *  calculates a scaled point 
+ */
+void CalcScaledPoint(real x, real y) {
+   P0[px] = round(x*Scale);
+   P0[py] = round(y*Scale);
+}
+
+
+/*
+ *  converts the internal used unit (1/10000mm) to
+ *  the actual used grid unit (real world unit)
+ */
+real Norm(int i) {
+   real a;
+
+   switch (GrdUnit) {
+       case GRID_UNIT_MIC: a = u2mic(i); break;
+       case GRID_UNIT_MM: a = u2mm(i); break;
+       case GRID_UNIT_MIL: a = u2mil(i); break;
+       case GRID_UNIT_INCH: a = u2inch(i);
+   }
+
+   /** HERE'S THE GOODY **/
+   a=gf_tendancy(a);
+
+   return a;
+}
+
+
+/*
+ *  checks which layers are visible 
+ */
+void GetLayersOn(UL_LAYER L) {
+   if (L.visible)
+   LayerOn[L.number] = L.visible;
+}
+
+
+/*
+ *  initiates a diameter change if necessary
+ */
+void HndlDiameter(int d) {
+   if (d != ActDiameter) {
+       ActDiameter = d;
+       printf("Change Diameter %f;\n", Norm(ActDiameter));
+   }
+}
+
+
+/*
+ *  initiates a drill change if necessary
+ */
+void HndlDrill(int d) {
+   if (d != ActDrill) {
+       ActDrill = d;
+       printf("Change Drill %f;\n", Norm(ActDrill));
+   }
+}
+
+
+/*
+ *  initiates a layer change if necessary
+ *  and returns if a layer is visible or not 
+ */
+int HndlLayer(int l) {
+   if (LayerOn[l]) {
+       if (l != ActLayer) {
+           ActLayer = l;
+           printf("Layer %d;\n", ActLayer);
+       }
+       return 1;
+   }
+   else return 0; 
+}
+
+
+/*
+ *  initiates a pour change if necessary
+ */
+void HndlPour(int p) {
+   if (p != ActPour) {
+       ActPour = p;
+       printf("Change Pour %s;\n", PourTexts[ActPour]);
+   }
+}
+
+/* 
+ * RAJOUT GUY
+ */
+/*
+ *  initiates a orphans change if necessary
+ */
+void HndlOrphans(int p) {
+   if (p != ActOrphans) {
+       ActOrphans = p;
+       printf("Change orphans %s;\n", OrphansTexts[ActOrphans]);
+   }
+}
+
+/*
+ *  initiates a thermals change if necessary
+ */
+void HndlThermals(int p) {
+   if (p != ActThermals) {
+       ActThermals = p;
+       printf("Change thermals %s;\n", ThermalsTexts[ActThermals]);
+   }
+}
+
+/* 
+ * FIN RAJOUT GUY
+ */
+
+/*
+ *  initiates a ratio change if necessary
+ */
+void HndlRatio(int r) {
+   if (r != ActRatio) {
+       ActRatio = r;
+       printf("Change Ratio %d;\n", ActRatio);
+   }
+}
+
+
+/*
+ *  initiates a size change if necessary
+ */
+void HndlSize(int s) {
+   if (s != ActSize) {
+       ActSize = s;
+       printf("Change Size %f;\n", Norm(ActSize));
+   }
+}
+
+
+/* 
+ * RAJOUT GUY
+ */
+/*
+ *  initiates a isolate change if necessary
+ */
+void HndlIsolate(int s) {
+   if (s != ActIsolate) {
+       ActIsolate = s;
+       printf("Change Isolate %f;\n", Norm(ActIsolate));
+   }
+}
+
+/* 
+ * FIN RAJOUT GUY
+ */
+
+/*
+ *  initiates a spacing change if necessary
+ */
+void HndlSpacing(int s) {
+   if (s != ActSpacing) {
+       ActSpacing = s;
+       printf("Change Spacing %f;\n", Norm(ActSpacing));
+   }
+}
+
+
+/*
+ *  initiates a width change if necessary
+ */
+void HndlWidth(int w) {
+   if (w != ActWidth) {
+       ActWidth = w;
+       printf("Change Width %f;\n", Norm(ActWidth));
+   }
+}
+
+
+/*
+ *  scales an arc
+ */
+void ScaleArc(UL_ARC A) {
+   if (HndlLayer(A.layer)) {
+       CalcScaledPoint(A.x1,A.y1);
+       P1[px] = P0[px];
+       P1[py] = P0[py];
+       CalcScaledPoint(A.x2,A.y2);
+       P3[px] = P0[px];
+       P3[py] = P0[py];
+       CalcScaledPoint(A.xc,A.yc);
+       P2[px] = P1[px] - ((P1[px] - P0[px]) * 2);
+       P2[py] = P1[py] - ((P1[py] - P0[py]) * 2);
+       printf("Arc CCW %f (%f %f) (%f %f) (%f %f);\n",
+           Norm(CalcScaledValue(A.width)),
+           Norm(P1[px]),
+           Norm(P1[py]),
+           Norm(P2[px]),
+           Norm(P2[py]),
+           Norm(P3[px]),
+           Norm(P3[py]));
+   }
+}
+
+
+/*
+ *  scales a circle
+ */
+void ScaleCircle(UL_CIRCLE C) {
+   if (HndlLayer(C.layer)) {
+       CalcScaledPoint(C.x,C.y);
+       P1[px] = P0[px];
+       P1[py] = P0[py];
+       P2[px] = P0[px] + CalcScaledValue(C.radius);
+       P2[py] = P0[py];
+       printf("Circle %f (%f %f) (%f %f);\n",
+           Norm(CalcScaledValue(C.width)),
+           Norm(P1[px]),
+           Norm(P1[py]),
+           Norm(P2[px]),
+           Norm(P2[py]));
+   }
+}
+
+
+/*
+ *  scales a contact (pad or SMD)
+ */
+void ScaleContact(UL_CONTACT C) {
+   int fr, ls, lc;
+
+   if (C.pad) {
+       if (LayerOn[LAYER_PADS]) {
+           HndlDrill(CalcScaledValue(C.pad.drill));
+           CalcScaledPoint(C.pad.x,C.pad.y);
+/** Syntax Order Corrected **/
+               printf("Pad %f %s '%s' (%f %f);\n",
+               Norm(CalcScaledValue(C.pad.diameter[LAYER_PADS])),
+               ShapeTexts[C.pad.shape[LAYER_PADS]],
+               C.pad.name,
+               Norm(P0[px]),
+               Norm(P0[py]));
+       }
+   }
+   if (C.smd) {
+       if (HndlLayer(C.smd.layer)) {
+           CalcScaledPoint(C.smd.x,C.smd.y);
+/** Syntax Order Corrected **/
+           printf("Smd %f %f '%s' (%f %f);\n",
+               Norm(CalcScaledValue(C.smd.dx)),
+               Norm(CalcScaledValue(C.smd.dy)),
+               C.smd.name,
+               Norm(P0[px]),
+               Norm(P0[py]));
+       }
+   }
+}
+
+
+/*
+ *  scales a hole
+ */
+void ScaleHole(UL_HOLE H) {
+   if (LayerOn[LAYER_HOLES]) {
+       CalcScaledPoint(H.x,H.y);
+       printf("Hole %f (%f %f);\n",
+           Norm(CalcScaledValue(H.drill)),
+           Norm(P0[px]),
+           Norm(P0[py]));
+   }
+}
+
+
+/*
+ *  scales a pin
+ */
+void ScalePin(UL_PIN P) {
+   if (LayerOn[LAYER_PINS]) {
+       switch (int(round(P.angle))) {
+           case 0: P0[px] = P.x + PinCorrectValues[P.length];
+                   CalcScaledPoint(P0[px],P.y);
+                   P0[px] = P0[px] - PinCorrectValues[P.length];
+                   break;
+           case 90: P0[py] = P.y + PinCorrectValues[P.length];
+                       CalcScaledPoint(P.x,P0[py]);
+                       P0[py] = P0[py] - PinCorrectValues[P.length];
+                       break;
+           case 180: P0[px] = P.x - PinCorrectValues[P.length];
+                       CalcScaledPoint(P0[px],P.y);
+                       P0[px] = P0[px] + PinCorrectValues[P.length];
+                       break;
+           case 270: P0[py] = P.y - PinCorrectValues[P.length];
+                       CalcScaledPoint(P.x,P0[py]);
+                       P0[py] = P0[py] + PinCorrectValues[P.length];
+       }
+       printf("Pin '%s' %s %s %s R%d %s %d (%f %f);\n",
+           P.name, 
+           PinDirTexts[P.direction],
+           PinFuncTexts[P.function],
+           PinLengthTexts[P.length],
+           int(round(P.angle)),
+           PinVisiTexts[P.visible],
+           P.swaplevel,
+           Norm(P0[px]),
+           Norm(P0[py]));
+   }
+}
+
+
+/*
+ *  scales a polygon
+ */
+void ScalePolygon(UL_POLYGON P) {
+   int i = 0;
+   int j = 0;
+
+/* 
+* MODIF GUY
+*/
+  real curve =0; 
+
+   if (HndlLayer(P.layer)) {
+       HndlIsolate(P.isolate);
+       HndlSpacing(P.spacing);
+       HndlPour(P.pour);
+       HndlOrphans(P.orphans);
+       HndlThermals(P.thermals);
+       printf("Polygon %f ",
+           Norm(CalcScaledValue(P.width)));
+       P.wires(W) i++;	
+       P.wires(W) {
+           CalcScaledPoint(W.x1,W.y1);
+           P1[px] = P0[px];
+           P1[py] = P0[py];
+           ++j;
+
+           if (j == 1)
+               printf("%+f (%f %f) ",curve , Norm(P1[px]), Norm(P1[py]));
+           else
+               if (j%2 > 0) 
+                   printf("%+f (%f %f) ",curve , Norm(P1[px]), Norm(P1[py]));
+               else 
+                   printf("%+f (%f %f) \\\n",curve , Norm(P1[px]), Norm(P1[py]));
+
+
+          if (--i == 0) {
+              CalcScaledPoint(W.x2,W.y2);
+               P1[px] = P0[px];
+               P1[py] = P0[py];
+               if (j%2 > 0) 
+
+                   printf("%+f (%f %f);\n",W.curve , Norm(P1[px]), Norm(P1[py]));
+               else 
+                   printf(" %+f (%f %f);\n",W.curve , Norm(P1[px]), Norm(P1[py]));
+           }
+	curve=W.curve;
+
+/*
+*   if (HndlLayer(P.layer)) {
+*       HndlSpacing(P.spacing);
+*       HndlPour(P.pour);
+*       printf("Polygon %f ",
+*           Norm(CalcScaledValue(P.width)));
+*       P.wires(W) i++;
+*       P.wires(W) {
+*           CalcScaledPoint(W.x1,W.y1);
+*           P1[px] = P0[px];
+*           P1[py] = P0[py];
+*           ++j;
+* 
+*           if (j == 1)
+*               printf("(%f %f) ", Norm(P1[px]), Norm(P1[py]));
+*           else
+*               if (j%2 > 0) 
+*                   printf("  (%f %f) ", Norm(P1[px]), Norm(P1[py]));
+*               else 
+*                   printf("(%f %f) \\\n", Norm(P1[px]), Norm(P1[py]));
+*           if (--i == 0) {
+*               CalcScaledPoint(W.x2,W.y2);
+*               P1[px] = P0[px];
+*               P1[py] = P0[py];
+*               if (j%2 > 0) 
+*
+*                   printf("(%f %f);\n", Norm(P1[px]), Norm(P1[py]));
+*               else 
+*                   printf("  (%f %f);\n", Norm(P1[px]), Norm(P1[py]));
+*           }
+*FIN MODIF GUY
+*/
+       }
+   }
+}
+
+
+/*
+ *  scales a rectangle
+ */
+void ScaleRectangle(UL_RECTANGLE R) {
+   if (HndlLayer(R.layer)) {
+       CalcScaledPoint(R.x2,R.y2);
+       P1[px] = P0[px];
+       P1[py] = P0[py];
+       CalcScaledPoint(R.x1,R.y1);
+       printf("Rect (%f %f) (%f %f)\n",
+           Norm(P0[px]),
+           Norm(P0[py]),
+           Norm(P1[px]),
+           Norm(P1[py]));
+   }
+}
+
+
+/*
+ *  scales a text
+ */
+void ScaleText(UL_TEXT T) {
+   if (ScaleSpecPnt[0] != ++ScaleSpecPnt[1]) {
+       if (HndlLayer(T.layer)) {
+           HndlSize(CalcScaledValue(T.size));
+           HndlRatio(T.ratio);
+           CalcScaledPoint(T.x,T.y);
+           P1[px] = P0[px];
+           P1[py] = P0[py];
+           printf("Text '%s' %sR%d (%f %f);\n",
+               T.value,
+               MirrorTexts[T.mirror],
+               int(round(T.angle)),
+               Norm(P1[px]),
+               Norm(P1[py]));
+       }
+   }
+}
+
+
+/*
+ *  scales a wire
+ */
+void ScaleWire(UL_WIRE W) {
+   if (HndlLayer(W.layer)) {
+
+   /** Added **/
+       if (gi_wstyle != W.style) {
+           gi_wstyle=W.style;
+           printf("Change Style %d", gi_wstyle);
+       }
+
+/* 
+* RAJOUT GUY 
+*/
+  if (W.arc) {
+       CalcScaledPoint(W.arc.x1,W.arc.y1);
+       P1[px] = P0[px];
+       P1[py] = P0[py];
+       CalcScaledPoint(W.arc.x2,W.arc.y2);
+       P3[px] = P0[px];
+       P3[py] = P0[py];
+       CalcScaledPoint(W.arc.xc,W.arc.yc);
+       P2[px] = P1[px] - ((P1[px] - P0[px]) * 2);
+       P2[py] = P1[py] - ((P1[py] - P0[py]) * 2);
+       printf("Arc CCW %f (%f %f) (%f %f) (%f %f);\n",
+           Norm(CalcScaledValue(W.width)),
+           Norm(P1[px]),
+           Norm(P1[py]),
+           Norm(P2[px]),
+           Norm(P2[py]),
+           Norm(P3[px]),
+           Norm(P3[py]));
+	}
+  else
+       {
+/* 
+* FIN RAJOUT GUY
+*/
+       CalcScaledPoint(W.x2,W.y2);
+       P1[px] = P0[px];
+       P1[py] = P0[py];
+       CalcScaledPoint(W.x1,W.y1);
+       printf("Wire %f (%f %f) (%f %f);\n",
+           Norm(CalcScaledValue(W.width)),
+           Norm(P0[px]),
+           Norm(P0[py]),
+           Norm(P1[px]),
+           Norm(P1[py]));
+/* 
+* RAJOUT GUY
+*/
+     }
+
+/* 
+* FIN RAJOUT GUY
+*/
+   }
+}
+
+
+/*
+ *  writes necessary environment information
+ *  to the top of the file
+ */
+
+void SCRHeader(UL_LIBRARY L) {
+   printf("SET WIRE_BEND 2;\n");       /** Point to Point **/
+   printf("CHANGE STYLE 0;\n");        /** Continuous **/
+   printf("GRID on %s ", GrdUnitTexts[GrdUnit]);
+   printf("%f %d;\n", L.grid.distance, L.grid.multiple);
+}
+
+
+/*
+ *  processes a package
+ */
+void DoPackage(UL_PACKAGE P) {
+/* RAJOUT GUY
+ *  P.arcs(A) {
+ *      ScaleArc(A);
+ *  }
+ */
+   P.circles(C) {
+       ScaleCircle(C);
+   }
+   P.contacts(Cn) {
+       ScaleContact(Cn);
+   }
+   P.holes(H) {
+       ScaleHole(H);
+   }
+   P.polygons(Ply) {
+       ScalePolygon(Ply);
+   }
+   P.rectangles(R) {
+       ScaleRectangle(R);
+   }
+   P.texts(T) {
+       ScaleText(T);
+   }
+   P.wires(W) {
+       ScaleWire(W);
+   }
+}
+
+
+/*
+ *  processes a symbol
+ */
+void DoSymbol(UL_SYMBOL S) {
+/* RAJOUT GUY
+ *  S.arcs(A) {
+ *      ScaleArc(A);
+ *  }
+ */
+   S.circles(C) {
+       ScaleCircle(C);
+   }
+   S.rectangles(R) {
+       ScaleRectangle(R);
+   }
+   S.pins(Pn) {
+       ScalePin(Pn);
+   }
+   S.polygons(P) {
+       ScalePolygon(P);
+   }
+   S.texts(T) {
+       ScaleText(T);
+   }
+   S.wires(W) {
+       ScaleWire(W);
+   }
+}
+
+
+/*
+ *  main program
+ */
+ExitCode = ECNotALibrary;
+if (library) library(L) {
+   L.layers(Ls) GetLayersOn(Ls);
+   ExitCode = ECNoScaleSpec;
+
+   /** MUST have a context **/
+   gr_getparms(L);
+
+   if (package) package(P) {
+       if (ExitCode == ECOk) {
+           output(gs_prompt+"/"+filesetext(P.name, ".SCR")) {
+               SCRHeader(L);
+               DoPackage(P);
+           }
+       }
+   }
+
+   if (symbol) symbol(S) {
+       if (ExitCode == ECOk) {
+           output(gs_prompt+"/"+filesetext(S.name, ".SCR")) {
+               ExitCode = ECOk;
+               SCRHeader(L);
+               DoSymbol(S);
+           }
+       }
+   }
+
+   switch (ExitCode) {
+       case ECOk:  gs_prompt = "Completed Successfully!"; break;
+       case ECNotALibrary: gs_prompt="MUST be run in a library!"; break;
+       case ECNotAPartOrSymbol: gs_prompt="MUST be run in a package or a symbol"; break;
+   }
+
+   if (ExitCode > -3) {
+       dlgDialog ("Object Scale") {
+           dlgVBoxLayout {
+               dlgLabel (gs_prompt);
+               dlgHBoxLayout {
+                   dlgStretch(1);
+                   dlgPushButton("+OK") dlgAccept(0);
+                   dlgStretch(1);
+               }
+           }
+       };
+   }
+
+}  /* main ends */
+
+
+
+
+                                                                                                                                                 

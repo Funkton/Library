@@ -1,0 +1,138 @@
+/*
+ *  UNROUTED.ULP
+ *
+ *  This EAGLE User Language Program generates a Script
+ *  file that can determine unrouted signals (layer 19).
+ *  This may be necessary, whenever the "ratsnest" - command
+ *  tells you that still exist signals to route, but you can
+ *  not see them, because they are too tiny.
+ *
+ *  In a board editor window you can Run this ULP.
+ *  Look the text-file "UNROUTED.TXT" in the current directory. 
+ *         
+ *
+ *  Perhaps you have to change the output - path !
+ *
+ *  Any questions ? - contact me:
+ *    Daemon Reinhard
+ *    Tel:    ++43-316-873-8645
+ *    FAX:    ++43-316-873-8655
+ *    E-Mail: yum@fexphds01.tu-graz.ac.at
+ *
+ */
+
+
+if (board) 
+board(B)
+{
+	real  d1,d2,d;
+    real  w1, w2, w;
+    int   i,l1,l2;
+
+	output("unrouted.txt")
+   	{
+    	B.signals(S)
+        {
+        	S.wires(W)
+            {
+                if (W.layer == 19)	/* air wires */
+                {			
+                	S.wires(W2)
+                    {
+                    	if ((W2.layer <= 16)) /* wire layers only */
+                        {
+                        	if ((W.x1 == W2.x1) && (W.y1 == W2.y1)) { w1=W2.width; l1 = W2.layer; }
+                            if ((W.x1 == W2.x2) && (W.y1 == W2.y2)) { w1=W2.width; l1 = W2.layer; }
+                            if ((W.x2 == W2.x1) && (W.y2 == W2.y1)) { w2=W2.width; l2 = W2.layer; }
+                            if ((W.x2 == W2.x2) && (W.y2 == W2.y2)) { w2=W2.width; l2 = W2.layer; }
+                        }
+                    }
+       				w  	= (w1+w2)/2;
+
+					d1 	= (W.x1 - W.x2);
+					d2 	= (W.y1 - W.y2);			
+					d  	= sqrt(d1*d1 + d2*d2);
+					i  	= d;
+
+					if ( d<w )
+						printf("Small ");
+					else
+						printf("Large ");
+				
+					
+   					printf("Signal %s    ", S.name);
+			
+					if (B.grid.unit == 2)
+               	       	printf("(%.0f/%.0f) (%.0f/%.0f) %.0f",
+							u2mil(W.x1), u2mil(W.y1), u2mil(W.x2),u2mil(W.y2), u2mil(i));
+					if (B.grid.unit == 3)
+						printf("(%.3f/%.3f) (%.3f/%.3f) %f",
+							u2inch(W.x1), u2inch(W.y1), u2inch(W.x2),u2inch(W.y2), u2mil(i));
+			 		if (B.grid.unit == 1)
+						printf("(%.2f/%.2f) (%.2f/%.2f) %f",
+							u2mm(W.x1), u2mm(W.y1), u2mm(W.x2),	u2mm(W.y2), u2mil(i));
+					if (B.grid.unit == 0)
+						printf("(%.0f/%.0f) (%.0f/%.0f) %f",
+							u2mic(W.x1), u2mic(W.y1), u2mic(W.x2),u2mic(W.y2), u2mil(i));
+       				
+	      			if (l1!=l2) printf(" not on the same layer!\n");
+	      			else printf("\n");
+       				
+	      		}
+			}
+		}
+	}
+	
+	output("correct.scr")
+   	{
+    	B.signals(S)
+        {
+        	S.wires(W)
+            {
+
+                if (W.layer == 19)	/* air wires */
+                {			
+                	S.wires(W2)
+                    {
+                    	if ((W2.layer <= 16)) /* top & bottom wires */
+                        {
+                        	if ((W.x1 == W2.x1) && (W.y1 == W2.y1)) { w1=W2.width; l1 = W2.layer; }
+                            if ((W.x1 == W2.x2) && (W.y1 == W2.y2)) { w1=W2.width; l1 = W2.layer; }
+                            if ((W.x2 == W2.x1) && (W.y2 == W2.y1)) { w2=W2.width; l2 = W2.layer; }
+                            if ((W.x2 == W2.x2) && (W.y2 == W2.y2)) { w2=W2.width; l2 = W2.layer; }
+                        }
+                    }
+       				w  	= (w1+w2)/2;
+					i  	= w;
+
+					d1 	= (W.x1 - W.x2);
+					d2 	= (W.y1 - W.y2);			
+					d  	= sqrt(d1*d1 + d2*d2);
+
+					if ( d<w && l1==l2)
+					{
+						
+    					printf("LAYER %d\n", l1);
+    					printf("WIRE \'%s\' ", S.name);
+    					
+			      		if (B.grid.unit == 2)
+                	       	printf("%.0f (%0f %.0f) (%.0f %.0f) \n",
+								u2mil(i/2),u2mil(W.x1), u2mil(W.y1), u2mil(W.x2),u2mil(W.y2));
+						if (B.grid.unit == 3)
+							printf("%f (%.3f %.3f) (%.3f %.3f)\n",
+									u2inch(i/2),u2inch(W.x1), u2inch(W.y1),u2inch(W.x2),u2inch(W.y2));
+				 		if (B.grid.unit == 1)
+							printf("%f (%.2f %.2f) (%.2f %.2f)\n",
+								u2mm(i/2), u2mm(W.x1), u2mm(W.y1), u2mm(W.x2),	u2mm(W.y2));
+						if (B.grid.unit == 0)
+							printf("%.0f (%.0f %.0f) (%.0f %.0f)\n",
+								u2mic(i/2), u2mic(W.x1), u2mic(W.y1), u2mic(W.x2),u2mic(W.y2));
+       				}
+	      		}
+			}
+		}
+		printf("RATSNEST");
+	}	
+}
+else   output("unrouted.txt")     printf("Actual Window is not a BOARD!"); 
+

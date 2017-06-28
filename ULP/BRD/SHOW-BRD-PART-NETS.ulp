@@ -21,9 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-
+/*
 // Cameron Nicks
-// To-do: Add ability to select part from schematic
+// To-do:
+	-Add ability to select part from schematic context.
+	- Make copy of group and restore after cmd run. Select whole group, then run from context and it clears the group.
+*/
 
 #usage "<b>Show Nets</b>"
 "<p>Shows all airwires and traces connected to a selected part, while hiding "

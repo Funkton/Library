@@ -24,8 +24,8 @@
 // 2.4.2014 added support for text alignment
 
 int  offset = 100;
-string tcolor = "yellow";
-string bcolor = "magenta";
+string tcolor = "7"; //Set to grey/white. I don't like the yellow and purple.
+string bcolor = "7";
 int    used_name_layers[];
 string used_name_[];
 string Text_alignments[]={"bottom-left","bottom-center","bottom-right","center-left","center","center-right","top-left","top-center","top-right"};

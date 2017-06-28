@@ -40,7 +40,7 @@
        "</table>"
        "** Device name, Gate name, Pin name, Pad name, Polygon width, or Drill diameter will be searched,  if one of the options DEV, GATE, PIN, PAD, POLYGON or DRILL is given.<p>"
        "</nobr>"
-       "In symbol editor you can search at PIN name, in package editor you can search at PAD/SMD name<br>"
+       "In the symbol editor you can search for PIN names, in the package editor you can search for PAD/SMD names<br>"
        "<author>Author: support@cadsoft.de</author>"
        ,
        "de: <nobr>Findet Elemente in Schaltplan und Board</b>"
@@ -64,7 +64,7 @@
        "<b>*</b> setzt den Z&auml;hler auf 1000<br>"
        "<b>PIN</b> | <b>PAD</b> | <b>DEV</b> | <b>GATE</b> sucht zus&auml;tzlich nach PIN-, PAD-, GATE-, DEVICE-Namen<br>"
        "<b>GATE</b> ohne Namen, platziert das zuerst gefundene, nicht benutzte Gate.<br>"
-       "<b>GATE *</b> listet alle nicht benutzen Gates, das aus der Liste gewählte Gate wird plaziert.<br>"
+       "<b>GATE *</b> listet alle nicht benutzen Gates; das aus der Liste gewählte Gate wird plaziert.<br>"
        "<b>VIA</b> <i>start end</i> sucht Blind- Buried- und Micro-Via einer bestimmten L&auml;nge<br>"
        "<b>VALUE</b> <i>value</i> <b>CH</b> <i>value</i> ersetzt den Value des gefundenen Elements (CH beachtet die Gross-/Klein-Schreibung)<br>"
        "<i>value</i> <b>-S</b> zeigt alle Elemente mit gleichen Values gleichzeitig (gehighlightet wie bei SHOW), nur in BRD.<br>"
@@ -141,9 +141,11 @@
 //
 // Version 2.8 2014.03.21   - corrected option -S
 //
+// Version 2.9 2016.04.04   - replaced depricated UL_CONTACT, now pins connected to more than one pad are supported
+//
 
-#require 5.1200;
-string Version = "Version 2.8";
+#require 6.0000;
+string Version = "Version 2.9";
 string Find;
 string Vfind;
 string NewValue;
@@ -252,11 +254,11 @@ string returnfind(void) {
   string rs;
   if (!Fpin) FndPin = "Element";
 
-  /*if (Fpin == "POLYGON")    sprintf(rs, "run ulpmessage.ulp '%d %s found!';\n", Fcnt, FndPin);
+  if (Fpin == "POLYGON")    sprintf(rs, "run ulpmessage.ulp '%d %s found!';\n", Fcnt, FndPin);
   else if (Fpin == "DRILL") sprintf(rs, "run ulpmessage.ulp '%d %s found!';\n", Fcnt, FndPin);
   else if (Fpin == "VIA")   sprintf(rs, "run ulpmessage.ulp '%d %s found!';\n", Fcnt, FndPin);
   else if (Fpin == "ROUNDNESS") sprintf(rs, "run ulpmessage.ulp '%d %s found!';\n", Fcnt, FndPin);
-  */
+
   else if (StepMode){
     if (StepMode == Fcnt) exit(repeat);
     else repeat = "";    // no message while step mode
@@ -443,9 +445,9 @@ string show_B(real x, real y, real zoom1, real zoom2, string findb, int fist, in
   string cmd = "";
   string cmd_show;
 
-  if (findb[0] == '(') sprintf(cmd_show, "SHOW @ %s ", findb); // 2010.09.03 alf bei TEXTen Koordinate benutzen
+  if (findb[0] == '(') sprintf(cmd_show, "SHOW %s ", findb); // 2010.09.03 alf bei TEXTen Koordinate benutzen
   else if (OptShow)sprintf(cmd_show, " '%s' ", findb); // 2014.03.21 corrected option -S
-  else sprintf(cmd_show, ";SHOW @ '%s' ", findb); // 2007.06.27 alf
+  else sprintf(cmd_show, ";SHOW '%s' ", findb); // 2007.06.27 alf
 
   if (Fpin == "PAD") cmd_show = "";  // can not show pads
   if (Fpin == "POLYGON") sprintf(cmd_show, ";SHOW (%.4f %.4f);\n", x, y);  // do not show polygons
@@ -1136,9 +1138,10 @@ if (schematic) {
           status("Pad:"+PA.name);
           PA.instances(IN) {
             IN.gate.symbol.pins(P) {
-              if (P.contact) {
-                if (P.contact.name == Find) {
-                   FndPin = "Pad";
+
+               P.contacts(C) {
+                if (C.name == Find) {
+                  FndPin = "Pad";
                   sprintf(foundelement, "PAD %s (PIN %s) : sheet %d on (%.4f %.4f)", PA.name, P.name , IN.sheet, u2u(IN.x), u2u(IN.y) );
                   repeat += show_S(IN.sheet,
                                    u2u(P.x)-u2u(100000), u2u(P.y)-u2u(100000),

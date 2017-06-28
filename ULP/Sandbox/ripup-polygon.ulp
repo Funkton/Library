@@ -1,0 +1,148 @@
+#usage "en:<qt><b>Ripup only polygons by signal name in visible layer</b>"
+       "<p>"
+       "RUN ripup-polygon [signal [signal [signal]]] ...<br>"
+       "RUN ripup-polygon *<br>"
+       "* = ripup polygons with any signal name<br>"
+       "<p>"
+       "If there is a wire or a via at the same coordinate as the polygon is, "
+       "the SCRIPT can not decide what to ripup.<br"
+       "<author>Author: support@cadsoft.de</author></nobr></qt>"
+       ,
+       "de:<qt><b>Ripup nur von Polygonen des Signalnamen in sichtbaren Layern</b>"
+       "<p>"
+       "RUN ripup-polygon [signal [signal [signal]]] ...<br>"
+       "RUN ripup-polygon *<br>"
+       "* = unabhängig vom Signalnamen.<br>"
+       "<p>"
+       "Beachten Sie wenn ein WIRE oder VIA an der selben Koordinate platziert ist, "
+       "kann das SCRIPT nicht entscheiden was aufgeript werden soll.<br>"
+       "<author>Author: support@cadsoft.de</author></nobr></qt>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+#require 4.1200
+
+int    lVisible[];
+string signal_name[];
+int    polyLayer[];
+string cmd_layer[];
+int    sig_cnt = 0;
+string cmd = "", s;
+
+int gridunit;
+
+real u2u(int val) {
+  switch (gridunit) {
+    case GRID_UNIT_MIC  : return u2mic(val);
+    case GRID_UNIT_MM   : return u2mm(val);
+    case GRID_UNIT_MIL  : return u2mil(val);
+    case GRID_UNIT_INCH : return u2inch(val);
+  }
+}
+
+void check_name(void) {
+  for (int n = 1; n < argc; n++) {
+    signal_name[sig_cnt] = strupr(argv[n]);
+    sig_cnt++;
+  }
+  return;
+}
+
+void split_signal(string Signals) {
+  sig_cnt = 0;
+  string l[];
+  int cnt = strsplit(l, Signals, ' ');
+  for (int n = 0; n < cnt; n++) {
+    if (l[n]) {
+      signal_name[sig_cnt] = l[n];
+      sig_cnt++;
+    }
+  }
+  return;
+}
+
+void get_signalname(void) {
+  string s_name = "";
+  int RESULT = dlgDialog("Ripup Polygon(s)") {
+    dlgLabel(usage);
+    dlgSpacing(12);
+    dlgHBoxLayout {
+      dlgLabel("Signal");
+      dlgStringEdit(s_name);
+      dlgStretch(1);
+    }
+    dlgHBoxLayout {
+      dlgPushButton("+OK") if (s_name) { split_signal(strupr(s_name)); dlgAccept(); }
+                           else exit(0);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(1);
+    }
+  };
+  if (!RESULT) exit(0);
+  return;
+}
+
+void get_val(int l, int x, int y) {
+  sprintf(s, "RIPUP (%.5f %.5f);\n", u2u(x), u2u(y));
+  cmd_layer[l] += s;
+  polyLayer[l] = 1;
+  return;
+}
+
+void get_poly(UL_POLYGON P, string Name) {
+  if (lVisible[P.layer]) {
+    if (signal_name[0] == "*") {
+      P.wires(W) {
+        get_val(W.layer, W.x1, W.y1);
+        break;
+      }
+    }
+    else {
+      for (int n = 0; n < sig_cnt; n++) {
+        if (signal_name[n] == Name) {
+          P.wires(W) {
+            get_val(W.layer, W.x1, W.y1);
+            break;
+          }
+        }
+      }
+    }
+  }
+  return;
+}
+
+void get_command(void) {
+  for (int n = 1; n < 17; n++) {
+    if (polyLayer[n]) {
+      sprintf(s, "DISPLAY NONE %d;\n", n);
+      cmd += s + cmd_layer[n];
+    }
+  }
+  return;
+}
+
+// main
+if (board) {
+  board(B) {
+    gridunit = (B.grid.unit);
+    B.layers(L) lVisible[L.number] = L.visible;
+  }
+  if (argc > 1) check_name();
+  else get_signalname();
+  board(B) B.signals(S) S.polygons(P) get_poly(P, S.name);
+  get_command();
+  cmd += "DISPLAY NONE ";
+  for(int l = 1; l < 255; l++) {
+    if (lVisible[l]) {
+      if      (l == 21) sprintf(s, " %d -23 -25 -27 -51", l);
+      else if (l == 22) sprintf(s, " %d -24 -26 -28 -52", l);
+      else    sprintf(s, " %d", l);
+      cmd += s;
+    }
+  }
+}
+
+if (cmd) {
+  cmd += ";\nGRID LAST;\n";
+  exit ("GRID FINEST;\nDISPLAY NONE;\n" + cmd);
+}

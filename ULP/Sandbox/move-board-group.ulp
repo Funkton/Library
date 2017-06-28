@@ -1,0 +1,113 @@
+#usage "<b>Generate a MOVE script of part locations selected via group command</b>\n"
+       "<p>"
+       "This program generates a script of move commands for parts selected via the group command "
+       "which can then be used later to subsequently restore all locations of the parts in the group."
+       "The primary purpose of this to allow moving a group of part locations as they exist in a board "
+       "to another board. Note this assumes the part ID names are identical across board files!"
+       "<p>"
+       "<author>http://www.bobstarr.net</author>"
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (C) 2011, Robert E. Starr (http://www.bobstarr.net)
+// 
+// REVISION HISTORY:
+//
+// v1.00 - 02/13/2010 (RES) - Initial Release
+//
+//////////////////////////////////////////////////////////////////////////////
+//
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND,
+// EXPRESSED OR IMPLIED. IF YOU DON'T LIKE IT, DON'T USE IT!
+//
+//////////////////////////////////////////////////////////////////////////////
+
+if (board) board(B)
+{
+    // Get filename
+    string fileName = dlgFileSave("Save File", filesetext(B.name, "_MoveGroup.scr"), "*.scr");
+    if (fileName == "") exit(0);
+
+    output(fileName)
+    {
+        printf ("GRID ");
+
+        if (B.grid.unit == GRID_UNIT_MIC)
+        {
+            printf ("MIC\n");
+        }
+
+        if (B.grid.unit == GRID_UNIT_MM)
+        {
+            printf ("MM\n");
+        }
+
+        if (B.grid.unit == GRID_UNIT_MIL)
+        {
+            printf ("MIL\n");
+        }
+
+        if (B.grid.unit == GRID_UNIT_INCH)
+        {
+            printf ("INCH\n");
+        }
+
+        int cnt = 0;
+
+        B.elements(E)
+        {
+            if (ingroup(E))
+            {
+                int xmax = -2147483648;
+                int xmin = 2147483647;
+                int ymax = xmax;
+                int ymin = xmin;
+
+                real x,y;
+
+                E.package.contacts(C)
+                {
+                    if (C.x > xmax) xmax = C.x;
+                    if (C.y > ymax) ymax = C.y;
+                    if (C.x < xmin) xmin = C.x;
+                    if (C.y < ymin) ymin = C.y;
+                }
+
+                switch (B.grid.unit)
+                {
+                    case GRID_UNIT_MIC:
+                        x = u2mic ((xmin + xmax) / 2);
+                        y = u2mic ((ymin + ymax) / 2);
+                        break;
+                    case GRID_UNIT_MIL:
+                        x = u2mil ((xmin + xmax) / 2);
+                        y = u2mil ((ymin + ymax) / 2);
+                        break;
+                    case GRID_UNIT_MM:
+                        x = u2mm ((xmin + xmax) / 2);
+                        y = u2mm ((ymin + ymax) / 2);
+                        break;
+                    case GRID_UNIT_INCH:
+                        x = u2inch ((xmin + xmax) / 2);
+                        y = u2inch ((ymin + ymax) / 2);
+                        break;
+                }
+
+                printf("MOVE %s (%5.4f %5.4f); ", E.name, x, y);
+                printf("ROTATE =R%f %s;\n", E.angle, E.name);
+
+                ++cnt;
+            }
+        }
+
+        if (!cnt)
+          dlgMessageBox("No items selected in group command!");
+    }
+}
+else
+{
+   dlgMessageBox("\n   Start this ULP in a Board    \n");
+   exit (0);
+}
+
+

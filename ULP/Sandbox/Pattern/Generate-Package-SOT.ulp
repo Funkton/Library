@@ -1,0 +1,256 @@
+#usage "<b>Generate Package SOT (Small Outline Transistor)</b><p>\n"
+"(Copyright 2006) by Weartronics, T. Mühlke, C. Mädiger."
+
+
+string package_name = "SOT95P280X145-5N";
+int dlgresult;
+
+real pitch = 0.95;
+real pad_x = 0.6;
+real pad_y = 1.2;
+real pad_space = 2.5;
+real keepout_x = 4.2;
+real keepout_y = 3.6;
+real silkscreen_x = 0.5;
+real silkscreen_y = 3.0;
+
+int pins = 1;
+real component_l = 2.8;
+real component_t = 0.45;
+real component_w = 0.4;
+real component_a = 1.75;
+real component_b = 3.05;
+real component_h = 1.45;
+
+string Picture = "<img src=sot.bmp>";
+	
+dlgresult = dlgDialog("Insert SOT Package Data") 
+	{
+	dlgStretch(0);
+	dlgHBoxLayout
+	dlgLabel(Picture); 
+	dlgGroup("Eagle Package Data")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Name");	
+			dlgCell(1, 1) dlgStringEdit(package_name)
+			dlgCell(2, 0) dlgSpacing(100);
+			}
+		}
+	dlgGroup("IPC-7351 Land Pattern and Statistics")
+		{
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgLabel("Pitch E");
+			dlgCell(1, 1) dlgRealEdit(pitch,0.0,99.0);
+			dlgCell(2, 0) dlgLabel("Pad X");
+			dlgCell(2, 1) dlgRealEdit(pad_x,0.0,99.0);
+			dlgCell(3, 0) dlgLabel("Pad Y");
+			dlgCell(3, 1) dlgRealEdit(pad_y,0.0,99.0);	
+			dlgCell(4, 0) dlgLabel("Pad Space C");
+			dlgCell(4, 1) dlgRealEdit(pad_space,0.0,99.0);	
+			dlgCell(5, 0) dlgLabel("Curtyard V1");
+			dlgCell(5, 1) dlgRealEdit(keepout_x,0.0,99.0);	
+			dlgCell(6, 0) dlgLabel("Curtyard V2");
+			dlgCell(6, 1) dlgRealEdit(keepout_y,0.0,99.0);	
+			dlgCell(7, 0) dlgLabel("Silkscreen R1");
+			dlgCell(7, 1) dlgRealEdit(silkscreen_x,0.0,99.0);	
+			dlgCell(8, 0) dlgLabel("Silkscreen R2");
+			dlgCell(8, 1) dlgRealEdit(silkscreen_y,0.0,99.0);	
+			dlgCell(9, 0) dlgSpacing(100);
+			}
+		}
+	dlgGroup("IPC-7351 Component")
+		{
+		dlgGroup("Pins")
+			{
+			dlgGridLayout
+				{
+				dlgCell(1, 0) dlgRadioButton("3", pins);
+		 	 	dlgCell(1, 1)	dlgRadioButton("5", pins);
+				dlgCell(1, 2)	dlgRadioButton("6", pins);
+				dlgCell(1, 3)	dlgRadioButton("8", pins);
+				}
+			}		
+		dlgSpacing(10);
+		dlgGridLayout 
+			{
+			dlgCell(1, 0) dlgSpacing(100);
+			dlgCell(2, 0) dlgLabel("Component L");
+			dlgCell(2, 1) dlgRealEdit(component_l);	
+			dlgCell(3, 0) dlgLabel("Component T");
+			dlgCell(3, 1) dlgRealEdit(component_t);	
+			dlgCell(4, 0) dlgLabel("Component W");
+			dlgCell(4, 1) dlgRealEdit(component_w);	
+			dlgCell(5, 0) dlgLabel("Component A");
+			dlgCell(5, 1) dlgRealEdit(component_a);	
+			dlgCell(6, 0) dlgLabel("Component B");
+			dlgCell(6, 1) dlgRealEdit(component_b);	
+			dlgCell(7, 0) dlgLabel("Component H");
+			dlgCell(7, 1) dlgRealEdit(component_h);	
+			dlgCell(8, 0) dlgSpacing(100);
+			}
+		}
+	dlgPushButton("-Cancel") dlgReject();	
+	dlgPushButton("+Ok") dlgAccept();
+	};
+
+if(dlgresult != 1)
+	exit(EXIT_FAILURE);
+
+switch (pins)
+	{
+	case 0: pins=3; break;
+	case 1: pins=5; break;
+	case 2: pins=6; break;
+	case 3: pins=8; break;
+	default: exit(EXIT_FAILURE);
+	}
+	
+	
+if(package != 1)
+	exit(EXIT_FAILURE);
+
+if(pins != 3 && pins != 5 && pins != 6 && pins != 8)
+	exit(EXIT_FAILURE);
+
+real _LINE_WIDTH = 0.127;
+real _CLEARANCE = 0.254;
+real _TEXT_SIZE = 0.8128;
+int _TEXT_RATIO = 10;
+
+int ipin;
+int iposition;
+int positions;
+
+if(pins == 3 || pins == 5 || pins == 6)
+	positions = 6;
+else if(pins == 8)
+	positions = 8;
+
+real ycoord = (positions/4)*pitch;
+
+if(!((positions/2)%2))
+	ycoord -= pitch/2;
+
+string result = "";
+string buffer = "";
+
+void concat()
+{
+	string strings[] = {result, buffer};
+	result = strjoin(strings, ' ');
+}
+
+sprintf(buffer, "GRID mm;"); concat();
+sprintf(buffer, "SET WIRE_BEND 2;"); concat();
+sprintf(buffer, "CHANGE FONT vector;"); concat();
+sprintf(buffer, "CHANGE SIZE %f;", _TEXT_SIZE); concat();
+sprintf(buffer, "CHANGE RATIO %d;", _TEXT_RATIO); concat();
+
+sprintf(buffer, "EDIT %s.pac;", package_name); concat();
+sprintf(buffer, "DESCRIPTION '<b>%s</b><p>\nIPC-7351 Standart';", strupr(package_name)); concat();
+
+sprintf(buffer, "LAYER Top;"); concat();
+
+ipin = 1;
+iposition = 1;
+
+while(iposition <= positions/2)
+{
+	if((pins == 3 && (iposition == 1 || iposition == 3 || iposition == 5)) || (pins == 5 && (iposition == 1 || iposition == 2 || iposition == 3 || iposition == 4 || iposition == 6)) || pins == 6 || pins == 8)
+	{
+		sprintf(buffer, "SMD %f %f -0 R90 '%d' (-%f %f);", pad_x, pad_y, ipin, pad_space/2, ycoord); concat();
+		ipin++;
+	}
+	
+	ycoord -= pitch;
+	iposition++;
+}
+
+ycoord += pitch;
+
+while(iposition <= positions)
+{
+	if((pins == 3 && (iposition == 1 || iposition == 3 || iposition == 5)) || (pins == 5 && (iposition == 1 || iposition == 2 || iposition == 3 || iposition == 4 || iposition == 6)) || pins == 6 || pins == 8)
+	{
+		sprintf(buffer, "SMD %f %f -0 R90 '%d' (%f %f);", pad_x, pad_y, ipin, pad_space/2, ycoord); concat();
+		ipin++;
+	}
+	
+	ycoord += pitch;
+	iposition++;
+}
+
+ycoord -= pitch;
+
+sprintf(buffer, "LAYER tKeepout;"); concat();
+sprintf(buffer, "WIRE 0 (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2, keepout_x/2, keepout_y/2); concat();
+
+sprintf(buffer, "LAYER tPlace;"); concat();
+sprintf(buffer, "CIRCLE 0 (-%f %f) (-%f %f);", pad_space/2 + pad_y/2 - 0.25, ycoord + pad_x/2 + _CLEARANCE + 0.25, pad_space/2 + pad_y/2 - 0.25, ycoord + pad_x/2 + _CLEARANCE); concat();
+
+if(silkscreen_x >= 0.4) // box
+{
+	sprintf(buffer, "WIRE %f (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", _LINE_WIDTH, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2, silkscreen_x/2, silkscreen_y/2); concat();
+}
+else if(silkscreen_x >= 0.2) // line
+{
+	sprintf(buffer, "WIRE %f (0 %f) (0 -%f);", _LINE_WIDTH, silkscreen_y/2, silkscreen_y/2); concat();
+}
+
+sprintf(buffer, "LAYER tDocu;"); concat();
+sprintf(buffer, "WIRE %f (-%f -%f) (-%f %f) (%f %f) (%f -%f) (-%f -%f);", _LINE_WIDTH, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2, component_a/2, component_b/2); concat();
+
+if(component_a >= 1.5)
+	sprintf(buffer, "CIRCLE %f (-%f %f) (-%f %f);", _LINE_WIDTH, component_a/2 - 0.5, component_b/2 - 0.5, component_a/2 - 0.5, component_b/2 - 0.25); concat();
+
+ipin = 1;
+iposition = 1;
+
+while(iposition <= positions/2)
+{
+	if((pins == 3 && (iposition == 1 || iposition == 3 || iposition == 5)) || (pins == 5 && (iposition == 1 || iposition == 2 || iposition == 3 || iposition == 4 || iposition == 6)) || pins == 6 || pins == 8)
+		sprintf(buffer, "RECT (-%f %f) (-%f %f);", component_l/2, ycoord - component_w/2, component_a/2, ycoord + component_w/2); concat();
+	
+	ycoord -= pitch;
+	iposition++;
+}
+
+ycoord += pitch;
+
+while(iposition <= positions)
+{
+	if((pins == 3 && (iposition == 1 || iposition == 3 || iposition == 5)) || (pins == 5 && (iposition == 1 || iposition == 2 || iposition == 3 || iposition == 4 || iposition == 6)) || pins == 6 || pins == 8)
+		sprintf(buffer, "RECT (%f %f) (%f %f);", component_l/2, ycoord - component_w/2, component_a/2, ycoord + component_w/2); concat();
+
+	ycoord += pitch;
+	iposition++;
+}
+
+ycoord -= pitch;
+
+sprintf(buffer, "LAYER tNames;"); concat();
+if(silkscreen_y/2 + _LINE_WIDTH/2 + _CLEARANCE >= pad_x/2 + _CLEARANCE)
+{
+	sprintf(buffer, "TEXT '>NAME' (-%f %f);", pad_space/2 + pad_y/2 - 0.5 - _CLEARANCE, silkscreen_y/2 + _LINE_WIDTH/2 + _CLEARANCE); concat();
+}
+else
+{
+	sprintf(buffer, "TEXT '>NAME' (-%f %f);", pad_space/2 + pad_y/2 - 0.5 - _CLEARANCE, pad_x/2 + _CLEARANCE); concat();
+}
+	
+sprintf(buffer, "LAYER tValues;"); concat();
+if(silkscreen_y/2 + _LINE_WIDTH/2 + _CLEARANCE >= pad_x/2 + _CLEARANCE)
+{
+	sprintf(buffer, "TEXT '>VALUE' (-%f -%f);", pad_space/2 + pad_y/2 - 0.5 - _CLEARANCE, silkscreen_y/2 + _LINE_WIDTH/2 + _CLEARANCE + _TEXT_SIZE); concat();
+}
+else
+{
+	sprintf(buffer, "TEXT '>VALUE' (-%f -%f);", pad_space/2 + pad_y/2 - 0.5 - _CLEARANCE, pad_x/2 + _CLEARANCE + _TEXT_SIZE); concat();
+}
+
+sprintf(buffer, "WINDOW fit;"); concat();
+
+exit(result); 
