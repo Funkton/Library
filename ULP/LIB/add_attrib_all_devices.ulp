@@ -1,3 +1,5 @@
+// Any device package variants starting with '-' will error!
+
 /*==========================================================
   add_attrib_all_devices
   

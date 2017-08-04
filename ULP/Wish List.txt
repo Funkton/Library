@@ -22,6 +22,8 @@ CORE:
 
 ULP:
 
+- Copy group to next layer ulp.
+
 - Functions to handle cfgget and set and would do the type conversions. (real to str, int to string, etc)
 
 DONE - Found trace-layer.ulp - Ulp to Solo layer and cycle for single layer checking.

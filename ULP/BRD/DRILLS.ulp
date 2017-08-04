@@ -21,16 +21,19 @@
 
  * THIS PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY FOR POSSIBLE DAMAGE */
 
-string Version = "2.13";
-//					2.02	2005-09-14	Place also the symbols of drills on board. alf@cadsoft.de
-//					2.03	2008-07-30	place correct symbol  alf@cadsoft.de
-//					2.04	2008-09-04	"_DL.scr" extension lower case
-//					2.10	2008-12-22	Place legend, define layer for stack (Vias) and draw symbols in Stack-Layer
-//					2.11	2011-06-15	check if drillegend layer exist, generate a layer for any stack deep
-//					2.12	2011-12-20	corrected drill calculation for higher resolution in V6 alf@cadsoft.de
-//					2.13	2017-06-18	Want to change default legend layer to 48 (document). Must remove layer existance check.
-//										Comment out symbol drawing. Give legend a title. C.Nicks
-//
+string Version = "2.14";
+/*
+					2.02	2005-09-14	Place also the symbols of drills on board. alf@cadsoft.de
+					2.03	2008-07-30	place correct symbol  alf@cadsoft.de
+					2.04	2008-09-04	"_DL.scr" extension lower case
+					2.10	2008-12-22	Place legend, define layer for stack (Vias) and draw symbols in Stack-Layer
+					2.11	2011-06-15	check if drillegend layer exist, generate a layer for any stack deep
+					2.12	2011-12-20	corrected drill calculation for higher resolution in V6 alf@cadsoft.de
+					2.13	2017-06-18	Comment out symbol drawing. Give legend a title.
+										Want to change default legend layer to 48 (document). Must remove layer existance check. C.Nicks
+					2.14	2017-07-28	Changed offset to use grid units and origin. Removed layer existance error, now it just replaces with new version C.Nicks
+*/
+
 /*
 To re-enable drawing of drill symbols, uncomment line 833
 To Do:
@@ -82,8 +85,8 @@ string Rank[]   = {"0","1","2","3","4","5","6","7","8"};
 string PlatedStatus[]  = {"NOT", "BOTH", "YES"};
 
 // LOCATION
-real   LoffsetX = 7.5;    // Legend offset in X 2010-12-22
-real   LoffsetY = 2.3;    // Legend offset in Y
+real   LoffsetX = 60;    // Legend offset in X 2010-12-22
+real   LoffsetY = 140;    // Legend offset in Y
 
 
 int    OutputDrillRack = 0;
@@ -142,15 +145,18 @@ board(B) {
   //Layer existance check 
   B.layers(L) {
     if(L.used == 1) {
+	
       if (L.number == SymbolLayer) {
         Legend_layer = "";
         leglaynew = 0;
-        string e;  // 2011-06-15
+        /*string e;  // 2011-06-15 //Edit out to remove layer check
         sprintf(e, "!Layer %d exist and used.\nDelete first all symbols in layer %d and the legend table.\n" +
                    "To delete the legend table select layer tOrigin.", SymbolLayer, SymbolLayer);
         dlgMessageBox(e, "OK");
         exit(-1);
+		*/
       }
+	  
       sprintf(lay,"%d  %s", L.number, L.name);
       LayerName[laycnt] = lay;
       LayerNbr[laycnt] = L.number;
@@ -830,7 +836,7 @@ void OutDriLegend() {
   printf("USE %s\n",LbrPath);
 
   if (replace == 0) {
-   printf("ADD 'DRILEGEND' DRILEGEND R0 (%.3f %.3f);\n", u2mm(Bx)-LoffsetX, u2mm(By)-LoffsetY );
+   printf("ADD 'DRILEGEND' DRILEGEND R0 (%.3f %.3f);\n", LoffsetX, LoffsetY ); //Changed offset to use grid units and origin. (using area pushed it off grid, why?)
    // printf("%s", str_symbols); // Do I really need all of the drills marked with symbols? I guess useful for debuging for finding certain ones. Maybe make this a checkbox option in the dialog.
   }
   if (replace == 1) {

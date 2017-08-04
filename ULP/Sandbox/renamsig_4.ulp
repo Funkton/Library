@@ -81,7 +81,7 @@ else {
    exit (0);
 }
 board(B) {
-  output("RENAMSIG.SCR") {
+//  output("RENAMSIG.SCR") {
   
   setgridmil();
   
@@ -101,9 +101,8 @@ board(B) {
   sprintf(c, "GRID LAST;\n"); cmd +=c;
   cmd+= "display 1  16 17 18 19 20 21 40 41 -27;\n";
 // set for 2 layer board
-output("renamsig.scr" , "wt") {printf (cmd);    
-}
-}
+//output("renamsig.scr" , "wt") {printf (cmd);}
+//}
 
 exit(cmd);
 

@@ -1,3 +1,7 @@
+/*
+	Copy the attributes of the devices into all package variants, and name the first variant. Package variants are created in the (Connect) scripts of LT, but only the first one gets the attributes from the imported * .asy. In the example circuit diagram, no package variant is specified, so a device in the Deviceset must be a neutral one!
+*/
+
 #usage "Kopiere die Attribute der Devices in alle Package-Varianten, und benenne die 1. Variante um zu ''<p>"
        "In den (Connect) Scripten von LT werden Package-Varianten angelegt, aber nur die erste "
        "erhält die Attribute aus der importierten *.asy.<br>"
