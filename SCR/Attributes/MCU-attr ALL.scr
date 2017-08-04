@@ -1,7 +1,0 @@
-run add_attrib_all_devices.ulp MANF constant;
-run add_attrib_all_devices.ulp STATUS constant;
-run add_attrib_all_devices.ulp PARTNO constant;
-run add_attrib_all_devices.ulp DESC constant;
-run add_attrib_all_devices.ulp MFPN constant;
-run add_attrib_all_devices.ulp TEMP constant;
-run add_attrib_all_devices.ulp MEM constant;

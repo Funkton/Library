@@ -998,7 +998,7 @@ http://www.bobstarr.net</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="PTS840-G">
+<deviceset name="PTS840-G" prefix="SW">
 <description>&lt;b&gt;PTS840 G&lt;/b&gt; SWITCH TACTILE SPST-NO 0.05A 12V R/A, Gullwing
 &lt;br&gt;
 &lt;a href="http://www.ckswitches.com/media/1477/pts840.pdf"&gt;PTS840 Series Datasheet&lt;/a&gt;</description>

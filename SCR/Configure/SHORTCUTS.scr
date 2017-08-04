@@ -69,6 +69,7 @@ BRD:
 	ASSIGN SC+P 	POLYGON;
 	ASSIGN CA+R 	RIPUP; #mouse Swapped with delete. 
 	ASSIGN C+R		DELETE; #mouse Better than ripup with Cmd.Delete.WireJointsWithoutCtrl =1
+	ASSIGN CS+R 	'MITER -0';
 	ASSIGN CSA+R 	SLICE; #mouse
 	ASSIGN SC+S 	SMASH;
 	ASSIGN SC+V 	VALUE;
@@ -168,7 +169,8 @@ SCH:
 	ASSIGN C+G 		GROUP;
 	ASSIGN C+I 		INFO;
 	ASSIGN CA+I 	SHOW;
-	ASSIGN CSA+I 	'run SHOW-SCH-GROUP';
+	ASSIGN CS+I 	'run SHOW-SCH-GROUP';
+	ASSIGN CSA+I 	'RUN select-sch-group-to-brd-group';
 	ASSIGN C+M 		MOVE;
 	ASSIGN CA+M 	'SPLIT'; #mouse thumb+forefinger=C+M
 	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
@@ -189,7 +191,6 @@ SCH:
 	ASSIGN F5 		'Window (@);';
 	ASSIGN SC+A 	ADD;
 	ASSIGN SC+E 	ERC;
-	ASSIGN SC+I 	INVOKE;
 	ASSIGN SC+P 	POLYGON;
 	ASSIGN C+R 		DELETE; #Ripup muscle memory from board editor
 #	ASSIGN CA+R 	DELETE; #Slice in place for 
@@ -208,7 +209,7 @@ LBR:
 
 	ASSIGN A+C 		CONNECT;
 	ASSIGN A+P 		PAD;
-	ASSIGN A+S 		SMD;
+#	ASSIGN A+S 		SMD;
 	ASSIGN A+M		'run toggle 47';
 	ASSIGN C+D 		DELETE;
 	ASSIGN C+E 		EDIT;
@@ -246,7 +247,7 @@ PAC:
 	ASSIGN CA+R 	SLICE;
 	
 	
-	ASSIGN A+W		'RUN trace-layer +';
+	ASSIGN A+W		'RUN trace-layer +'; #Trace-layer only supports board.
 	ASSIGN A+S		'RUN trace-layer -';
 
 	#ASSIGN F2 		'run toggle 1 23';

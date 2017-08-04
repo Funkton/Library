@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -1112,6 +1112,146 @@ Texas Instruments RHB
 <wire x1="0.05" y1="0.85" x2="0.05" y2="1" width="0.15" layer="21"/>
 <wire x1="-0.05" y1="1" x2="0.05" y2="1" width="0.15" layer="21"/>
 </package>
+<package name="S-PVQFN-N28">
+<description>Plastic Quad Flatpack No-Lead &lt;br&gt;
+
+&lt;p&gt;
+&lt;i&gt;Changelog:&lt;/i&gt;&lt;ul&gt;
+&lt;li&gt;02/21/14: Created for CC2520 CN</description>
+<wire x1="-2.5" y1="2.5" x2="2.5" y2="2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="2.5" x2="2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="-2.5" x2="-2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="-2.5" y1="-2.5" x2="-2.5" y2="2.5" width="0.127" layer="51"/>
+<smd name="1" x="-2.4" y="1.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="2" x="-2.4" y="1" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="3" x="-2.4" y="0.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="4" x="-2.4" y="0" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="5" x="-2.4" y="-0.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="6" x="-2.4" y="-1" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="7" x="-2.4" y="-1.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="8" x="-1.5" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="9" x="-1" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="10" x="-0.5" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="11" x="0" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="12" x="0.5" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="13" x="1" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="14" x="1.5" y="-2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="21" x="2.4" y="1.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="20" x="2.4" y="1" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="19" x="2.4" y="0.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="18" x="2.4" y="0" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="17" x="2.4" y="-0.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="16" x="2.4" y="-1" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="15" x="2.4" y="-1.5" dx="1" dy="0.28" layer="1" roundness="100"/>
+<smd name="22" x="1.5" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="23" x="1" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="24" x="0.5" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="25" x="0" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="26" x="-0.5" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="27" x="-1" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="28" x="-1.5" y="2.4" dx="1" dy="0.28" layer="1" roundness="100" rot="R90"/>
+<smd name="EP" x="0" y="0" dx="3.15" dy="3.15" layer="1" roundness="10" stop="no" cream="no"/>
+<pad name="EP_VIA" x="0" y="0" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA1" x="-1.2" y="0" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA2" x="-0.6" y="0" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA3" x="0.6" y="0" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA4" x="1.2" y="0" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA5" x="0" y="0.6" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA6" x="0" y="1.2" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA7" x="0" y="-0.6" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<pad name="EP_VIA8" x="0" y="-1.2" drill="0.254" diameter="0.4064" stop="no" thermals="no"/>
+<polygon width="0.254" layer="29">
+<vertex x="-1.5" y="-1.5"/>
+<vertex x="-0.3" y="-1.5"/>
+<vertex x="-0.3" y="-0.3"/>
+<vertex x="-1.5" y="-0.3"/>
+</polygon>
+<polygon width="0.254" layer="29">
+<vertex x="0.3" y="-1.5"/>
+<vertex x="1.5" y="-1.5"/>
+<vertex x="1.5" y="-0.3"/>
+<vertex x="0.3" y="-0.3"/>
+</polygon>
+<polygon width="0.254" layer="29">
+<vertex x="0.3" y="0.3"/>
+<vertex x="1.5" y="0.3"/>
+<vertex x="1.5" y="1.5"/>
+<vertex x="0.3" y="1.5"/>
+</polygon>
+<polygon width="0.254" layer="29">
+<vertex x="-1.5" y="0.3"/>
+<vertex x="-0.3" y="0.3"/>
+<vertex x="-0.3" y="1.5"/>
+<vertex x="-1.5" y="1.5"/>
+</polygon>
+<polygon width="0.254" layer="31">
+<vertex x="-1.45" y="0.3"/>
+<vertex x="-0.3" y="0.3"/>
+<vertex x="-0.3" y="1.45"/>
+<vertex x="-1.45" y="1.45"/>
+</polygon>
+<polygon width="0.254" layer="31">
+<vertex x="0.3" y="1.45"/>
+<vertex x="0.3" y="0.3"/>
+<vertex x="1.45" y="0.3"/>
+<vertex x="1.45" y="1.45"/>
+</polygon>
+<polygon width="0.254" layer="31">
+<vertex x="-0.3" y="-1.45"/>
+<vertex x="-0.3" y="-0.3"/>
+<vertex x="-1.45" y="-0.3"/>
+<vertex x="-1.45" y="-1.45"/>
+</polygon>
+<polygon width="0.254" layer="31">
+<vertex x="1.45" y="-0.3"/>
+<vertex x="0.3" y="-0.3"/>
+<vertex x="0.3" y="-1.45"/>
+<vertex x="1.45" y="-1.45"/>
+</polygon>
+<wire x1="2.7" y1="-2" x2="2.7" y2="-2.7" width="0.2032" layer="21"/>
+<wire x1="2.7" y1="-2.7" x2="2" y2="-2.7" width="0.2032" layer="21"/>
+<wire x1="2.7" y1="2.7" x2="2.7" y2="2" width="0.2032" layer="21"/>
+<wire x1="2" y1="2.7" x2="2.7" y2="2.7" width="0.2032" layer="21"/>
+<wire x1="-2.7" y1="-2.7" x2="-2" y2="-2.7" width="0.2032" layer="21"/>
+<wire x1="-2.7" y1="-2.7" x2="-2.7" y2="-2" width="0.2032" layer="21"/>
+<circle x="-2.4" y="2.4" radius="0.4" width="0" layer="21"/>
+<text x="-3" y="3.5" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-2.3" y="-4.2" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+<rectangle x1="-2.5" y1="-0.15" x2="-1.9" y2="0.15" layer="51"/>
+<rectangle x1="-2.5" y1="0.35" x2="-1.9" y2="0.65" layer="51"/>
+<rectangle x1="-2.5" y1="0.85" x2="-1.9" y2="1.15" layer="51"/>
+<rectangle x1="-2.5" y1="1.35" x2="-1.9" y2="1.65" layer="51"/>
+<rectangle x1="-2.5" y1="-0.65" x2="-1.9" y2="-0.35" layer="51"/>
+<rectangle x1="-2.5" y1="-1.15" x2="-1.9" y2="-0.85" layer="51"/>
+<rectangle x1="-2.5" y1="-1.65" x2="-1.9" y2="-1.35" layer="51"/>
+<rectangle x1="-1.8" y1="-2.35" x2="-1.2" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="-1.3" y1="-2.35" x2="-0.7" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="-0.8" y1="-2.35" x2="-0.2" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="-0.3" y1="-2.35" x2="0.3" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="0.2" y1="-2.35" x2="0.8" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="0.7" y1="-2.35" x2="1.3" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="1.2" y1="-2.35" x2="1.8" y2="-2.05" layer="51" rot="R90"/>
+<rectangle x1="1.9" y1="-1.65" x2="2.5" y2="-1.35" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="-1.15" x2="2.5" y2="-0.85" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="-0.65" x2="2.5" y2="-0.35" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="-0.15" x2="2.5" y2="0.15" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="0.35" x2="2.5" y2="0.65" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="0.85" x2="2.5" y2="1.15" layer="51" rot="R180"/>
+<rectangle x1="1.9" y1="1.35" x2="2.5" y2="1.65" layer="51" rot="R180"/>
+<rectangle x1="1.2" y1="2.05" x2="1.8" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="0.7" y1="2.05" x2="1.3" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="0.2" y1="2.05" x2="0.8" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="-0.3" y1="2.05" x2="0.3" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="-0.8" y1="2.05" x2="-0.2" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="-1.3" y1="2.05" x2="-0.7" y2="2.35" layer="51" rot="R270"/>
+<rectangle x1="-1.8" y1="2.05" x2="-1.2" y2="2.35" layer="51" rot="R270"/>
+<circle x="-2" y="2" radius="0.2" width="0" layer="51"/>
+<rectangle x1="-1.58" y1="-1.58" x2="1.58" y2="1.58" layer="51"/>
+<wire x1="0.2" y1="1.6" x2="-0.2" y2="1.6" width="0.2" layer="41"/>
+<wire x1="1.6" y1="0.2" x2="1.6" y2="-0.2" width="0.2" layer="41"/>
+<wire x1="-1.6" y1="0.2" x2="-1.6" y2="-0.2" width="0.2" layer="41"/>
+<wire x1="-0.2" y1="-1.6" x2="0.2" y2="-1.6" width="0.2" layer="41"/>
+</package>
 </packages>
 <symbols>
 <symbol name="SKY65111">
@@ -1410,6 +1550,45 @@ RF Power Detectors</description>
 <wire x1="0" y1="3.81" x2="2.54" y2="3.81" width="0.4064" layer="94"/>
 <wire x1="2.54" y1="3.81" x2="2.54" y2="5.08" width="0.4064" layer="94"/>
 </symbol>
+<symbol name="CC2520">
+<description>2.4 GHZ IEEE 802.15.4/ZIGBEE® RF TRANSCEIVER</description>
+<pin name="SO" x="-25.4" y="7.62" length="middle" direction="out"/>
+<pin name="SI" x="-25.4" y="5.08" length="middle" direction="in"/>
+<pin name="!CS" x="-25.4" y="2.54" length="middle" direction="in"/>
+<pin name="GPIO5" x="-25.4" y="0" length="middle"/>
+<pin name="GPIO4" x="-25.4" y="-2.54" length="middle"/>
+<pin name="GPIO3" x="-25.4" y="-5.08" length="middle"/>
+<pin name="GPIO2" x="-25.4" y="-7.62" length="middle"/>
+<pin name="DVDD" x="-7.62" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+<pin name="GPIO1" x="-5.08" y="-25.4" length="middle" rot="R90"/>
+<pin name="GPIO0" x="-2.54" y="-25.4" length="middle" rot="R90"/>
+<pin name="AVDD@11" x="0" y="-25.4" length="middle" rot="R90"/>
+<pin name="XOSC_Q2" x="2.54" y="-25.4" length="middle" rot="R90"/>
+<pin name="XOSC_Q1" x="5.08" y="-25.4" length="middle" rot="R90"/>
+<pin name="AVDD@14" x="7.62" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+<pin name="NC@15" x="25.4" y="-7.62" length="middle" direction="nc" rot="R180"/>
+<pin name="AVDD@16" x="25.4" y="-5.08" length="middle" direction="pwr" rot="R180"/>
+<pin name="RF_P" x="25.4" y="-2.54" length="middle" rot="R180"/>
+<pin name="NC@18" x="25.4" y="0" length="middle" direction="nc" rot="R180"/>
+<pin name="RF_N" x="25.4" y="2.54" length="middle" rot="R180"/>
+<pin name="AVDD@20" x="25.4" y="5.08" length="middle" direction="pwr" rot="R180"/>
+<pin name="NC@21" x="25.4" y="7.62" length="middle" direction="nc" rot="R180"/>
+<pin name="AVDD@22" x="7.62" y="25.4" length="middle" direction="pwr" rot="R270"/>
+<pin name="RBIAS" x="5.08" y="25.4" length="middle" rot="R270"/>
+<pin name="AVDD_GUARD" x="2.54" y="25.4" length="middle" direction="pwr" rot="R270"/>
+<pin name="!RESET" x="0" y="25.4" length="middle" direction="in" rot="R270"/>
+<pin name="VREG_EN" x="-2.54" y="25.4" length="middle" direction="in" rot="R270"/>
+<pin name="DCOUPL" x="-5.08" y="25.4" length="middle" direction="out" rot="R270"/>
+<pin name="SCLK" x="-7.62" y="25.4" length="middle" direction="in" rot="R270"/>
+<wire x1="-20.32" y1="-20.32" x2="20.32" y2="-20.32" width="0.254" layer="94"/>
+<wire x1="20.32" y1="-20.32" x2="20.32" y2="20.32" width="0.254" layer="94"/>
+<wire x1="20.32" y1="20.32" x2="-20.32" y2="20.32" width="0.254" layer="94"/>
+<wire x1="-20.32" y1="20.32" x2="-20.32" y2="-20.32" width="0.254" layer="94"/>
+<rectangle x1="-20.32" y1="15.24" x2="-15.24" y2="20.32" layer="94"/>
+<pin name="AGND" x="25.4" y="-15.24" length="middle" direction="pwr" rot="R180"/>
+<text x="-20.32" y="22.86" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
+<text x="10.16" y="-22.86" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="SKY65111" prefix="U">
@@ -1634,6 +1813,10 @@ Source:</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value="https://goo.gl/Pi2TsH"/>
+<attribute name="DESC" value="IC RF 2.4 GHZ RANGE EXTENDER"/>
+<attribute name="MANF" value="Texas Instruments"/>
+<attribute name="MFPN" value="CC2592RGV "/>
 <attribute name="PARTNO" value="01-100544-00"/>
 </technology>
 </technologies>
@@ -1809,10 +1992,65 @@ Source:</description>
 <technology name="">
 <attribute name="BANDWIDTH" value="100MHz "/>
 <attribute name="DATASHEET" value="http://goo.gl/uVxpFP"/>
+<attribute name="DESC" value="FILTER LOWPASS 2.4GHZ WIFI "/>
 <attribute name="FREQ" value="2.4~2.5GHz"/>
 <attribute name="LOSS" value="0.5dB"/>
-<attribute name="PARTNO" value="new" constant="no"/>
+<attribute name="MANF" value="Johanson Technology"/>
+<attribute name="MFPN" value="2450LP14B100"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
 <attribute name="TYPE" value="Low Pass"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="CC2520" prefix="U">
+<description>2.4 GHZ IEEE 802.15.4/ZIGBEE® RF TRANSCEIVER
+&lt;p&gt;
+&lt;a href="http://www.ti.com/lit/ds/symlink/cc2520.pdf"&gt;Datasheet&lt;/a&gt;</description>
+<gates>
+<gate name="G$1" symbol="CC2520" x="0" y="0"/>
+</gates>
+<devices>
+<device name="RHD" package="S-PVQFN-N28">
+<connects>
+<connect gate="G$1" pin="!CS" pad="3"/>
+<connect gate="G$1" pin="!RESET" pad="25"/>
+<connect gate="G$1" pin="AGND" pad="EP EP_VIA EP_VIA1 EP_VIA2 EP_VIA3 EP_VIA4 EP_VIA5 EP_VIA6 EP_VIA7 EP_VIA8"/>
+<connect gate="G$1" pin="AVDD@11" pad="11"/>
+<connect gate="G$1" pin="AVDD@14" pad="14"/>
+<connect gate="G$1" pin="AVDD@16" pad="16"/>
+<connect gate="G$1" pin="AVDD@20" pad="20"/>
+<connect gate="G$1" pin="AVDD@22" pad="22"/>
+<connect gate="G$1" pin="AVDD_GUARD" pad="24"/>
+<connect gate="G$1" pin="DCOUPL" pad="27"/>
+<connect gate="G$1" pin="DVDD" pad="8"/>
+<connect gate="G$1" pin="GPIO0" pad="10"/>
+<connect gate="G$1" pin="GPIO1" pad="9"/>
+<connect gate="G$1" pin="GPIO2" pad="7"/>
+<connect gate="G$1" pin="GPIO3" pad="6"/>
+<connect gate="G$1" pin="GPIO4" pad="5"/>
+<connect gate="G$1" pin="GPIO5" pad="4"/>
+<connect gate="G$1" pin="NC@15" pad="15"/>
+<connect gate="G$1" pin="NC@18" pad="18"/>
+<connect gate="G$1" pin="NC@21" pad="21"/>
+<connect gate="G$1" pin="RBIAS" pad="23"/>
+<connect gate="G$1" pin="RF_N" pad="19"/>
+<connect gate="G$1" pin="RF_P" pad="17"/>
+<connect gate="G$1" pin="SCLK" pad="28"/>
+<connect gate="G$1" pin="SI" pad="2"/>
+<connect gate="G$1" pin="SO" pad="1"/>
+<connect gate="G$1" pin="VREG_EN" pad="26"/>
+<connect gate="G$1" pin="XOSC_Q1" pad="13"/>
+<connect gate="G$1" pin="XOSC_Q2" pad="12"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DATASHEET" value="https://goo.gl/skDBka"/>
+<attribute name="DESC" value="IC RF TXRX+MCU 802.15.4 28-VFQFN"/>
+<attribute name="MANF" value="Texas Instruments"/>
+<attribute name="MFPN" value="CC2520RHDT"/>
+<attribute name="PARTNO" value="01-100506-00"/>
 </technology>
 </technologies>
 </device>

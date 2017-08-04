@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.1">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="mm" unit="mm" style="dots" multiple="1" display="yes" altdistance="0.05" altunitdist="mm" altunit="mm"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="1" name="Top" color="4" fill="1" visible="no" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
 <layer number="3" name="Route3" color="4" fill="3" visible="no" active="no"/>
 <layer number="4" name="Route4" color="1" fill="4" visible="no" active="no"/>
@@ -23,43 +23,43 @@
 <layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
 <layer number="14" name="Route14" color="1" fill="6" visible="no" active="no"/>
 <layer number="15" name="Route15" color="4" fill="6" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="no" active="yes"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="no" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="yes"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="yes" active="yes"/>
-<layer number="30" name="bStop" color="7" fill="6" visible="yes" active="yes"/>
-<layer number="31" name="tCream" color="7" fill="4" visible="yes" active="yes"/>
-<layer number="32" name="bCream" color="7" fill="5" visible="yes" active="yes"/>
-<layer number="33" name="tFinish" color="6" fill="3" visible="yes" active="yes"/>
-<layer number="34" name="bFinish" color="6" fill="6" visible="yes" active="yes"/>
-<layer number="35" name="tGlue" color="7" fill="4" visible="yes" active="yes"/>
-<layer number="36" name="bGlue" color="7" fill="5" visible="yes" active="yes"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
-<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
-<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
-<layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="yes"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
+<layer number="32" name="bCream" color="7" fill="5" visible="no" active="yes"/>
+<layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
+<layer number="34" name="bFinish" color="6" fill="6" visible="no" active="yes"/>
+<layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
+<layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -71,6 +71,7 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="tDocu-Extended" color="7" fill="1" visible="no" active="yes"/>
 </layers>
 <library>
 <description>Sensors</description>
@@ -604,6 +605,304 @@ Designed for AS6200</description>
 <text x="-0.9" y="0.9" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
 <text x="-0.9" y="-0.47" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
 </package>
+<package name="QFN20P65_5X5">
+<description>Quad Flat No-Lead (QFN with Tab), 0.65 mm pitch; square, 5 pin X 5 pin, 5.00 mm L X 5.00 mm W X 0.80 mm H body&lt;p&gt;
+
+&lt;a href="https://pdfserv.maximintegrated.com/land_patterns/90-0010.PDF"&gt;Outline: 21-0140&lt;/a&gt;&lt;br&gt;
+&lt;a href="https://pdfserv.maximintegrated.com/package_dwgs/21-0140.PDF"&gt;Maxim Package T2055+5&lt;/a&gt; 
+&lt;p&gt;&lt;i&gt;PCB Libraries Packages&lt;/i&gt;</description>
+<smd name="1" x="-1.3" y="-2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R270"/>
+<smd name="2" x="-0.65" y="-2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R270"/>
+<smd name="3" x="0" y="-2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R270"/>
+<smd name="4" x="0.65" y="-2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R270"/>
+<smd name="5" x="1.3" y="-2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R270"/>
+<smd name="6" x="2.34" y="-1.3" dx="0.95" dy="0.35" layer="1" roundness="50"/>
+<smd name="7" x="2.34" y="-0.65" dx="0.95" dy="0.35" layer="1" roundness="50"/>
+<smd name="8" x="2.34" y="0" dx="0.95" dy="0.35" layer="1" roundness="50"/>
+<smd name="9" x="2.34" y="0.65" dx="0.95" dy="0.35" layer="1" roundness="50"/>
+<smd name="10" x="2.34" y="1.3" dx="0.95" dy="0.35" layer="1" roundness="50"/>
+<smd name="11" x="1.3" y="2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R90"/>
+<smd name="12" x="0.65" y="2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R90"/>
+<smd name="13" x="0" y="2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R90"/>
+<smd name="14" x="-0.65" y="2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R90"/>
+<smd name="15" x="-1.3" y="2.34" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R90"/>
+<smd name="16" x="-2.34" y="1.3" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R180"/>
+<smd name="17" x="-2.34" y="0.65" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R180"/>
+<smd name="18" x="-2.34" y="0" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R180"/>
+<smd name="19" x="-2.34" y="-0.65" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R180"/>
+<smd name="20" x="-2.34" y="-1.3" dx="0.95" dy="0.35" layer="1" roundness="50" rot="R180"/>
+<smd name="EP" x="0" y="0" dx="2.55" dy="2.55" layer="1" rot="R90" stop="no" cream="no"/>
+<wire x1="-1.15" y1="-2.5" x2="-1.15" y2="-2.1" width="0.025" layer="51"/>
+<wire x1="-1.15" y1="-2.1" x2="-1.45" y2="-2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="-1.45" y1="-2.1" x2="-1.45" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="-1.45" y1="-2.5" x2="-1.15" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="-0.5" y1="-2.5" x2="-0.5" y2="-2.1" width="0.025" layer="51"/>
+<wire x1="-0.5" y1="-2.1" x2="-0.8" y2="-2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="-0.8" y1="-2.1" x2="-0.8" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="-0.8" y1="-2.5" x2="-0.5" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="0.15" y1="-2.5" x2="0.15" y2="-2.1" width="0.025" layer="51"/>
+<wire x1="0.15" y1="-2.1" x2="-0.15" y2="-2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="-0.15" y1="-2.1" x2="-0.15" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="-0.15" y1="-2.5" x2="0.15" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="0.8" y1="-2.5" x2="0.8" y2="-2.1" width="0.025" layer="51"/>
+<wire x1="0.8" y1="-2.1" x2="0.5" y2="-2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="0.5" y1="-2.1" x2="0.5" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="0.5" y1="-2.5" x2="0.8" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="1.45" y1="-2.5" x2="1.45" y2="-2.1" width="0.025" layer="51"/>
+<wire x1="1.45" y1="-2.1" x2="1.15" y2="-2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="1.15" y1="-2.1" x2="1.15" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="1.15" y1="-2.5" x2="1.45" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-1.15" x2="2.1" y2="-1.15" width="0.025" layer="51"/>
+<wire x1="2.1" y1="-1.15" x2="2.1" y2="-1.45" width="0.025" layer="51" curve="180"/>
+<wire x1="2.1" y1="-1.45" x2="2.5" y2="-1.45" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-1.45" x2="2.5" y2="-1.15" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-0.5" x2="2.1" y2="-0.5" width="0.025" layer="51"/>
+<wire x1="2.1" y1="-0.5" x2="2.1" y2="-0.8" width="0.025" layer="51" curve="180"/>
+<wire x1="2.1" y1="-0.8" x2="2.5" y2="-0.8" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-0.8" x2="2.5" y2="-0.5" width="0.025" layer="51"/>
+<wire x1="2.5" y1="0.15" x2="2.1" y2="0.15" width="0.025" layer="51"/>
+<wire x1="2.1" y1="0.15" x2="2.1" y2="-0.15" width="0.025" layer="51" curve="180"/>
+<wire x1="2.1" y1="-0.15" x2="2.5" y2="-0.15" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-0.15" x2="2.5" y2="0.15" width="0.025" layer="51"/>
+<wire x1="2.5" y1="0.8" x2="2.1" y2="0.8" width="0.025" layer="51"/>
+<wire x1="2.1" y1="0.8" x2="2.1" y2="0.5" width="0.025" layer="51" curve="180"/>
+<wire x1="2.1" y1="0.5" x2="2.5" y2="0.5" width="0.025" layer="51"/>
+<wire x1="2.5" y1="0.5" x2="2.5" y2="0.8" width="0.025" layer="51"/>
+<wire x1="2.5" y1="1.45" x2="2.1" y2="1.45" width="0.025" layer="51"/>
+<wire x1="2.1" y1="1.45" x2="2.1" y2="1.15" width="0.025" layer="51" curve="180"/>
+<wire x1="2.1" y1="1.15" x2="2.5" y2="1.15" width="0.025" layer="51"/>
+<wire x1="2.5" y1="1.15" x2="2.5" y2="1.45" width="0.025" layer="51"/>
+<wire x1="1.15" y1="2.5" x2="1.15" y2="2.1" width="0.025" layer="51"/>
+<wire x1="1.15" y1="2.1" x2="1.45" y2="2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="1.45" y1="2.1" x2="1.45" y2="2.5" width="0.025" layer="51"/>
+<wire x1="1.45" y1="2.5" x2="1.15" y2="2.5" width="0.025" layer="51"/>
+<wire x1="0.5" y1="2.5" x2="0.5" y2="2.1" width="0.025" layer="51"/>
+<wire x1="0.5" y1="2.1" x2="0.8" y2="2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="0.8" y1="2.1" x2="0.8" y2="2.5" width="0.025" layer="51"/>
+<wire x1="0.8" y1="2.5" x2="0.5" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-0.15" y1="2.5" x2="-0.15" y2="2.1" width="0.025" layer="51"/>
+<wire x1="-0.15" y1="2.1" x2="0.15" y2="2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="0.15" y1="2.1" x2="0.15" y2="2.5" width="0.025" layer="51"/>
+<wire x1="0.15" y1="2.5" x2="-0.15" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-0.8" y1="2.5" x2="-0.8" y2="2.1" width="0.025" layer="51"/>
+<wire x1="-0.8" y1="2.1" x2="-0.5" y2="2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="-0.5" y1="2.1" x2="-0.5" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-0.5" y1="2.5" x2="-0.8" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-1.45" y1="2.5" x2="-1.45" y2="2.1" width="0.025" layer="51"/>
+<wire x1="-1.45" y1="2.1" x2="-1.15" y2="2.1" width="0.025" layer="51" curve="180"/>
+<wire x1="-1.15" y1="2.1" x2="-1.15" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-1.15" y1="2.5" x2="-1.45" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="1.15" x2="-2.1" y2="1.15" width="0.025" layer="51"/>
+<wire x1="-2.1" y1="1.15" x2="-2.1" y2="1.45" width="0.025" layer="51" curve="180"/>
+<wire x1="-2.1" y1="1.45" x2="-2.5" y2="1.45" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="1.45" x2="-2.5" y2="1.15" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="0.5" x2="-2.1" y2="0.5" width="0.025" layer="51"/>
+<wire x1="-2.1" y1="0.5" x2="-2.1" y2="0.8" width="0.025" layer="51" curve="180"/>
+<wire x1="-2.1" y1="0.8" x2="-2.5" y2="0.8" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="0.8" x2="-2.5" y2="0.5" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-0.15" x2="-2.1" y2="-0.15" width="0.025" layer="51"/>
+<wire x1="-2.1" y1="-0.15" x2="-2.1" y2="0.15" width="0.025" layer="51" curve="180"/>
+<wire x1="-2.1" y1="0.15" x2="-2.5" y2="0.15" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="0.15" x2="-2.5" y2="-0.15" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-0.8" x2="-2.1" y2="-0.8" width="0.025" layer="51"/>
+<wire x1="-2.1" y1="-0.8" x2="-2.1" y2="-0.5" width="0.025" layer="51" curve="180"/>
+<wire x1="-2.1" y1="-0.5" x2="-2.5" y2="-0.5" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-0.5" x2="-2.5" y2="-0.8" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-1.45" x2="-2.1" y2="-1.45" width="0.025" layer="51"/>
+<wire x1="-2.1" y1="-1.45" x2="-2.1" y2="-1.15" width="0.025" layer="51" curve="180"/>
+<wire x1="-2.1" y1="-1.15" x2="-2.5" y2="-1.15" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-1.15" x2="-2.5" y2="-1.45" width="0.025" layer="51"/>
+<polygon width="0.01" layer="1">
+<vertex x="1.625" y="-1.625"/>
+<vertex x="-1.275" y="-1.625"/>
+<vertex x="-1.625" y="-1.275"/>
+<vertex x="-1.625" y="1.625"/>
+<vertex x="1.625" y="1.625"/>
+</polygon>
+<polygon width="0.01" layer="29">
+<vertex x="-0.175" y="-0.275"/>
+<vertex x="-0.175" y="-1.525" curve="-90"/>
+<vertex x="-0.275" y="-1.625"/>
+<vertex x="-1.275" y="-1.625"/>
+<vertex x="-1.625" y="-1.275"/>
+<vertex x="-1.625" y="-0.275" curve="-90"/>
+<vertex x="-1.525" y="-0.175"/>
+<vertex x="-0.275" y="-0.175" curve="-90"/>
+</polygon>
+<polygon width="0.01" layer="31">
+<vertex x="1.31" y="-1.31"/>
+<vertex x="0.16" y="-1.31"/>
+<vertex x="0.16" y="-0.16"/>
+<vertex x="1.31" y="-0.16"/>
+</polygon>
+<polygon width="0.01" layer="31">
+<vertex x="1.31" y="0.16"/>
+<vertex x="0.16" y="0.16"/>
+<vertex x="0.16" y="1.31"/>
+<vertex x="1.31" y="1.31"/>
+</polygon>
+<polygon width="0.01" layer="31">
+<vertex x="-0.16" y="-1.31"/>
+<vertex x="-1.31" y="-1.31"/>
+<vertex x="-1.31" y="-0.16"/>
+<vertex x="-0.16" y="-0.16"/>
+</polygon>
+<polygon width="0.01" layer="31">
+<vertex x="-0.16" y="0.16"/>
+<vertex x="-1.31" y="0.16"/>
+<vertex x="-1.31" y="1.31"/>
+<vertex x="-0.16" y="1.31"/>
+</polygon>
+<wire x1="-1.275" y1="-1.625" x2="1.625" y2="-1.625" width="0.025" layer="51"/>
+<wire x1="-1.625" y1="-1.275" x2="-1.275" y2="-1.625" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="-2.5" x2="-2.5" y2="2.5" width="0.025" layer="51"/>
+<wire x1="-2.5" y1="2.5" x2="2.5" y2="2.5" width="0.025" layer="51"/>
+<wire x1="2.5" y1="2.5" x2="2.5" y2="-2.5" width="0.025" layer="51"/>
+<wire x1="2.5" y1="-2.5" x2="-2.5" y2="-2.5" width="0.025" layer="51"/>
+<circle x="0" y="0" radius="0.25" width="0.05" layer="39"/>
+<wire x1="0" y1="0.35" x2="0" y2="-0.35" width="0.05" layer="39"/>
+<wire x1="-0.35" y1="0" x2="0.35" y2="0" width="0.05" layer="39"/>
+<wire x1="-2.5" y1="-2.5" x2="-2.5" y2="2.5" width="0.12" layer="151"/>
+<wire x1="-2.5" y1="2.5" x2="2.5" y2="2.5" width="0.12" layer="151"/>
+<wire x1="2.5" y1="2.5" x2="2.5" y2="-2.5" width="0.12" layer="151"/>
+<wire x1="2.5" y1="-2.5" x2="-2.5" y2="-2.5" width="0.12" layer="151"/>
+<wire x1="2.6" y1="-2.6" x2="2.6" y2="-1.56" width="0.05" layer="39"/>
+<wire x1="2.6" y1="-1.56" x2="2.955" y2="-1.56" width="0.05" layer="39"/>
+<wire x1="2.955" y1="-1.56" x2="2.955" y2="1.56" width="0.05" layer="39"/>
+<wire x1="2.955" y1="1.56" x2="2.6" y2="1.56" width="0.05" layer="39"/>
+<wire x1="2.6" y1="1.56" x2="2.6" y2="2.6" width="0.05" layer="39"/>
+<wire x1="2.6" y1="2.6" x2="1.56" y2="2.6" width="0.05" layer="39"/>
+<wire x1="1.56" y1="2.6" x2="1.56" y2="2.955" width="0.05" layer="39"/>
+<wire x1="1.56" y1="2.955" x2="-1.56" y2="2.955" width="0.05" layer="39"/>
+<wire x1="-1.56" y1="2.955" x2="-1.56" y2="2.6" width="0.05" layer="39"/>
+<wire x1="-1.56" y1="2.6" x2="-2.6" y2="2.6" width="0.05" layer="39"/>
+<wire x1="-2.6" y1="2.6" x2="-2.6" y2="1.56" width="0.05" layer="39"/>
+<wire x1="-2.6" y1="1.56" x2="-2.955" y2="1.56" width="0.05" layer="39"/>
+<wire x1="-2.955" y1="1.56" x2="-2.955" y2="-1.56" width="0.05" layer="39"/>
+<wire x1="-2.955" y1="-1.56" x2="-2.6" y2="-1.56" width="0.05" layer="39"/>
+<wire x1="-2.6" y1="-1.56" x2="-2.6" y2="-2.6" width="0.05" layer="39"/>
+<wire x1="-2.6" y1="-2.6" x2="-1.56" y2="-2.6" width="0.05" layer="39"/>
+<wire x1="-1.56" y1="-2.6" x2="-1.56" y2="-2.955" width="0.05" layer="39"/>
+<wire x1="-1.56" y1="-2.955" x2="1.56" y2="-2.955" width="0.05" layer="39"/>
+<wire x1="1.56" y1="-2.955" x2="1.56" y2="-2.6" width="0.05" layer="39"/>
+<wire x1="1.56" y1="-2.6" x2="2.6" y2="-2.6" width="0.05" layer="39"/>
+<wire x1="1.7" y1="-2.5" x2="2.5" y2="-2.5" width="0.1" layer="21"/>
+<wire x1="2.5" y1="-2.5" x2="2.5" y2="-1.7" width="0.1" layer="21"/>
+<wire x1="1.7" y1="2.5" x2="2.5" y2="2.5" width="0.1" layer="21"/>
+<wire x1="2.5" y1="2.5" x2="2.5" y2="1.7" width="0.1" layer="21"/>
+<wire x1="-1.7" y1="2.5" x2="-2.5" y2="2.5" width="0.1" layer="21"/>
+<wire x1="-2.5" y1="2.5" x2="-2.5" y2="1.7" width="0.1" layer="21"/>
+<text x="-3.3" y="-2.6" size="1.016" layer="25" font="vector" ratio="18" rot="R90">&gt;NAME</text>
+<text x="-1" y="-0.27" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+<circle x="-2.2" y="-2.4" radius="0.3" width="0" layer="21"/>
+<circle x="-2.2" y="-2.4" radius="0.3" width="0" layer="51"/>
+<wire x1="1.625" y1="-1.625" x2="1.625" y2="1.625" width="0.025" layer="51"/>
+<wire x1="1.625" y1="1.625" x2="-1.625" y2="1.625" width="0.025" layer="51"/>
+<wire x1="-1.625" y1="-1.275" x2="-1.625" y2="1.625" width="0.025" layer="51"/>
+<polygon width="0.01" layer="29">
+<vertex x="0.175" y="-1.525"/>
+<vertex x="0.175" y="-0.275" curve="-90"/>
+<vertex x="0.275" y="-0.175"/>
+<vertex x="1.525" y="-0.175" curve="-90"/>
+<vertex x="1.625" y="-0.275"/>
+<vertex x="1.625" y="-1.525" curve="-90"/>
+<vertex x="1.525" y="-1.625"/>
+<vertex x="0.275" y="-1.625" curve="-90"/>
+</polygon>
+<polygon width="0.01" layer="29">
+<vertex x="0.275" y="1.625"/>
+<vertex x="1.525" y="1.625" curve="-90"/>
+<vertex x="1.625" y="1.525"/>
+<vertex x="1.625" y="0.275" curve="-90"/>
+<vertex x="1.525" y="0.175"/>
+<vertex x="0.275" y="0.175" curve="-90"/>
+<vertex x="0.175" y="0.275"/>
+<vertex x="0.175" y="1.525" curve="-90"/>
+</polygon>
+<polygon width="0.01" layer="29">
+<vertex x="-0.275" y="0.175"/>
+<vertex x="-1.525" y="0.175" curve="-90"/>
+<vertex x="-1.625" y="0.275"/>
+<vertex x="-1.625" y="1.525" curve="-90"/>
+<vertex x="-1.525" y="1.625"/>
+<vertex x="-0.275" y="1.625" curve="-90"/>
+<vertex x="-0.175" y="1.525"/>
+<vertex x="-0.175" y="0.275" curve="-90"/>
+</polygon>
+</package>
+<package name="DFN-6-SHT-CAP">
+<description>DFN-6 w/Exposed Pad
+&lt;br&gt;
+w/ &lt;a href="https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Sensirion_Humidity_Sensors_SF2_Filter_Cap_Datasheet_V2.pdf"&gt;Filter Cap SF2&lt;/a&gt;</description>
+<wire x1="1.5" y1="1.5" x2="-1.5" y2="1.5" width="0.127" layer="51"/>
+<wire x1="-1.5" y1="1.5" x2="-1.5" y2="-1.5" width="0.127" layer="51"/>
+<wire x1="-1.5" y1="-1.5" x2="1.5" y2="-1.5" width="0.127" layer="51"/>
+<wire x1="1.5" y1="-1.5" x2="1.5" y2="1.5" width="0.127" layer="51"/>
+<wire x1="-0.9" y1="-1.2" x2="0.9" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="0.9" y1="-1.2" x2="1" y2="-1.1" width="0.127" layer="51" curve="90"/>
+<wire x1="1" y1="-1.1" x2="1" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1" y1="-0.5" x2="0.9" y2="-0.4" width="0.127" layer="51" curve="90"/>
+<wire x1="0.9" y1="-0.4" x2="-0.9" y2="-0.4" width="0.127" layer="51"/>
+<wire x1="-0.9" y1="-0.4" x2="-1" y2="-0.5" width="0.127" layer="51" curve="90"/>
+<wire x1="-1" y1="-0.5" x2="-1" y2="-1.1" width="0.127" layer="51"/>
+<wire x1="-1" y1="-1.1" x2="-0.9" y2="-1.2" width="0.127" layer="51" curve="90"/>
+<wire x1="0.6" y1="-0.95" x2="-0.6" y2="-0.95" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="-0.95" x2="-0.7" y2="-0.85" width="0.127" layer="51" curve="-90"/>
+<wire x1="-0.7" y1="-0.85" x2="-0.7" y2="-0.75" width="0.127" layer="51"/>
+<wire x1="-0.7" y1="-0.75" x2="-0.6" y2="-0.65" width="0.127" layer="51" curve="-90"/>
+<wire x1="-0.6" y1="-0.65" x2="0.6" y2="-0.65" width="0.127" layer="51"/>
+<wire x1="0.6" y1="-0.65" x2="0.7" y2="-0.75" width="0.127" layer="51" curve="-90"/>
+<wire x1="0.7" y1="-0.75" x2="0.7" y2="-0.85" width="0.127" layer="51"/>
+<wire x1="0.7" y1="-0.85" x2="0.6" y2="-0.95" width="0.127" layer="51" curve="-90"/>
+<smd name="EP" x="0" y="0" dx="1.3" dy="2.2" layer="1" roundness="20"/>
+<smd name="1" x="-1.45" y="1" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<smd name="2" x="-1.45" y="0" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<smd name="3" x="-1.45" y="-1" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<smd name="4" x="1.45" y="-1" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<smd name="5" x="1.45" y="0" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<smd name="6" x="1.45" y="1" dx="0.7" dy="0.4" layer="1" roundness="50"/>
+<wire x1="-0.8" y1="-1.6" x2="0.8" y2="-1.6" width="0.2032" layer="21"/>
+<wire x1="0.8" y1="-1.4" x2="0.8" y2="-1.6" width="0.2032" layer="21"/>
+<wire x1="-0.8" y1="-1.4" x2="-0.8" y2="-1.6" width="0.2032" layer="21"/>
+<text x="-1.6" y="2" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-1.5" y="-2.8" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+<wire x1="-0.8" y1="-1.4" x2="0.8" y2="-1.4" width="0.2032" layer="21"/>
+<wire x1="-1.4" y1="-1.2" x2="-1.4" y2="1.2" width="0.254" layer="41"/>
+<wire x1="-1.4" y1="1.2" x2="-1.2" y2="1.4" width="0.254" layer="41" curve="-90"/>
+<wire x1="-1.2" y1="1.4" x2="1.2" y2="1.4" width="0.254" layer="41"/>
+<wire x1="1.2" y1="1.4" x2="1.4" y2="1.2" width="0.254" layer="41" curve="-90"/>
+<wire x1="1.4" y1="1.2" x2="1.4" y2="-1.2" width="0.254" layer="41"/>
+<wire x1="1.4" y1="-1.2" x2="1.2" y2="-1.4" width="0.254" layer="41" curve="-90"/>
+<wire x1="1.2" y1="-1.4" x2="-1.2" y2="-1.4" width="0.254" layer="41"/>
+<wire x1="-1.2" y1="-1.4" x2="-1.4" y2="-1.2" width="0.254" layer="41" curve="-90"/>
+<rectangle x1="-1.3" y1="-1.3" x2="1.3" y2="1.3" layer="41"/>
+<hole x="-2.55" y="2.55" drill="1"/>
+<hole x="-2.55" y="-2.55" drill="1"/>
+<hole x="2.55" y="-2.55" drill="1"/>
+<hole x="2.55" y="2.55" drill="1"/>
+<wire x1="-3" y1="-3" x2="-3" y2="-1" width="0.05" layer="151"/>
+<wire x1="-3" y1="1" x2="-3" y2="3" width="0.05" layer="151"/>
+<wire x1="-3" y1="3" x2="-1" y2="3" width="0.05" layer="151"/>
+<wire x1="1" y1="3" x2="3" y2="3" width="0.05" layer="151"/>
+<wire x1="3" y1="3" x2="3" y2="1" width="0.05" layer="151"/>
+<wire x1="3" y1="-1" x2="3" y2="-3" width="0.05" layer="151"/>
+<wire x1="3" y1="-3" x2="1" y2="-3" width="0.05" layer="151"/>
+<wire x1="-1" y1="-3" x2="-3" y2="-3" width="0.05" layer="151"/>
+<wire x1="-3" y1="1" x2="-3" y2="-1" width="0.05" layer="151" curve="45.23973"/>
+<wire x1="-1" y1="-3" x2="1" y2="-3" width="0.05" layer="151" curve="45.23973"/>
+<wire x1="3" y1="-1" x2="3" y2="1" width="0.05" layer="151" curve="45.23973"/>
+<wire x1="1" y1="3" x2="-1" y2="3" width="0.05" layer="151" curve="45.23973"/>
+<wire x1="-2" y1="-2" x2="-2" y2="2" width="0.05" layer="151" style="shortdash"/>
+<wire x1="-2" y1="2" x2="2" y2="2" width="0.05" layer="151" style="shortdash"/>
+<wire x1="2" y1="2" x2="2" y2="-2" width="0.05" layer="151" style="shortdash"/>
+<wire x1="2" y1="-2" x2="-2" y2="-2" width="0.05" layer="151" style="shortdash"/>
+<circle x="0" y="0" radius="2.525" width="0.05" layer="151"/>
+<circle x="0" y="0" radius="1.5" width="0.05" layer="151"/>
+<wire x1="-3.3" y1="-3.3" x2="-3.3" y2="3.3" width="0.1" layer="39"/>
+<wire x1="-3.3" y1="3.3" x2="3.3" y2="3.3" width="0.1" layer="39"/>
+<wire x1="3.3" y1="3.3" x2="3.3" y2="-3.3" width="0.1" layer="39"/>
+<wire x1="3.3" y1="-3.3" x2="-3.3" y2="-3.3" width="0.1" layer="39"/>
+</package>
 </packages>
 <symbols>
 <symbol name="MS5607-02BA03">
@@ -681,6 +980,7 @@ Designed for AS6200</description>
 <text x="-7.62" y="10.16" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
 <text x="-7.62" y="7.62" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
 <rectangle x1="-2.54" y1="-6.35" x2="2.54" y2="-4.445" layer="94"/>
+<text x="-7.62" y="-10.16" size="1.27" layer="96" font="vector" ratio="10">&gt;TOL</text>
 </symbol>
 <symbol name="SM5420">
 <description>SM5420 Ultra-Small Pressure Sensor</description>
@@ -895,6 +1195,42 @@ Designed for AS6200</description>
 <text x="-7.62" y="8.89" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
 <text x="-7.62" y="6.35" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
 </symbol>
+<symbol name="MAX31865">
+<description>IC RTD TO DIGITAL CONVERT 20TQFN
+&lt;br&gt;
+Temp Monitoring System (Sensor) External Sensor SPI Output 20-TQFN-EP (5x5) 
+&lt;p&gt;
+&lt;a href="http://datasheets.maximintegrated.com/en/ds/MAX31865.pdf"&gt;Datasheet&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="https://www.digikey.com/product-detail/en/maxim-integrated/MAX31865ATP-T/MAX31865ATP-TCT-ND/5051493"&gt;DigiKey&lt;/a&gt;</description>
+<pin name="BIAS" x="20.32" y="12.7" length="middle" direction="pas" rot="R180"/>
+<pin name="REFIN+" x="20.32" y="10.16" length="middle" direction="in" rot="R180"/>
+<pin name="REFIN-" x="20.32" y="7.62" length="middle" direction="in" rot="R180"/>
+<pin name="ISENSOR" x="20.32" y="5.08" length="middle" direction="pas" rot="R180"/>
+<pin name="FORCE+" x="20.32" y="2.54" length="middle" direction="pas" rot="R180"/>
+<pin name="FORCE2" x="20.32" y="0" length="middle" direction="in" rot="R180"/>
+<pin name="RTDIN+" x="20.32" y="-2.54" length="middle" direction="in" rot="R180"/>
+<pin name="RTDIN-" x="20.32" y="-12.7" length="middle" direction="in" rot="R180"/>
+<pin name="FORCE-" x="20.32" y="-15.24" length="middle" direction="pas" rot="R180"/>
+<pin name="GND1" x="-2.54" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+<pin name="SDI" x="-15.24" y="5.08" length="middle" direction="in"/>
+<pin name="SCLK" x="-15.24" y="2.54" length="middle" direction="in"/>
+<pin name="!CS!" x="-15.24" y="0" length="middle" direction="in"/>
+<pin name="SDO" x="-15.24" y="-2.54" length="middle" direction="out"/>
+<pin name="DGND" x="2.54" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+<pin name="GND2" x="0" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+<pin name="NC" x="-15.24" y="-5.08" length="middle" direction="nc"/>
+<pin name="!DRDY!" x="-15.24" y="7.62" length="middle" direction="out"/>
+<pin name="VDD" x="2.54" y="25.4" length="middle" direction="pwr" rot="R270"/>
+<pin name="DVDD" x="-2.54" y="25.4" length="middle" direction="pwr" rot="R270"/>
+<text x="-7.62" y="25.4" size="2.54" layer="95" font="vector" ratio="12" rot="MR0">&gt;NAME</text>
+<text x="-7.62" y="22.86" size="1.778" layer="96" font="vector" ratio="10" rot="MR0">&gt;VALUE</text>
+<wire x1="-10.16" y1="-20.32" x2="15.24" y2="-20.32" width="0.4064" layer="94"/>
+<wire x1="15.24" y1="-20.32" x2="15.24" y2="20.32" width="0.4064" layer="94"/>
+<wire x1="15.24" y1="20.32" x2="-10.16" y2="20.32" width="0.4064" layer="94"/>
+<wire x1="-10.16" y1="20.32" x2="-10.16" y2="-20.32" width="0.4064" layer="94"/>
+<pin name="EP" x="-7.62" y="-25.4" length="middle" direction="pwr" rot="R90"/>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="MS5607-02BA03" prefix="U">
@@ -921,8 +1257,12 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
 <attribute name="MFPN" value="MS560702BA03"/>
-<attribute name="PARTNO" value="16-100084-00"/>
+<attribute name="PARTNO" value="16-100084-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -943,30 +1283,50 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="01-AM">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="01-BM">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="07-AM">
-<attribute name="MFPN" value="MS5407-AM" constant="no"/>
-<attribute name="PARTNO" value="16-100035-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value="MS5407-AM"/>
+<attribute name="PARTNO" value="16-100035-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="12-BM">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="70-AM">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MS4425" prefix="U">
+<deviceset name="MS4425-" prefix="U">
 <description>MS4425 Temperature Compensated Pressure Sensor
 &lt;ul&gt;
 &lt;li&gt;PC Board Mountable
@@ -986,16 +1346,30 @@ Designed for AS6200</description>
 <connect gate="G$1" pin="VS+" pad="5"/>
 </connects>
 <technologies>
-<technology name="-XXX">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<technology name="XXX">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SHT2?" prefix="U">
-<description>SHT2X Series Digital Humidity Sensors&lt;p&gt;
+<deviceset name="SHT2" prefix="U" uservalue="yes">
+<description>&lt;b&gt;SENSOR HUMI/TEMP 3V I2C 1.8% SMD&lt;/b&gt;&lt;br&gt;
+SHT2X Series Digital Humidity Sensors&lt;p&gt;
+&lt;a href="https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Sensirion_Humidity_Sensors_SHT20_Datasheet_V4.pdf"&gt;
+SHT20:&lt;/a&gt; ±3% RH accuracy
+&lt;br&gt;
+&lt;a href="https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Sensirion_Humidity_Sensors_SHT21_Datasheet_V4.pdf"&gt;
+SHT21:&lt;/a&gt; ±2% RH accuracy
+&lt;br&gt;
+&lt;a href="https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/2_Humidity_Sensors/Sensirion_Humidity_Sensors_SHT25_Datasheet_V3.pdf"&gt;
+SHT25:&lt;/a&gt; ±1.8% RH accuracy
+&lt;br&gt;
 &lt;a href="http://www.sensirion.com/en/products/humidity-temperature/humidity-temperature-sensor-sht2x/"&gt;Product Page&lt;/a&gt;&lt;br&gt;</description>
 <gates>
 <gate name="G$1" symbol="SHT2X" x="0" y="0"/>
@@ -1012,16 +1386,82 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="0">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/UxNhMc"/>
+<attribute name="DESC" value="SENSOR HUMID/TEMP 3V I2C 3% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT20"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±3%RH"/>
+<attribute name="VALUE" value="SHT20" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
 </technology>
 <technology name="1">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="01-100426-00"/>
+<attribute name="DATASHEET" value="https://goo.gl/5e5PFd"/>
+<attribute name="DESC" value="SENSOR HUMID/TEMP 3V I2C 2% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT21"/>
+<attribute name="PARTNO" value="01-100426-00" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±2%RH"/>
+<attribute name="VALUE" value="SHT21" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
 </technology>
 <technology name="5">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value="https://goo.gl/V4XnNc"/>
+<attribute name="DESC" value="SENSOR HUMI/TEMP 3V I2C 1.8% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT25"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±1.8RH"/>
+<attribute name="VALUE" value="SHT25" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
+</technology>
+</technologies>
+</device>
+<device name="-CAP" package="DFN-6-SHT-CAP">
+<connects>
+<connect gate="G$1" pin="NC@3" pad="3"/>
+<connect gate="G$1" pin="NC@4" pad="4"/>
+<connect gate="G$1" pin="SCL" pad="6"/>
+<connect gate="G$1" pin="SDA" pad="1"/>
+<connect gate="G$1" pin="VDD" pad="5"/>
+<connect gate="G$1" pin="VSS" pad="2"/>
+</connects>
+<technologies>
+<technology name="0">
+<attribute name="DATASHEET" value="https://goo.gl/UxNhMc"/>
+<attribute name="DESC" value="SENSOR HUMID/TEMP 3V I2C 3% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT20"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±3%RH"/>
+<attribute name="VALUE" value="±3%RH" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
+</technology>
+<technology name="1">
+<attribute name="DATASHEET" value="https://goo.gl/5e5PFd"/>
+<attribute name="DESC" value="SENSOR HUMID/TEMP 3V I2C 2% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT21"/>
+<attribute name="PARTNO" value="01-100426-00" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±2%RH"/>
+<attribute name="VALUE" value="±2%RH" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
+</technology>
+<technology name="5">
+<attribute name="DATASHEET" value="https://goo.gl/V4XnNc"/>
+<attribute name="DESC" value="SENSOR HUMI/TEMP 3V I2C 1.8% SMD"/>
+<attribute name="MANF" value="Sensirion AG"/>
+<attribute name="MFPN" value="SHT25"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±1.8RH"/>
+<attribute name="VALUE" value="±1.8RH" constant="no"/>
+<attribute name="VSUP" value="2.1V ~ 3.6V"/>
 </technology>
 </technologies>
 </device>
@@ -1048,24 +1488,40 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="015">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="15 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="030">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="30 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="060">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="01-100526-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="01-100526-00" constant="no"/>
 <attribute name="PRESSURE" value="60 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="100">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="100 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1082,24 +1538,40 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="015">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="15 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="030">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="30 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="060">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="60 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="100">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRESSURE" value="100 PSI"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1129,8 +1601,12 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="VL6180XV0NR/1" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value="VL6180XV0NR/1"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1152,14 +1628,18 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="MS5535C" prefix="U">
+<deviceset name="MS5535C-" prefix="U">
 <description>MS5535C  14 bar Pressure Sensor Module
 &lt;br&gt;
 &lt;a href="http://www.mouser.com/ds/2/418/MS5535C-736556.pdf"&gt;Datasheet&lt;/a&gt;</description>
@@ -1178,12 +1658,16 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
 <attribute name="MFPN" value="MS5535C"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
-<device name="-BOT" package="MS5535-BOT">
+<device name="BOT" package="MS5535-BOT">
 <connects>
 <connect gate="G$1" pin="DIN" pad="4"/>
 <connect gate="G$1" pin="DOUT" pad="3"/>
@@ -1194,8 +1678,12 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
 <attribute name="MFPN" value="MS5535C"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1227,28 +1715,48 @@ Designed for AS6200</description>
 <technologies>
 <technology name="0">
 <attribute name="ACCURACY" value="±1.0° C"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="1">
 <attribute name="ACCURACY" value="±0.1° C"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
 <attribute name="MFPN" value="SI7051-A20-IM"/>
-<attribute name="PARTNO" value="16-100088-00"/>
+<attribute name="PARTNO" value="16-100088-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="3">
 <attribute name="ACCURACY" value="±0.3° C"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="4">
 <attribute name="ACCURACY" value="±0.4° C"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="5">
 <attribute name="ACCURACY" value="±0.5° C"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1273,7 +1781,12 @@ Designed for AS6200</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -1302,11 +1815,73 @@ Designed for AS6200</description>
 <technologies>
 <technology name="">
 <attribute name="COVER" value="NO"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="1">
 <attribute name="COVER" value="Yes"/>
-<attribute name="PARTNO" value="01-100580-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="01-100580-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MAX31865" prefix="U">
+<description>IC RTD TO DIGITAL CONVERT 20TQFN
+&lt;br&gt;
+Temp Monitoring System (Sensor) External Sensor SPI Output 20-TQFN-EP (5x5) 
+&lt;p&gt;
+&lt;a href="http://datasheets.maximintegrated.com/en/ds/MAX31865.pdf"&gt;Datasheet&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="https://www.digikey.com/product-detail/en/maxim-integrated/MAX31865ATP-T/MAX31865ATP-TCT-ND/5051493"&gt;DigiKey&lt;/a&gt;</description>
+<gates>
+<gate name="G$1" symbol="MAX31865" x="0" y="0"/>
+</gates>
+<devices>
+<device name="ATP+" package="QFN20P65_5X5">
+<connects>
+<connect gate="G$1" pin="!CS!" pad="13"/>
+<connect gate="G$1" pin="!DRDY!" pad="18"/>
+<connect gate="G$1" pin="BIAS" pad="1"/>
+<connect gate="G$1" pin="DGND" pad="15"/>
+<connect gate="G$1" pin="DVDD" pad="19"/>
+<connect gate="G$1" pin="EP" pad="EP"/>
+<connect gate="G$1" pin="FORCE+" pad="5"/>
+<connect gate="G$1" pin="FORCE-" pad="9"/>
+<connect gate="G$1" pin="FORCE2" pad="6"/>
+<connect gate="G$1" pin="GND1" pad="16"/>
+<connect gate="G$1" pin="GND2" pad="10"/>
+<connect gate="G$1" pin="ISENSOR" pad="4"/>
+<connect gate="G$1" pin="NC" pad="17"/>
+<connect gate="G$1" pin="REFIN+" pad="2"/>
+<connect gate="G$1" pin="REFIN-" pad="3"/>
+<connect gate="G$1" pin="RTDIN+" pad="7"/>
+<connect gate="G$1" pin="RTDIN-" pad="8"/>
+<connect gate="G$1" pin="SCLK" pad="12"/>
+<connect gate="G$1" pin="SDI" pad="11"/>
+<connect gate="G$1" pin="SDO" pad="14"/>
+<connect gate="G$1" pin="VDD" pad="20"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="ACC" value="±0.5°C"/>
+<attribute name="DATASHEET" value="https://goo.gl/dg8VAU"/>
+<attribute name="DESC" value="IC RTD TO DIGITAL CONVERT 20TQFN"/>
+<attribute name="MANF" value="Maxim Integrated"/>
+<attribute name="MFPN" value="MAX31865ATP+T"/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TEMP" value="-40°C ~ 125°C"/>
+<attribute name="VSUP" value="3v~3.6V"/>
 </technology>
 </technologies>
 </device>

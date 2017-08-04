@@ -29,13 +29,19 @@ BRD:
 	 
 #	SET CONTEXT; #This clears all user context menu items. Disabled so --install options do not get over written
 	SET CONTEXT ELEMENT;
-	SET CONTEXT ELEMENT  	'Diagnal'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT ELEMENT  	'ROT - 45'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT ELEMENT  	'ROT - 90'			'RUN GRP-ROTATE 90 -';
+	SET CONTEXT ELEMENT  	'ROT - 180'			'RUN GRP-ROTATE 180 -';
 	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'	'RUN SHOW-BRD-PART-NETS GND';
 	SET CONTEXT ELEMENT  	'Display Pad Names'			'RUN CFGTOGGLE Option.PadNames';
 #	SET CONTEXT WIRE		'Length?'	'RUN length'; #Length needs modified to run from context.
 	SET CONTEXT WIRE		'Display Signal Names'	'RUN CFGTOGGLE Option.SignalNamesOnTraces';
-	SET CONTEXT WIRE  		'Diagnal'			'RUN GRP-ROTATE 45 -';
-	SET CONTEXT TEXT  		'Diagnal'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT WIRE  		'ROT - 45'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT WIRE  		'ROT - 90'			'RUN GRP-ROTATE 90 -';
+	SET CONTEXT WIRE  		'ROT - 180'			'RUN GRP-ROTATE 180 -';
+	SET CONTEXT TEXT  		'ROT - 45'			'RUN GRP-ROTATE 45 -';
+	SET CONTEXT TEXT  		'ROT - 90'			'RUN GRP-ROTATE 90 -';
+	SET CONTEXT TEXT  		'ROT - 180'			'RUN GRP-ROTATE 180 -';
 	
 #	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
@@ -129,6 +135,7 @@ LBR:
 DEV:
 	# Device text command menu setup
 	MENU
+		'ATT - STD : SCRIPT ATT_STD.scr;' |\
 		'Copy Dev Att		: RUN copy-attribute-at-deviceset;'
 
 
@@ -137,10 +144,11 @@ PAC:
 
 	MENU
 		'CMD Draw : RUN cmd-draw;' |\
-		'NAME/VAL : SCRIPT namevalue.scr;' |\
-		'Rotate/Scale : RUN rotate-scale;' |\
 		'IPC-Wizard : RUN ipc-wizard;' |\
-		'LibIt! : RUN LibIt;'
+		'LibIt! : RUN LibIt;' |\
+		'MoveBy : RUN MOVEBY;' |\
+		'NAME/VAL : SCRIPT namevalue.scr;' |\
+		'Rotate/Scale : RUN rotate-scale;'
 		
 	SET CONTEXT;
 	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY';
@@ -150,6 +158,7 @@ SYM:
 
 	MENU
 		'CMD Draw : RUN cmd-draw;' |\
+		'MoveBy : RUN MOVEBY;' |\
 		'NAME/VAL : SCRIPT namevalue.scr;' |\
 		'Rotate/Scale : RUN rotate-scale;'
 		

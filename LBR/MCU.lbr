@@ -6072,6 +6072,7 @@ Supplier Device Package
 </connects>
 <technologies>
 <technology name="C">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 256KB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="256KB"/>
@@ -6081,6 +6082,7 @@ Supplier Device Package
 <attribute name="TEMP" value="-40°C ~ 125°C (TA)"/>
 </technology>
 <technology name="E">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 512KB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="512KB"/>
@@ -6090,6 +6092,7 @@ Supplier Device Package
 <attribute name="TEMP" value="-40°C ~ 125°C (TA)"/>
 </technology>
 <technology name="G">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 1MB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="1MB"/>
@@ -6169,6 +6172,7 @@ Supplier Device Package
 </connects>
 <technologies>
 <technology name="C">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 256KB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="256KB"/>
@@ -6178,6 +6182,7 @@ Supplier Device Package
 <attribute name="TEMP" value="-40°C ~ 85°C (TA)"/>
 </technology>
 <technology name="E">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 512KB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="512KB"/>
@@ -6187,6 +6192,7 @@ Supplier Device Package
 <attribute name="TEMP" value="-40°C ~ 85°C (TA)"/>
 </technology>
 <technology name="G">
+<attribute name="DATASHEET" value="https://goo.gl/q9M5uB"/>
 <attribute name="DESC" value="MCU 32BIT 1MB FLASH 64LQFP"/>
 <attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MEM" value="1MB"/>

@@ -1,0 +1,86 @@
+
+EDIT AAT3681AIJS-.dev
+
+  PACKAGE ''
+    TECHNOLOGY 4.2
+      ATTRIB DESC constant
+
+EDIT DRV2603.dev
+
+  PACKAGE RUN
+    TECHNOLOGY ''
+      ATTRIB DESC constant
+
+EDIT MIC4426.dev
+
+  PACKAGE YM
+    TECHNOLOGY ''
+      ATTRIB DESC constant
+
+EDIT MIC4427.dev
+
+  PACKAGE YM
+    TECHNOLOGY ''
+      ATTRIB DESC constant
+
+EDIT REF33*AI.dev
+
+  PACKAGE DBZ
+    TECHNOLOGY 12
+      ATTRIB DESC constant
+    TECHNOLOGY 18
+      ATTRIB DESC constant
+    TECHNOLOGY 20
+      ATTRIB DESC constant
+    TECHNOLOGY 25
+      ATTRIB DESC constant
+    TECHNOLOGY 30
+      ATTRIB DESC constant
+    TECHNOLOGY 33
+      ATTRIB DESC constant
+
+  PACKAGE DCK
+    TECHNOLOGY 12
+      ATTRIB DESC constant
+    TECHNOLOGY 18
+      ATTRIB DESC constant
+    TECHNOLOGY 20
+      ATTRIB DESC constant
+    TECHNOLOGY 25
+      ATTRIB DESC constant
+    TECHNOLOGY 30
+      ATTRIB DESC constant
+    TECHNOLOGY 33
+      ATTRIB DESC constant
+
+EDIT SI1869DH.dev
+
+  PACKAGE ''
+    TECHNOLOGY ''
+      ATTRIB DESC constant
+
+EDIT TS4061?*.dev
+
+  PACKAGE AICT-
+    TECHNOLOGY 1.25
+      ATTRIB DESC constant
+    TECHNOLOGY 1.225
+      ATTRIB DESC constant
+
+  PACKAGE AILT-
+    TECHNOLOGY 1.25
+      ATTRIB DESC constant
+    TECHNOLOGY 1.225
+      ATTRIB DESC constant
+
+EDIT TS12001.dev
+
+  PACKAGE ''
+    TECHNOLOGY ''
+      ATTRIB DESC constant
+
+EDIT ZXRE1004.dev
+
+  PACKAGE -F
+    TECHNOLOGY ''
+      ATTRIB DESC constant

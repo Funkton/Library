@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.5.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -771,9 +771,9 @@ PBH Series</description>
 200U series, M6 SPDT</description>
 <pad name="NC1" x="0" y="2.54" drill="0.9144" diameter="1.778"/>
 <pad name="NC2" x="0" y="-2.54" drill="0.9144" diameter="1.778"/>
-<pad name="4" x="5.08" y="-2.54" drill="0.9144" diameter="1.778"/>
-<pad name="5" x="5.08" y="0" drill="0.9144" diameter="1.778"/>
-<pad name="6" x="5.08" y="2.54" drill="0.9144" diameter="1.778"/>
+<pad name="SW2" x="5.08" y="-2.54" drill="0.9144" diameter="1.778"/>
+<pad name="COM" x="5.08" y="0" drill="0.9144" diameter="1.778"/>
+<pad name="SW1" x="5.08" y="2.54" drill="0.9144" diameter="1.778"/>
 <wire x1="-2.667" y1="-2.032" x2="-1.016" y2="-2.032" width="0.2032" layer="51"/>
 <wire x1="-1.016" y1="-2.032" x2="-1.016" y2="-3.556" width="0.2032" layer="51"/>
 <wire x1="-1.016" y1="-3.556" x2="4.826" y2="-3.556" width="0.2032" layer="51"/>
@@ -1112,11 +1112,16 @@ PBH Series</description>
 <circle x="-4.445" y="2.54" radius="0.635" width="0.254" layer="94"/>
 <circle x="-4.445" y="-2.54" radius="0.635" width="0.254" layer="94"/>
 <circle x="1.905" y="0" radius="0.635" width="0.254" layer="94"/>
-<text x="2.54" y="2.54" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
-<text x="2.54" y="5.08" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
-<pin name="A-NO" x="-7.62" y="-2.54" visible="pad" length="short" direction="pas"/>
-<pin name="A-NC" x="-7.62" y="2.54" visible="pad" length="short" direction="pas"/>
-<pin name="A-COM" x="5.08" y="0" visible="pad" length="short" direction="pas" rot="R180"/>
+<text x="-5.08" y="5.08" size="1.778" layer="96" font="vector" ratio="10">&gt;VALUE</text>
+<text x="-5.08" y="7.62" size="2.54" layer="95" font="vector" ratio="12">&gt;NAME</text>
+<pin name="S-NO" x="-7.62" y="-2.54" visible="off" length="short" direction="pas"/>
+<pin name="S-NC" x="-7.62" y="2.54" visible="off" length="short" direction="pas"/>
+<pin name="S-COM" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+<wire x1="-5.842" y1="0" x2="-7.62" y2="-0.762" width="0.508" layer="97"/>
+<wire x1="-5.842" y1="0.762" x2="-5.842" y2="0" width="0.508" layer="97"/>
+<wire x1="-5.842" y1="0" x2="-5.842" y2="-0.762" width="0.508" layer="97"/>
+<wire x1="-5.842" y1="0.762" x2="-5.334" y2="0.762" width="0.508" layer="97"/>
+<wire x1="-5.842" y1="-0.762" x2="-5.334" y2="-0.762" width="0.508" layer="97"/>
 </symbol>
 <symbol name="1PDT-N">
 <wire x1="4.445" y1="-1.27" x2="-1.27" y2="0" width="0.254" layer="94"/>
@@ -1379,9 +1384,9 @@ PBH Series</description>
 <devices>
 <device name="" package="E100-M7-DPDT">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="5"/>
 <connect gate="-B" pin="A-NC" pad="4"/>
 <connect gate="-B" pin="A-NO" pad="6"/>
@@ -1402,9 +1407,9 @@ PBH Series</description>
 <devices>
 <device name="" package="E100-M7-SPDT">
 <connects>
-<connect gate="G$1" pin="A-COM" pad="2"/>
-<connect gate="G$1" pin="A-NC" pad="1"/>
-<connect gate="G$1" pin="A-NO" pad="3"/>
+<connect gate="G$1" pin="S-COM" pad="2"/>
+<connect gate="G$1" pin="S-NC" pad="1"/>
+<connect gate="G$1" pin="S-NO" pad="3"/>
 </connects>
 <technologies>
 <technology name="">
@@ -1539,9 +1544,9 @@ PBH Series</description>
 <devices>
 <device name="" package="WBL-4U">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="11"/>
 <connect gate="-B" pin="A-NC" pad="12"/>
 <connect gate="-B" pin="A-NO" pad="10"/>
@@ -1572,9 +1577,9 @@ PBH Series</description>
 <devices>
 <device name="" package="WBL-2U">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="5"/>
 <connect gate="-B" pin="A-NC" pad="6"/>
 <connect gate="-B" pin="A-NO" pad="4"/>
@@ -1598,9 +1603,9 @@ PBH Series</description>
 <devices>
 <device name="" package="PBH2U">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="5"/>
 <connect gate="-B" pin="A-NC" pad="6"/>
 <connect gate="-B" pin="A-NO" pad="4"/>
@@ -1653,9 +1658,9 @@ PBH Series</description>
 <devices>
 <device name="" package="PBH4U">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="11"/>
 <connect gate="-B" pin="A-NC" pad="12"/>
 <connect gate="-B" pin="A-NO" pad="10"/>
@@ -1722,9 +1727,9 @@ PBH Series</description>
 <devices>
 <device name="" package="PBH6U">
 <connects>
-<connect gate="-A" pin="A-COM" pad="2"/>
-<connect gate="-A" pin="A-NC" pad="1"/>
-<connect gate="-A" pin="A-NO" pad="3"/>
+<connect gate="-A" pin="S-COM" pad="2"/>
+<connect gate="-A" pin="S-NC" pad="1"/>
+<connect gate="-A" pin="S-NO" pad="3"/>
 <connect gate="-B" pin="A-COM" pad="17"/>
 <connect gate="-B" pin="A-NC" pad="18"/>
 <connect gate="-B" pin="A-NO" pad="16"/>
@@ -1762,17 +1767,17 @@ PBH Series</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="200USP1T1A1" prefix="S">
+<deviceset name="200USP1T1A1" prefix="SW">
 <description>200U Series</description>
 <gates>
-<gate name="G$1" symbol="1PDT-N" x="2.54" y="0"/>
+<gate name="G$1" symbol="1PDT-NV" x="0" y="0"/>
 </gates>
 <devices>
 <device name="M6" package="200U-M6-SPDT">
 <connects>
-<connect gate="G$1" pin="A-COM" pad="5"/>
-<connect gate="G$1" pin="A-NC" pad="4"/>
-<connect gate="G$1" pin="A-NO" pad="6"/>
+<connect gate="G$1" pin="S-COM" pad="COM"/>
+<connect gate="G$1" pin="S-NC" pad="SW1"/>
+<connect gate="G$1" pin="S-NO" pad="SW2"/>
 </connects>
 <technologies>
 <technology name="">
@@ -1781,11 +1786,6 @@ PBH Series</description>
 </technologies>
 </device>
 <device name="M7" package="200U-M7-SPDT">
-<connects>
-<connect gate="G$1" pin="A-COM" pad="5"/>
-<connect gate="G$1" pin="A-NC" pad="4"/>
-<connect gate="G$1" pin="A-NO" pad="6"/>
-</connects>
 <technologies>
 <technology name="">
 <attribute name="PARTNO" value="" constant="no"/>

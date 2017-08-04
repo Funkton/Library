@@ -80,6 +80,11 @@ TIPS TO SHOW:
 
 
 EAGLE Bugs:
+
+LIBRARY: SYM:
+	- PIN: after typing into command type (nc, pwr, out, etc) direction in toolbar does not update to reflect changes.
+	
+
 	- GROUP is snapping to grid. Seems to occur after using SLICE
 	
 	- SignalNamesOnTraces does not show all names. Would be nice to have size controls like max size in order to keep large signal names from cluttering things up.

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.7.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="dots" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="9" visible="yes" active="yes"/>
 <layer number="2" name="GND" color="18" fill="9" visible="yes" active="yes"/>
@@ -71,6 +71,7 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="tDocu-Extended" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
 <layer number="251" name="SMDround" color="12" fill="11" visible="no" active="no"/>
 </layers>
@@ -315,6 +316,77 @@ Changelog:&lt;br&gt;
 <vertex x="2.5" y="7.01"/>
 </polygon>
 </package>
+<package name="TRXSOFL8P65_300X190X85L15X32N">
+<description>Transistor, Small Outline Flat Lead (SOFL), 0.65 mm pitch; 8 pin, 3.00 mm L X 1.60 mm W X 0.85 mm H body&lt;p&gt;&lt;i&gt;PCB Libraries Packages&lt;/i&gt;</description>
+<smd name="1" x="-0.975" y="-0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R270"/>
+<smd name="2" x="-0.325" y="-0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R270"/>
+<smd name="3" x="0.325" y="-0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R270"/>
+<smd name="4" x="0.975" y="-0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R270"/>
+<smd name="5" x="0.975" y="0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R90"/>
+<smd name="6" x="0.325" y="0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R90"/>
+<smd name="7" x="-0.325" y="0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R90"/>
+<smd name="8" x="-0.975" y="0.96" dx="0.51" dy="0.45" layer="1" roundness="50" rot="R90"/>
+<wire x1="-1.135" y1="-0.8" x2="-0.815" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="-0.815" y1="-0.8" x2="-0.815" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="-0.815" y1="-0.95" x2="-1.135" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="-1.135" y1="-0.95" x2="-1.135" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="-0.485" y1="-0.8" x2="-0.165" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="-0.165" y1="-0.8" x2="-0.165" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="-0.165" y1="-0.95" x2="-0.485" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="-0.485" y1="-0.95" x2="-0.485" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="0.165" y1="-0.8" x2="0.485" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="0.485" y1="-0.8" x2="0.485" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="0.485" y1="-0.95" x2="0.165" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="0.165" y1="-0.95" x2="0.165" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="0.815" y1="-0.8" x2="1.135" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="1.135" y1="-0.8" x2="1.135" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="1.135" y1="-0.95" x2="0.815" y2="-0.95" width="0.05" layer="51"/>
+<wire x1="0.815" y1="-0.95" x2="0.815" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="1.135" y1="0.8" x2="0.815" y2="0.8" width="0.05" layer="51"/>
+<wire x1="0.815" y1="0.8" x2="0.815" y2="0.95" width="0.05" layer="51"/>
+<wire x1="0.815" y1="0.95" x2="1.135" y2="0.95" width="0.05" layer="51"/>
+<wire x1="1.135" y1="0.95" x2="1.135" y2="0.8" width="0.05" layer="51"/>
+<wire x1="0.485" y1="0.8" x2="0.165" y2="0.8" width="0.05" layer="51"/>
+<wire x1="0.165" y1="0.8" x2="0.165" y2="0.95" width="0.05" layer="51"/>
+<wire x1="0.165" y1="0.95" x2="0.485" y2="0.95" width="0.05" layer="51"/>
+<wire x1="0.485" y1="0.95" x2="0.485" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-0.165" y1="0.8" x2="-0.485" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-0.485" y1="0.8" x2="-0.485" y2="0.95" width="0.05" layer="51"/>
+<wire x1="-0.485" y1="0.95" x2="-0.165" y2="0.95" width="0.05" layer="51"/>
+<wire x1="-0.165" y1="0.95" x2="-0.165" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-0.815" y1="0.8" x2="-1.135" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-1.135" y1="0.8" x2="-1.135" y2="0.95" width="0.05" layer="51"/>
+<wire x1="-1.135" y1="0.95" x2="-0.815" y2="0.95" width="0.05" layer="51"/>
+<wire x1="-0.815" y1="0.95" x2="-0.815" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-1.5" y1="-0.8" x2="-1.5" y2="0.8" width="0.05" layer="51"/>
+<wire x1="-1.5" y1="0.8" x2="1.5" y2="0.8" width="0.05" layer="51"/>
+<wire x1="1.5" y1="0.8" x2="1.5" y2="-0.8" width="0.05" layer="51"/>
+<wire x1="1.5" y1="-0.8" x2="-1.5" y2="-0.8" width="0.05" layer="51"/>
+<circle x="0" y="0" radius="0.25" width="0.05" layer="39"/>
+<wire x1="0" y1="0.35" x2="0" y2="-0.35" width="0.05" layer="39"/>
+<wire x1="-0.35" y1="0" x2="0.35" y2="0" width="0.05" layer="39"/>
+<wire x1="-1.55" y1="-0.85" x2="-1.55" y2="0.85" width="0.2" layer="151"/>
+<wire x1="-1.55" y1="0.85" x2="1.55" y2="0.85" width="0.2" layer="151"/>
+<wire x1="1.55" y1="0.85" x2="1.55" y2="-0.85" width="0.2" layer="151"/>
+<wire x1="1.55" y1="-0.85" x2="-1.55" y2="-0.85" width="0.2" layer="151"/>
+<wire x1="1.7" y1="-1" x2="1.7" y2="1" width="0.05" layer="39"/>
+<wire x1="1.7" y1="1" x2="1.35" y2="1" width="0.05" layer="39"/>
+<wire x1="1.35" y1="1" x2="1.35" y2="1.365" width="0.05" layer="39"/>
+<wire x1="1.35" y1="1.365" x2="-1.35" y2="1.365" width="0.05" layer="39"/>
+<wire x1="-1.35" y1="1.365" x2="-1.35" y2="1" width="0.05" layer="39"/>
+<wire x1="-1.35" y1="1" x2="-1.7" y2="1" width="0.05" layer="39"/>
+<wire x1="-1.7" y1="1" x2="-1.7" y2="-1" width="0.05" layer="39"/>
+<wire x1="-1.7" y1="-1" x2="-1.35" y2="-1" width="0.05" layer="39"/>
+<wire x1="-1.35" y1="-1" x2="-1.35" y2="-1.365" width="0.05" layer="39"/>
+<wire x1="-1.35" y1="-1.365" x2="1.35" y2="-1.365" width="0.05" layer="39"/>
+<wire x1="1.35" y1="-1.365" x2="1.35" y2="-1" width="0.05" layer="39"/>
+<wire x1="1.35" y1="-1" x2="1.7" y2="-1" width="0.05" layer="39"/>
+<wire x1="-1.55" y1="-0.85" x2="-1.55" y2="0.85" width="0.2" layer="21"/>
+<wire x1="1.55" y1="-0.85" x2="1.55" y2="0.85" width="0.2" layer="21"/>
+<wire x1="-1.5" y1="-0.85" x2="-1.5" y2="-1.115" width="0.2" layer="21"/>
+<text x="-2" y="-1" size="1.016" layer="25" font="vector" ratio="18" rot="R90">&gt;NAME</text>
+<text x="-1" y="-0.27" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+</package>
 </packages>
 <symbols>
 <symbol name="P-MOSFET">
@@ -555,7 +627,7 @@ Changelog:&lt;br&gt;
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="SI8461DB" prefix="Q">
+<deviceset name="SI8461DB-" prefix="Q">
 <description>MOSFET P-CH 20V MICROFOOT
 &lt;p&gt;
 &lt;a href="http://www.vishay.com/docs/65001/si8461db.pdf"&gt;Datasheet&lt;/a&gt;</description>
@@ -563,7 +635,7 @@ Changelog:&lt;br&gt;
 <gate name="G$1" symbol="EMOS-PD" x="0" y="0"/>
 </gates>
 <devices>
-<device name="-T2-E1" package="4-XFBGA">
+<device name="T2-E1" package="4-XFBGA">
 <connects>
 <connect gate="G$1" pin="D" pad="4"/>
 <connect gate="G$1" pin="G" pad="1"/>
@@ -571,12 +643,16 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="04-100098-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
-<device name="-T2-E1_SMD" package="4-XFGBA-SMD">
+<device name="T2-E1_SMD" package="4-XFGBA-SMD">
 <connects>
 <connect gate="G$1" pin="D" pad="4"/>
 <connect gate="G$1" pin="G" pad="1"/>
@@ -584,7 +660,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="04-100098-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -604,8 +685,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="04-100087-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -626,8 +711,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="01-100470-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -648,8 +737,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -669,21 +762,25 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="04-100096-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="04-100096-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SI2315BDS" prefix="Q">
+<deviceset name="SI2315BDS-" prefix="Q">
 <description>MOSFET P-CH 12V 3A SOT23-3&lt;p&gt;
 &lt;a href="http://www.vishay.com/docs/72014/72014.pdf"&gt;Datasheet&lt;/a&gt;</description>
 <gates>
 <gate name="G$1" symbol="EMOS-PD" x="0" y="0"/>
 </gates>
 <devices>
-<device name="-T1-E3" package="SOT-23">
+<device name="T1-E3" package="SOT-23">
 <connects>
 <connect gate="G$1" pin="D" pad="3"/>
 <connect gate="G$1" pin="G" pad="1"/>
@@ -691,8 +788,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="04-100095-00"/>
+<attribute name="DATASHEET" value="https://goo.gl/2TYwLS"/>
+<attribute name="DESC" value="MOSFET P-CH 12V 3A SOT23-3"/>
+<attribute name="MANF" value="Vishay Siliconix"/>
+<attribute name="MFPN" value="SI2315BDS-T1-E3"/>
+<attribute name="PARTNO" value="04-100095-00" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -713,20 +814,24 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="04-100038-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="P-FET" prefix="Q">
+<deviceset name="P-FET-" prefix="Q">
 <description>P-Channel FET, Generic</description>
 <gates>
 <gate name="G$1" symbol="EMOS-PD" x="0" y="0"/>
 </gates>
 <devices>
-<device name="-SOT23" package="SOT-23">
+<device name="SOT23" package="SOT-23">
 <connects>
 <connect gate="G$1" pin="D" pad="3"/>
 <connect gate="G$1" pin="G" pad="1"/>
@@ -734,8 +839,12 @@ Changelog:&lt;br&gt;
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -757,19 +866,34 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="08">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="09">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 <technology name="10">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
 </devices>
 </deviceset>
-<deviceset name="SI5933CDC" prefix="Q">
+<deviceset name="SI5933CDC-" prefix="Q">
 <description>MOSFET 2P-CH 20V 3.7A 1206-8
 &lt;p&gt;
 &lt;a href="http://www.vishay.com/docs/68822/si5933cd.pdf"&gt;Datasheet&lt;/a&gt;</description>
@@ -778,7 +902,7 @@ N-channel silicon field-effect transistors</description>
 <gate name="B" symbol="EMOS-PD" x="20.32" y="0" swaplevel="1"/>
 </gates>
 <devices>
-<device name="-T1-GE3" package="1206-8">
+<device name="T1-GE3" package="1206-8">
 <connects>
 <connect gate="A" pin="D" pad="7 8"/>
 <connect gate="A" pin="G" pad="2"/>
@@ -789,8 +913,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
 <attribute name="MFPN" value="SI5933CDC-T1-GE3"/>
-<attribute name="PARTNO" value="01-100540-00"/>
+<attribute name="PARTNO" value="01-100540-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -812,7 +940,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="01-100527-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="01-100527-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -834,7 +967,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="04-100032-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="04-100032-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -856,7 +994,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="04-100078-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="04-100078-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -878,7 +1021,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="04-100102-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="04-100102-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -900,7 +1048,12 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="04-100103-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="04-100103-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -920,8 +1073,59 @@ N-channel silicon field-effect transistors</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="RU1C002ZPTCL" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value="RU1C002ZPTCL"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="TT8K1" prefix="Q">
+<description>MOSFET 2N-CH 20V 2.5A TSST8
+&lt;br&gt;
+&lt;i&gt;Mosfet Array 2 N-Channel (Dual) 20V 2.5A 1W Surface Mount 8-TSST &lt;/i&gt;
+&lt;p&gt;
+&lt;a href="https://goo.gl/SXsF7W"&gt;Datasheet&lt;/a&gt;</description>
+<gates>
+<gate name="A" symbol="EMOS-ND" x="0" y="0" swaplevel="1"/>
+<gate name="B" symbol="EMOS-ND" x="20.32" y="0" swaplevel="1"/>
+</gates>
+<devices>
+<device name="T" package="TRXSOFL8P65_300X190X85L15X32N">
+<connects>
+<connect gate="A" pin="D" pad="7 8"/>
+<connect gate="A" pin="G" pad="2"/>
+<connect gate="A" pin="S" pad="1"/>
+<connect gate="B" pin="D" pad="5 6"/>
+<connect gate="B" pin="G" pad="4"/>
+<connect gate="B" pin="S" pad="3"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DATASHEET" value="https://goo.gl/K6RqfR"/>
+<attribute name="DESC" value="MOSFET 2N-CH 30V 3A TSST8"/>
+<attribute name="ID" value="3A"/>
+<attribute name="MANF" value=" Rohm Semiconductor"/>
+<attribute name="MFPN" value="TT8K1"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TYPE" value="2 N-Channel (Dual)"/>
+<attribute name="VDSS" value="30V"/>
+</technology>
+<technology name="1">
+<attribute name="DATASHEET" value="https://goo.gl/K6RqfR"/>
+<attribute name="DESC" value="MOSFET 2N-CH 30V 3A TSST8"/>
+<attribute name="ID" value="3A"/>
+<attribute name="MANF" value=" Rohm Semiconductor"/>
+<attribute name="MFPN" value="TT8K11"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TYPE" value="2 N-Channel (Dual)"/>
+<attribute name="VDSS" value="30V"/>
 </technology>
 </technologies>
 </device>

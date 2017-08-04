@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.1.0">
+<eagle version="8.2.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -481,6 +481,7 @@ tage Detector with Dual Outputs</description>
 <pin name="VR" x="-5.08" y="2.54" length="short" direction="pwr"/>
 <pin name="GND" x="-5.08" y="-2.54" length="short" direction="pwr"/>
 <pin name="NC" x="7.62" y="0" length="short" direction="nc" rot="R180"/>
+<text x="-2.54" y="-7.62" size="1.27" layer="97" font="vector" ratio="10">&gt;VOLT</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -505,8 +506,12 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="01-100490-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -528,45 +533,63 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="12">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 1.2V SC70"/>
 <attribute name="DVAL" value="REF3312AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="1.2V"/>
 </technology>
 <technology name="18">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 1.8V SC70"/>
 <attribute name="DVAL" value="REF3318AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="1.8V"/>
 </technology>
 <technology name="20">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 2.0V SC70"/>
 <attribute name="DVAL" value="REF3320AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="2.0V"/>
 </technology>
 <technology name="25">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 2.5V SC70"/>
 <attribute name="DVAL" value="REF3325AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="2.5V"/>
 </technology>
 <technology name="30">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 3.0V SC70"/>
 <attribute name="DVAL" value="REF3330AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="3.0V"/>
 </technology>
 <technology name="33">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 3.3V SC70"/>
 <attribute name="DVAL" value="REF3333AIDCK"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="3.3V"/>
 </technology>
 </technologies>
@@ -579,45 +602,63 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="12">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 1.2V SOT23"/>
 <attribute name="DVAL" value="REF3312AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="1.2V"/>
 </technology>
 <technology name="18">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 1.8V SOT23"/>
 <attribute name="DVAL" value="REF3318AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="1.8V"/>
 </technology>
 <technology name="20">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 2.0V SOT23"/>
 <attribute name="DVAL" value="REF3320AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="2.0V"/>
 </technology>
 <technology name="25">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 2.5V SOT23"/>
 <attribute name="DVAL" value="REF3325AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="2.5V"/>
 </technology>
 <technology name="30">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 3.0V SOT23"/>
 <attribute name="DVAL" value="REF3330AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="3.0V"/>
 </technology>
 <technology name="33">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="VREF SERIES 3.3V SOT23"/>
 <attribute name="DVAL" value="REF3333AIDBZ"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 <attribute name="VOUT" value="3.3V"/>
 </technology>
 </technologies>
@@ -642,10 +683,13 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
 <attribute name="DESC" value="LOAD SW LVL SHIFT 20V SC70-6"/>
 <attribute name="DVAL" value="Si1869DH"/>
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="New" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -673,8 +717,12 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="DRV2603RUN" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value="DRV2603RUN"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -700,8 +748,12 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="4.2">
-<attribute name="MFPN" value="AAT3681AIJS-4.2-T1" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value="AAT3681AIJS-4.2-T1"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -728,8 +780,12 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="01-100215-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -756,8 +812,12 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="01-100307-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -777,8 +837,14 @@ tage Detector with Dual Outputs</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="" constant="no"/>
-<attribute name="PARTNO" value="01-100321-00" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/VVEsKp"/>
+<attribute name="DESC" value="IC VREF SHUNT 1.22V SOT23-3"/>
+<attribute name="MANF" value="Diodes Incorporated"/>
+<attribute name="MFPN" value="ZXRE1004"/>
+<attribute name="PARTNO" value="01-100321-00"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TYPE" value="Shunt Fixed"/>
+<attribute name="VOLT" value="1.22V"/>
 </technology>
 </technologies>
 </device>
@@ -794,33 +860,63 @@ tage Detector with Dual Outputs</description>
 <devices>
 <device name="AICT-" package="SC-70">
 <connects>
-<connect gate="G$1" pin="GND" pad="2 3"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="NC" pad="3"/>
 <connect gate="G$1" pin="VR" pad="1"/>
 </connects>
 <technologies>
 <technology name="1.225">
+<attribute name="DATASHEET" value="https://goo.gl/C4KoXy"/>
+<attribute name="DESC" value="IC VREF SHUNT 1.225V SOT323"/>
+<attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MFPN" value="TS4061AICT-1.225"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±0.1%"/>
+<attribute name="TYPE" value="Shunt Fixed"/>
+<attribute name="VOLT" value="1.225V"/>
 </technology>
 <technology name="1.25">
+<attribute name="DATASHEET" value="https://goo.gl/C4KoXy"/>
+<attribute name="DESC" value="IC VREF SHUNT 1.25V SOT323"/>
+<attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MFPN" value="TS4061AICT-1.25"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±0.1%"/>
+<attribute name="TYPE" value="Shunt Fixed"/>
+<attribute name="VOLT" value="1.25V"/>
 </technology>
 </technologies>
 </device>
 <device name="AILT-" package="SOT-23">
 <connects>
-<connect gate="G$1" pin="GND" pad="2 3"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="NC" pad="3"/>
 <connect gate="G$1" pin="VR" pad="1"/>
 </connects>
 <technologies>
 <technology name="1.225">
+<attribute name="DATASHEET" value="https://goo.gl/C4KoXy"/>
+<attribute name="DESC" value="IC VREF SHUNT 1.225V SOT23"/>
+<attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MFPN" value="TS4061AILT-1.225"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±0.1%"/>
+<attribute name="TYPE" value="Shunt Fixed"/>
+<attribute name="VOLT" value="1.225V"/>
 </technology>
 <technology name="1.25">
+<attribute name="DATASHEET" value="https://goo.gl/C4KoXy"/>
+<attribute name="DESC" value="IC VREF SHUNT 1.25V SOT23"/>
+<attribute name="MANF" value="STMicroelectronics"/>
 <attribute name="MFPN" value="TS4061AILT-1.25"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±0.1%"/>
+<attribute name="TYPE" value="Shunt Fixed"/>
+<attribute name="VOLT" value="1.25V"/>
 </technology>
 </technologies>
 </device>

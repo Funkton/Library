@@ -1,1 +1,0 @@
-RUN set-all-devices-attribute attr-add-label.scr;

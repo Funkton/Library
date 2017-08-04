@@ -1171,6 +1171,7 @@ Attributes/Variables:
 <technology name="">
 <attribute name="ASSEMBLY" value="" constant="no"/>
 <attribute name="BOARDTECH" value="" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="FAB" value="" constant="no"/>
 <attribute name="FINISH" value="" constant="no"/>
 <attribute name="MARKINGS" value="" constant="no"/>
@@ -1182,6 +1183,7 @@ Attributes/Variables:
 <technology name="-STD-2L">
 <attribute name="ASSEMBLY" value="IPC-A-610, Class 2" constant="no"/>
 <attribute name="BOARDTECH" value="2-Layer FR-4, see layer stack" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="FAB" value="IPC-6012, Class 2" constant="no"/>
 <attribute name="FINISH" value="" constant="no"/>
 <attribute name="MARKINGS" value="94V-0, Date Code" constant="no"/>
@@ -1193,6 +1195,7 @@ Attributes/Variables:
 <technology name="-STD-4L">
 <attribute name="ASSEMBLY" value="IPC-A-610, Class 2" constant="no"/>
 <attribute name="BOARDTECH" value="4-Layer FR-4, see layer stack" constant="no"/>
+<attribute name="BOM" value="EXCLUDE" constant="no"/>
 <attribute name="FAB" value="IPC-6012, Class 2" constant="no"/>
 <attribute name="FINISH" value="ENIG" constant="no"/>
 <attribute name="MARKINGS" value="94V-0, Date Code" constant="no"/>

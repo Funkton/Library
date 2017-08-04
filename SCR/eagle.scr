@@ -16,9 +16,10 @@
 
 # Bring in modular setup scripts
 
-#SCRIPT COLORS.scr;
+#SCRIPT COLORS.scr
 SCRIPT SHORTCUTS.scr
 SCRIPT MENU.scr
+SCRIPT LAYERS.scr
 
 #----------------------------------#
 #------------ GENERAL--------------#
@@ -36,7 +37,7 @@ SCRIPT MENU.scr
 	set Option.SelectFactor 0.02;
 	set Option.ShowPartOrigins 1;
 	set Option.ShowTextOrigins 1;
-	set Option.SnapLength 508;
+	set Option.SnapLength 1000;
 	set Option.UnpopulatedMarkScaling .7;
 	set Option.ToggleCtrlForGroupSelectionAndContextMenu 1;
 	set Warning.PartHasNoUserDefinableValue 0;
