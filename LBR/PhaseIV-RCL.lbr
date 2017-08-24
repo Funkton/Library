@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="dots" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="5" fill="3" visible="yes" active="yes"/>
@@ -1583,6 +1584,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <wire x1="-2.1" y1="-1.75" x2="-2.1" y2="-1.4" width="0.2" layer="21"/>
 <wire x1="2.1" y1="-1.75" x2="2.1" y2="-1.4" width="0.2" layer="21"/>
 </package>
+<package name="R2512">
+<description>&lt;b&gt;SMD RESISTOR&lt;/b&gt;&lt;p&gt;
+2512, grid 0.0125 inch</description>
+<wire x1="-2.362" y1="1.473" x2="2.387" y2="1.473" width="0.2032" layer="51"/>
+<wire x1="-2.362" y1="-1.473" x2="2.387" y2="-1.473" width="0.2032" layer="51"/>
+<wire x1="-4.1" y1="2" x2="4.1" y2="2" width="0.2" layer="21"/>
+<wire x1="4.1" y1="2" x2="4.1" y2="-2" width="0.2" layer="21"/>
+<wire x1="4.1" y1="-2" x2="-4.1" y2="-2" width="0.2" layer="21"/>
+<wire x1="-4.1" y1="-2" x2="-4.1" y2="2" width="0.2" layer="21"/>
+<smd name="1" x="-2.85" y="0" dx="1.8" dy="3.2" layer="1"/>
+<smd name="2" x="2.85" y="0" dx="1.8" dy="3.2" layer="1"/>
+<text x="-4" y="3" size="1.016" layer="25" font="vector" ratio="18">&gt;NAME</text>
+<text x="-4" y="2" size="0.8128" layer="27" font="vector" ratio="10">&gt;VALUE</text>
+<rectangle x1="-3.2004" y1="-1.5494" x2="-2.3505" y2="1.5507" layer="51"/>
+<rectangle x1="2.3622" y1="-1.5494" x2="3.2121" y2="1.5507" layer="51"/>
+<rectangle x1="-0.5001" y1="-1" x2="0.5001" y2="1" layer="35"/>
+</package>
 </packages>
 <symbols>
 <symbol name="CP-">
@@ -1951,6 +1969,42 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="VAL" value="" constant="no"/>
 <attribute name="VALUE" value="2.2pF"/>
 </technology>
+<technology name="2.2UF_10V">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value="CAP CER 2.2UF 10V X7S 0402"/>
+<attribute name="FEAT" value="Low ESL"/>
+<attribute name="MANF" value="TDK"/>
+<attribute name="MFPN" value="C1005X7S1A225K050BC"/>
+<attribute name="PARTNO" value="02-100644-00"/>
+<attribute name="PRICE" value="0.36" constant="no"/>
+<attribute name="RATE" value="10V"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="X7S"/>
+<attribute name="TOL" value="±10%"/>
+<attribute name="TYPE" value="CER"/>
+<attribute name="VAL" value="" constant="no"/>
+<attribute name="VALUE" value="2.2uF"/>
+</technology>
+<technology name="20PF_50V">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
+<attribute name="DESC" value="CAP CER 20PF 50V C0G/NP0 0402"/>
+<attribute name="FEAT" value=""/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="GRM1555C1H200JA01D"/>
+<attribute name="PARTNO" value="02-100692-00"/>
+<attribute name="PRICE" value="0.10" constant="no"/>
+<attribute name="RATE" value="50V"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="C0G"/>
+<attribute name="TOL" value="±5%"/>
+<attribute name="TYPE" value="CER"/>
+<attribute name="VAL" value="" constant="no"/>
+<attribute name="VALUE" value="20pF"/>
+</technology>
 <technology name="270PF_50V">
 <attribute name="ALT" value="" constant="no"/>
 <attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
@@ -1969,23 +2023,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="VAL" value="" constant="no"/>
 <attribute name="VALUE" value="270pF"/>
 </technology>
-<technology name="2.2UF_10V">
+<technology name="27PF_50V">
 <attribute name="ALT" value="" constant="no"/>
-<attribute name="DATASHEET" value=""/>
-<attribute name="DESC" value="CAP CER 2.2UF 10V X7S 0402"/>
-<attribute name="FEAT" value="Low ESL"/>
-<attribute name="MANF" value="TDK"/>
-<attribute name="MFPN" value="C1005X7S1A225K050BC"/>
-<attribute name="PARTNO" value="02-100644-00"/>
-<attribute name="PRICE" value="0.36" constant="no"/>
-<attribute name="RATE" value="10V"/>
+<attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
+<attribute name="DESC" value="CAP CER 27PF 50V C0G/NP0 0402"/>
+<attribute name="FEAT" value=""/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="GRM1555C1H270FA01D"/>
+<attribute name="PARTNO" value="02-100716-00"/>
+<attribute name="PRICE" value="0.10" constant="no"/>
+<attribute name="RATE" value="50V"/>
 <attribute name="SIZE" value="0402"/>
 <attribute name="STATUS" value="Active" constant="no"/>
-<attribute name="TC" value="X7S"/>
-<attribute name="TOL" value="±10%"/>
+<attribute name="TC" value="C0G, NP0"/>
+<attribute name="TOL" value="±1%"/>
 <attribute name="TYPE" value="CER"/>
 <attribute name="VAL" value="" constant="no"/>
-<attribute name="VALUE" value="2.2uF"/>
+<attribute name="VALUE" value="27pF"/>
 </technology>
 <technology name="4.7UF_6.3V">
 <attribute name="ALT" value="" constant="no"/>
@@ -2246,6 +2300,42 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="VAL" value="" constant="no"/>
 <attribute name="VALUE" value="2.2pF"/>
 </technology>
+<technology name="2.2UF_10V">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value="CAP CER 2.2UF 10V X7S 0402"/>
+<attribute name="FEAT" value="Low ESL"/>
+<attribute name="MANF" value="TDK"/>
+<attribute name="MFPN" value="C1005X7S1A225K050BC"/>
+<attribute name="PARTNO" value="02-100644-00"/>
+<attribute name="PRICE" value="0.36" constant="no"/>
+<attribute name="RATE" value="10V"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="X7S"/>
+<attribute name="TOL" value="±10%"/>
+<attribute name="TYPE" value="CER"/>
+<attribute name="VAL" value="" constant="no"/>
+<attribute name="VALUE" value="2.2uF"/>
+</technology>
+<technology name="20PF_50V">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
+<attribute name="DESC" value="CAP CER 20PF 50V C0G/NP0 0402"/>
+<attribute name="FEAT" value=""/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="GRM1555C1H200JA01D"/>
+<attribute name="PARTNO" value="02-100692-00"/>
+<attribute name="PRICE" value="0.10" constant="no"/>
+<attribute name="RATE" value="50V"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="C0G"/>
+<attribute name="TOL" value="±5%"/>
+<attribute name="TYPE" value="CER"/>
+<attribute name="VAL" value="" constant="no"/>
+<attribute name="VALUE" value="20pF"/>
+</technology>
 <technology name="270PF_50V">
 <attribute name="ALT" value="" constant="no"/>
 <attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
@@ -2264,23 +2354,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="VAL" value="" constant="no"/>
 <attribute name="VALUE" value="270pF"/>
 </technology>
-<technology name="2.2UF_10V">
+<technology name="27PF_50V">
 <attribute name="ALT" value="" constant="no"/>
-<attribute name="DATASHEET" value=""/>
-<attribute name="DESC" value="CAP CER 2.2UF 10V X7S 0402"/>
-<attribute name="FEAT" value="Low ESL"/>
-<attribute name="MANF" value="TDK"/>
-<attribute name="MFPN" value="C1005X7S1A225K050BC"/>
-<attribute name="PARTNO" value="02-100644-00"/>
-<attribute name="PRICE" value="0.36" constant="no"/>
-<attribute name="RATE" value="10V"/>
+<attribute name="DATASHEET" value="https://goo.gl/Q8ytxh"/>
+<attribute name="DESC" value="CAP CER 27PF 50V C0G/NP0 0402"/>
+<attribute name="FEAT" value=""/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="GRM1555C1H270FA01D"/>
+<attribute name="PARTNO" value="02-100716-00"/>
+<attribute name="PRICE" value="0.10" constant="no"/>
+<attribute name="RATE" value="50V"/>
 <attribute name="SIZE" value="0402"/>
 <attribute name="STATUS" value="Active" constant="no"/>
-<attribute name="TC" value="X7S"/>
-<attribute name="TOL" value="±10%"/>
+<attribute name="TC" value="C0G, NP0"/>
+<attribute name="TOL" value="±1%"/>
 <attribute name="TYPE" value="CER"/>
 <attribute name="VAL" value="" constant="no"/>
-<attribute name="VALUE" value="2.2uF"/>
+<attribute name="VALUE" value="27pF"/>
 </technology>
 <technology name="4.7UF_6.3V">
 <attribute name="ALT" value="" constant="no"/>
@@ -3849,6 +3939,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TYPE" value="THIN FILM"/>
 <attribute name="VALUE" value="4.02k"/>
 </technology>
+<technology name="5.1K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
+<attribute name="DESC" value="RES SMD 5.1K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF5101X"/>
+<attribute name="PARTNO" value="03-100496-00"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="±1%"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VALUE" value="5.1k"/>
+</technology>
 <technology name="5.62K_1%">
 <attribute name="ALT" value="" constant="no"/>
 <attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
@@ -3916,6 +4023,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TOL" value="±1%"/>
 <attribute name="TYPE" value="THICK FILM"/>
 <attribute name="VALUE" value="56k"/>
+</technology>
+<technology name="69.8K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
+<attribute name="DESC" value="RES SMD 69.8K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF6982X"/>
+<attribute name="PARTNO" value="NEW"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="±1%"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VALUE" value="69.8k"/>
 </technology>
 <technology name="976K_1%">
 <attribute name="ALT" value="" constant="no"/>
@@ -4282,6 +4406,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TYPE" value="THIN FILM"/>
 <attribute name="VALUE" value="4.02k"/>
 </technology>
+<technology name="5.1K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
+<attribute name="DESC" value="RES SMD 5.1K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF5101X"/>
+<attribute name="PARTNO" value="03-100496-00"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="±1%"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VALUE" value="5.1k"/>
+</technology>
 <technology name="5.62K_1%">
 <attribute name="ALT" value="" constant="no"/>
 <attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
@@ -4349,6 +4490,23 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="TOL" value="±1%"/>
 <attribute name="TYPE" value="THICK FILM"/>
 <attribute name="VALUE" value="56k"/>
+</technology>
+<technology name="69.8K_1%">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/S6EzVt"/>
+<attribute name="DESC" value="RES SMD 69.8K OHM 1% 1/10W 0402"/>
+<attribute name="FEAT" value="AEC-Q200"/>
+<attribute name="MANF" value="Panasonic"/>
+<attribute name="MFPN" value="ERJ-2RKF6982X"/>
+<attribute name="PARTNO" value="NEW"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1/10W"/>
+<attribute name="SIZE" value="0402"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="±100ppm/°C"/>
+<attribute name="TOL" value="±1%"/>
+<attribute name="TYPE" value="THICK FILM"/>
+<attribute name="VALUE" value="69.8k"/>
 </technology>
 <technology name="976K_1%">
 <attribute name="ALT" value="" constant="no"/>
@@ -4664,6 +4822,31 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="PRICE" value="" constant="no"/>
 <attribute name="RATE" value="" constant="no"/>
 <attribute name="SIZE" value="1210" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+<attribute name="TC" value="" constant="no"/>
+<attribute name="TOL" value="" constant="no"/>
+<attribute name="TYPE" value="" constant="no"/>
+<attribute name="VAL" value="" constant="no"/>
+</technology>
+</technologies>
+</device>
+<device name="2512" package="R2512">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value="" constant="no"/>
+<attribute name="FEAT" value="" constant="no"/>
+<attribute name="MANF" value="" constant="no"/>
+<attribute name="MFPN" value="" constant="no"/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="" constant="no"/>
+<attribute name="SIZE" value="2512" constant="no"/>
 <attribute name="STATUS" value="" constant="no"/>
 <attribute name="TC" value="" constant="no"/>
 <attribute name="TOL" value="" constant="no"/>
@@ -5442,12 +5625,29 @@ EIA Code 7343, Size D, Body 7.30x4.30mm
 <attribute name="PARTNO" value="" constant="no"/>
 <attribute name="PRICE" value="" constant="no"/>
 <attribute name="RATE" value="" constant="no"/>
-<attribute name="SIZE" value="1210" constant="no"/>
+<attribute name="SIZE" value="1210"/>
 <attribute name="STATUS" value="" constant="no"/>
 <attribute name="TC" value="" constant="no"/>
 <attribute name="TOL" value="" constant="no"/>
 <attribute name="TYPE" value="" constant="no"/>
 <attribute name="VAL" value="" constant="no"/>
+</technology>
+<technology name="10uH_1A">
+<attribute name="ALT" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://goo.gl/RQJ9qE"/>
+<attribute name="DESC" value="FIXED IND 10UH 900MA 354 MOHM"/>
+<attribute name="FEAT" value="" constant="no"/>
+<attribute name="MANF" value="Murata"/>
+<attribute name="MFPN" value="LQH32PN100MNCL"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="PRICE" value="" constant="no"/>
+<attribute name="RATE" value="1A"/>
+<attribute name="SIZE" value="1210"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TC" value="-40°C ~ 85°C"/>
+<attribute name="TOL" value="±20%"/>
+<attribute name="TYPE" value="Wirewound, Shielded"/>
+<attribute name="VALUE" value="10uH"/>
 </technology>
 </technologies>
 </device>

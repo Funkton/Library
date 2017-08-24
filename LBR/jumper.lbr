@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="dots" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="mm" unit="mm" style="dots" multiple="1" display="yes" altdistance="0.05" altunitdist="mm" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -43,6 +43,7 @@
 <layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="50" name="Mechanical" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
@@ -67,6 +68,22 @@
 <layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="100" name="PanelOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="101" name="Stencil" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="102" name="V-Score" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="120" name="DimOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="121" name="_tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="122" name="_bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="147" name="docuMeasures" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="150" name="Mechanical2" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="tNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="152" name="bNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="250" name="Mechanical3" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="251" name="tDocuLIB" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="252" name="1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="253" name="0.1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <library>
 <description>&lt;b&gt;Jumpers&lt;/b&gt;&lt;p&gt;
@@ -91,8 +108,8 @@
 <rectangle x1="-2.8448" y1="-0.3048" x2="-2.2352" y2="0.3048" layer="51"/>
 <rectangle x1="-0.3048" y1="-0.3048" x2="0.3048" y2="0.3048" layer="51"/>
 <rectangle x1="2.2352" y1="-0.3048" x2="2.8448" y2="0.3048" layer="51"/>
-<text x="-0.9" y="-2.2" size="1.016" layer="21" font="vector" ratio="18" rot="R90">1</text>
-<text x="1.8" y="-2.2" size="1.016" layer="21" font="vector" ratio="18" rot="R90">2</text>
+<text x="-1.2" y="-2" size="1.016" layer="21" font="vector" ratio="18" align="center">1</text>
+<text x="1.4" y="-2" size="1.016" layer="21" font="vector" ratio="18" rot="R180" align="center">2</text>
 <wire x1="-2.5" y1="-1.2" x2="-2.5" y2="-2.1" width="0.2" layer="21"/>
 <wire x1="-2.5" y1="-2.1" x2="-2.1" y2="-2.1" width="0.2" layer="21"/>
 <wire x1="0" y1="-1.2" x2="0" y2="-2.1" width="0.2" layer="21"/>

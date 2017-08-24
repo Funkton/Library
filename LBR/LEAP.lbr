@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.3.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="1" name="Top" color="4" fill="1" visible="no" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
 <layer number="3" name="Route3" color="4" fill="3" visible="no" active="no"/>
 <layer number="4" name="Route4" color="1" fill="4" visible="no" active="no"/>
@@ -23,43 +24,43 @@
 <layer number="13" name="Route13" color="4" fill="5" visible="no" active="no"/>
 <layer number="14" name="Route14" color="1" fill="6" visible="no" active="no"/>
 <layer number="15" name="Route15" color="4" fill="6" visible="no" active="no"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
-<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
-<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="no" active="yes"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="no" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="yes"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="no" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="29" name="tStop" color="7" fill="3" visible="yes" active="yes"/>
+<layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="yes" active="yes"/>
-<layer number="31" name="tCream" color="7" fill="4" visible="yes" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
 <layer number="32" name="bCream" color="7" fill="5" visible="yes" active="yes"/>
-<layer number="33" name="tFinish" color="6" fill="3" visible="yes" active="yes"/>
+<layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
 <layer number="34" name="bFinish" color="6" fill="6" visible="yes" active="yes"/>
-<layer number="35" name="tGlue" color="7" fill="4" visible="yes" active="yes"/>
+<layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="yes" active="yes"/>
-<layer number="37" name="tTest" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="38" name="bTest" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="42" name="bRestrict" color="3" fill="10" visible="yes" active="yes"/>
 <layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
-<layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="46" name="Milling" color="3" fill="1" visible="yes" active="yes"/>
-<layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="50" name="Mechanical" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
+<layer number="50" name="Mechanical" color="7" fill="1" visible="no" active="yes"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -76,23 +77,23 @@
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
 <layer number="99" name="SpiceOrder" color="7" fill="1" visible="no" active="no"/>
-<layer number="100" name="PanelOutline" color="7" fill="10" visible="yes" active="yes"/>
-<layer number="101" name="Stencil" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="102" name="V-Score" color="3" fill="1" visible="yes" active="yes"/>
+<layer number="100" name="PanelOutline" color="7" fill="10" visible="no" active="yes"/>
+<layer number="101" name="Stencil" color="7" fill="1" visible="no" active="yes"/>
+<layer number="102" name="V-Score" color="3" fill="1" visible="no" active="yes"/>
 <layer number="113" name="ReferenceLS" color="7" fill="1" visible="no" active="no"/>
 <layer number="118" name="Rect_Pads" color="7" fill="1" visible="no" active="no"/>
-<layer number="120" name="DimOutline" color="39" fill="1" visible="yes" active="yes"/>
-<layer number="121" name="_tPlace" color="14" fill="1" visible="yes" active="yes"/>
-<layer number="122" name="_bPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="125" name="_tNames" color="39" fill="1" visible="yes" active="yes"/>
-<layer number="126" name="_bNames" color="39" fill="1" visible="yes" active="yes"/>
-<layer number="144" name="DrillLegend" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="145" name="DrillLegend_01-16" color="2" fill="9" visible="yes" active="yes"/>
-<layer number="146" name="DrillLegend_01-20" color="3" fill="9" visible="yes" active="yes"/>
-<layer number="147" name="docuMeasures" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="150" name="Mechanical2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="151" name="tNotes" color="7" fill="10" visible="yes" active="yes"/>
-<layer number="152" name="bNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="120" name="DimOutline" color="39" fill="1" visible="no" active="yes"/>
+<layer number="121" name="_tPlace" color="14" fill="1" visible="no" active="yes"/>
+<layer number="122" name="_bPlace" color="7" fill="1" visible="no" active="yes"/>
+<layer number="125" name="_tNames" color="39" fill="1" visible="no" active="yes"/>
+<layer number="126" name="_bNames" color="39" fill="1" visible="no" active="yes"/>
+<layer number="144" name="DrillLegend" color="15" fill="1" visible="no" active="yes"/>
+<layer number="145" name="DrillLegend_01-16" color="2" fill="9" visible="no" active="yes"/>
+<layer number="146" name="DrillLegend_01-20" color="3" fill="9" visible="no" active="yes"/>
+<layer number="147" name="docuMeasures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="150" name="Mechanical2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="151" name="tNotes" color="7" fill="10" visible="no" active="yes"/>
+<layer number="152" name="bNotes" color="7" fill="1" visible="no" active="yes"/>
 <layer number="153" name="FabDoc1" color="6" fill="1" visible="no" active="no"/>
 <layer number="154" name="FabDoc2" color="2" fill="1" visible="no" active="no"/>
 <layer number="155" name="FabDoc3" color="7" fill="15" visible="no" active="no"/>
@@ -109,10 +110,10 @@
 <layer number="231" name="Eagle3D_PG1" color="7" fill="1" visible="no" active="no"/>
 <layer number="232" name="Eagle3D_PG2" color="7" fill="1" visible="no" active="no"/>
 <layer number="233" name="Eagle3D_PG3" color="7" fill="1" visible="no" active="no"/>
-<layer number="250" name="Mechanical3" color="3" fill="1" visible="yes" active="yes"/>
-<layer number="251" name="tDocuLIB" color="38" fill="11" visible="yes" active="yes"/>
-<layer number="252" name="1MMGRID" color="23" fill="10" visible="yes" active="yes"/>
-<layer number="253" name="0.1MMGRID" color="23" fill="10" visible="yes" active="yes"/>
+<layer number="250" name="Mechanical3" color="3" fill="1" visible="no" active="yes"/>
+<layer number="251" name="tDocuLIB" color="38" fill="11" visible="no" active="yes"/>
+<layer number="252" name="1MMGRID" color="23" fill="10" visible="no" active="yes"/>
+<layer number="253" name="0.1MMGRID" color="23" fill="10" visible="no" active="yes"/>
 </layers>
 <library>
 <description>&lt;h3&gt;LEAP - Phase IV Engineering&lt;/h3&gt;
@@ -147,13 +148,13 @@
 <rectangle x1="12.3444" y1="-30.3556" x2="13.0556" y2="-29.6444" layer="51"/>
 <rectangle x1="14.8844" y1="-30.3556" x2="15.5956" y2="-29.6444" layer="51"/>
 <rectangle x1="17.4244" y1="-30.3556" x2="18.1356" y2="-29.6444" layer="51"/>
-<wire x1="19.05" y1="1.27" x2="19.05" y2="-1.27" width="0.254" layer="22"/>
-<wire x1="19.05" y1="-1.27" x2="1.27" y2="-1.27" width="0.254" layer="22"/>
-<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0.254" layer="22"/>
-<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0.254" layer="22"/>
-<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0.254" layer="22"/>
-<wire x1="1.27" y1="1.27" x2="19.05" y2="1.27" width="0.254" layer="22"/>
-<wire x1="1.27" y1="-1.27" x2="1.27" y2="1.27" width="0.254" layer="22"/>
+<wire x1="19.05" y1="1.27" x2="19.05" y2="-1.27" width="0.254" layer="21"/>
+<wire x1="19.05" y1="-1.27" x2="1.27" y2="-1.27" width="0.254" layer="21"/>
+<wire x1="1.27" y1="-1.27" x2="-1.27" y2="-1.27" width="0.254" layer="21"/>
+<wire x1="-1.27" y1="-1.27" x2="-1.27" y2="1.27" width="0.254" layer="21"/>
+<wire x1="-1.27" y1="1.27" x2="1.27" y2="1.27" width="0.254" layer="21"/>
+<wire x1="1.27" y1="1.27" x2="19.05" y2="1.27" width="0.254" layer="21"/>
+<wire x1="1.27" y1="-1.27" x2="1.27" y2="1.27" width="0.254" layer="21"/>
 <pad name="B2" x="2.54" y="0" drill="1.016" diameter="1.778" rot="R270"/>
 <pad name="B1" x="0" y="0" drill="1.016" diameter="1.778" shape="square" rot="R270" first="yes"/>
 <pad name="B3" x="5.08" y="0" drill="1.016" diameter="1.778" rot="R270"/>
@@ -162,14 +163,14 @@
 <pad name="B6" x="12.7" y="0" drill="1.016" diameter="1.778" rot="R270"/>
 <pad name="B7" x="15.24" y="0" drill="1.016" diameter="1.778" rot="R270"/>
 <pad name="B8" x="17.78" y="0" drill="1.016" diameter="1.778" rot="R270"/>
-<rectangle x1="-0.3556" y1="-0.3556" x2="0.3556" y2="0.3556" layer="52"/>
-<rectangle x1="2.1844" y1="-0.3556" x2="2.8956" y2="0.3556" layer="52"/>
-<rectangle x1="4.7244" y1="-0.3556" x2="5.4356" y2="0.3556" layer="52"/>
-<rectangle x1="7.2644" y1="-0.3556" x2="7.9756" y2="0.3556" layer="52"/>
-<rectangle x1="9.8044" y1="-0.3556" x2="10.5156" y2="0.3556" layer="52"/>
-<rectangle x1="12.3444" y1="-0.3556" x2="13.0556" y2="0.3556" layer="52"/>
-<rectangle x1="14.8844" y1="-0.3556" x2="15.5956" y2="0.3556" layer="52"/>
-<rectangle x1="17.4244" y1="-0.3556" x2="18.1356" y2="0.3556" layer="52"/>
+<rectangle x1="-0.3556" y1="-0.3556" x2="0.3556" y2="0.3556" layer="51"/>
+<rectangle x1="2.1844" y1="-0.3556" x2="2.8956" y2="0.3556" layer="51"/>
+<rectangle x1="4.7244" y1="-0.3556" x2="5.4356" y2="0.3556" layer="51"/>
+<rectangle x1="7.2644" y1="-0.3556" x2="7.9756" y2="0.3556" layer="51"/>
+<rectangle x1="9.8044" y1="-0.3556" x2="10.5156" y2="0.3556" layer="51"/>
+<rectangle x1="12.3444" y1="-0.3556" x2="13.0556" y2="0.3556" layer="51"/>
+<rectangle x1="14.8844" y1="-0.3556" x2="15.5956" y2="0.3556" layer="51"/>
+<rectangle x1="17.4244" y1="-0.3556" x2="18.1356" y2="0.3556" layer="51"/>
 <wire x1="19.89" y1="-32" x2="19.89" y2="2" width="0.2" layer="251"/>
 <wire x1="19.89" y1="2" x2="-8.11" y2="2" width="0.2" layer="251"/>
 <wire x1="-8.11" y1="2" x2="-8.11" y2="-32" width="0.2" layer="251"/>
@@ -345,8 +346,8 @@ Pintout:
 <wire x1="-3.6" y1="12" x2="-3.6" y2="14.8" width="0.05" layer="51"/>
 <wire x1="4.4" y1="12" x2="4.4" y2="14.8" width="0.05" layer="51"/>
 <text x="0.5" y="13.5" size="1.5" layer="51" font="vector" align="center">ANT</text>
-<rectangle x1="-12.25" y1="11.7" x2="12.25" y2="14.8" layer="41"/>
-<rectangle x1="-12.25" y1="11.7" x2="12.25" y2="14.8" layer="42"/>
+<rectangle x1="-12.25" y1="11.7" x2="12.25" y2="26" layer="41"/>
+<rectangle x1="-12.25" y1="11.7" x2="12.25" y2="26" layer="42"/>
 <text x="-8" y="9" size="1.016" layer="25" font="vector" ratio="18" rot="R90">-A</text>
 <text x="-8" y="8.5" size="1.016" layer="25" font="vector" ratio="18" rot="R90" align="bottom-right">&gt;NAME</text>
 <text x="9" y="9" size="1.016" layer="25" font="vector" ratio="18" rot="R90">-B</text>

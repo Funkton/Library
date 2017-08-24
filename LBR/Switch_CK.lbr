@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -43,7 +44,7 @@
 <layer number="47" name="Measures" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="50" name="dxf" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="50" name="Mechanical" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
@@ -57,6 +58,22 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="100" name="PanelOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="101" name="Stencil" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="102" name="V-Score" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="120" name="DimOutline" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="121" name="_tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="122" name="_bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="147" name="docuMeasures" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="150" name="Mechanical2" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="tNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="152" name="bNotes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="250" name="Mechanical3" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="251" name="tDocuLIB" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="252" name="1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="253" name="0.1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <library>
 <description>&lt;b&gt;C&amp;K Swtiches&lt;/b&gt; - v1.01&lt;p&gt;
@@ -1013,18 +1030,20 @@ http://www.bobstarr.net</description>
 </connects>
 <technologies>
 <technology name="K">
+<attribute name="DESC" value="SWITCH TACTILE SPST-NO 0.05A 12V"/>
 <attribute name="FORCE" value="220gf"/>
 <attribute name="MANF" value="C&amp;K"/>
 <attribute name="MFPN" value="PTS840 GKP SMTR"/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
 <attribute name="RATE" value="0.05A @ 12VDC"/>
 <attribute name="TYPE" value="SPST-NO"/>
 </technology>
 <technology name="M">
+<attribute name="DESC" value="SWITCH TACTILE SPST-NO 0.05A 12V"/>
 <attribute name="FORCE" value="160 gf"/>
 <attribute name="MANF" value="C&amp;K"/>
 <attribute name="MFPN" value="PTS840 GMP SMTR LFS "/>
-<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
 <attribute name="RATE" value="0.05A @ 12VDC"/>
 <attribute name="TYPE" value="SPST-NO"/>
 </technology>

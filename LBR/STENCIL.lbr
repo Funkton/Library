@@ -1,29 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="down"/>
 </settings>
 <grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
-<layer number="2" name="Route2" color="1" fill="3" visible="no" active="yes"/>
-<layer number="3" name="Route3" color="4" fill="3" visible="no" active="yes"/>
-<layer number="4" name="Route4" color="1" fill="4" visible="no" active="yes"/>
-<layer number="5" name="Route5" color="4" fill="4" visible="no" active="yes"/>
-<layer number="6" name="Route6" color="1" fill="8" visible="no" active="yes"/>
-<layer number="7" name="Route7" color="4" fill="8" visible="no" active="yes"/>
-<layer number="8" name="Route8" color="1" fill="2" visible="no" active="yes"/>
-<layer number="9" name="Route9" color="4" fill="2" visible="no" active="yes"/>
-<layer number="10" name="Route10" color="1" fill="7" visible="no" active="yes"/>
-<layer number="11" name="Route11" color="4" fill="7" visible="no" active="yes"/>
-<layer number="12" name="Route12" color="1" fill="5" visible="no" active="yes"/>
-<layer number="13" name="Route13" color="4" fill="5" visible="no" active="yes"/>
-<layer number="14" name="Route14" color="1" fill="6" visible="no" active="yes"/>
-<layer number="15" name="Route15" color="4" fill="6" visible="no" active="yes"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
@@ -115,6 +102,28 @@
 <wire x1="5" y1="0" x2="0" y2="5" width="0.02" layer="101" curve="-90"/>
 <wire x1="0" y1="5" x2="0" y2="85" width="0.02" layer="101"/>
 <wire x1="0" y1="85" x2="5" y2="90" width="0.02" layer="101" curve="-90"/>
+</package>
+<package name="STENCIL_150X110">
+<description>Stencil Outline 150x110mm</description>
+<wire x1="5" y1="0" x2="145" y2="0" width="0.02" layer="101"/>
+<wire x1="145" y1="0" x2="150" y2="5" width="0.02" layer="101" curve="90"/>
+<wire x1="5" y1="110" x2="145" y2="110" width="0.02" layer="101"/>
+<wire x1="145" y1="110" x2="150" y2="105" width="0.02" layer="101" curve="-90"/>
+<wire x1="150" y1="105" x2="150" y2="5" width="0.02" layer="101"/>
+<wire x1="5" y1="0" x2="0" y2="5" width="0.02" layer="101" curve="-90"/>
+<wire x1="0" y1="5" x2="0" y2="105" width="0.02" layer="101"/>
+<wire x1="0" y1="105" x2="5" y2="110" width="0.02" layer="101" curve="-90"/>
+</package>
+<package name="STENCIL_150X120">
+<description>Stencil Outline 150x120mm</description>
+<wire x1="5" y1="0" x2="145" y2="0" width="0.02" layer="101"/>
+<wire x1="145" y1="0" x2="150" y2="5" width="0.02" layer="101" curve="90"/>
+<wire x1="5" y1="120" x2="145" y2="120" width="0.02" layer="101"/>
+<wire x1="145" y1="120" x2="150" y2="115" width="0.02" layer="101" curve="-90"/>
+<wire x1="150" y1="115" x2="150" y2="5" width="0.02" layer="101"/>
+<wire x1="5" y1="0" x2="0" y2="5" width="0.02" layer="101" curve="-90"/>
+<wire x1="0" y1="5" x2="0" y2="115" width="0.02" layer="101"/>
+<wire x1="0" y1="115" x2="5" y2="120" width="0.02" layer="101" curve="-90"/>
 </package>
 </packages>
 <symbols>
