@@ -1,0 +1,55 @@
+/*
+Duplicate Scrubber (Find duplicates and scrub them out)
+*/
+
+//-- WireInfo Function --//
+// Exports list of all wires
+string WireInfo (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the signals loop
+		B.signals(S) {
+			//SignalList[n] = S.name;
+			//sprintf(c, "SIGNAL: %s\n", S.name); //List Signals
+			
+			//Wires loop
+			S.wires(W) {
+				sprintf(c, "WIRE: signal(%s), layer(%d), width(%d), start(%f %f), end(%f %f), curve(%f)\n", S.name, W.layer, W.width, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2), W.curve); //List Wires
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup filesave dialog
+		dlgDialog("Export Signal List") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_wires.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End WireInfo Function --//
+
+//-- Function calls
+//if (argv[1] == "-wireinfo"){	WireInfo();}
+
+WireInfo();

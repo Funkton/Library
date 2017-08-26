@@ -33,6 +33,7 @@ Version:
 	
 
 Ideas:
+- Add handling of non binary eaglerc set commands (ie: ON|OFF, WALKAROUND|IGNORE)
 [ ] : Add ability to handle multiple setting toggles at a time.
 [0.2] - Save last used setting name and setup flag for toggle shortcut. Can assign one shortcut to repeat the last used setting.
 [ ]	: --h History window popup dialog. Add last used cfg locations and display in dialog for selection.

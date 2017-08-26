@@ -1,0 +1,204 @@
+/*
+Title : ATT-COPY.ulp
+Purpose : Copy attributes from one part to another
+Author : Cameron Nicks
+
+License : Creative Commons Attribution-ShareAlike 4.0 International
+        : CC BY-SA 4.0
+        : https://creativecommons.org/licenses/by-sa/4.0/
+
+*******************************************************************************
+*				Copyright (c) 2017 Cameron Nicks                              *
+*******************************************************************************
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+Version:
+1.0 08/25/17
+	- Basic proof of concept. No error handling.
+
+	
+BUGS:
+	
+Feature Wish List:
+DONE - Add option to copy all attribute names or only with values.
+DONE - Command line argument entry. ie, RUN ATT-COPY 'from 'to' -flags.
+- Open dialog if no arguments are given.
+- Part Context entry. (opens dialog to enter copy TO part name)
+
+Advanced:
+- Editable box? Enter FROM part, scan, popup checkboxes for selection of attrbutes to copy.
+
+*/
+
+#usage 	"en: <b>ATT-COPY.ulp</b> - Copy attributes from one part to another.<hr><p>"
+		"<b>Usage:</b><br>"
+		"RUN ATT-COPY <i>from to</i> [flags] <p>\n"
+		"<b>Example:</b><br>"
+		"RUN ATT-COPY R1 R2<br> Would copy R1's attributes (with non-empty values) to R2.<br><br>"
+		"RUN ATT-COPY R1 R2 -A<br> Would copy R1's attributes (ALL) to R2"
+		"<p>"
+		"<b>Flags:</b> <i>Must be added after part names.</i><br>"
+		"<b><i>-A</i></b> : Copy all attributes"
+		"<p>"
+		"<b>Options:</b> <i>Must be ran without part names.</i><br>"
+		"RUN ATT-COPY <i>option</i> <br>\n"
+		/*"<b><i>--install</i></b> : Installs the utility to the board context menus.<br>\n"*/
+		"<b><i>--version</i></b> : Shows the version number of the ULP being called.<br>\n"
+		"<b><i>--locate-ulp</i></b> : Shows the location of the ULP being called (Useful for debug).<p>\n"
+		"<b>Limitations:</b><br>"
+		"- No error handling, use at your own risk!<br>"
+		"- Module handling has not been tested<br>"
+		"- Design Blocks handling has not been tested"
+		"<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
+		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
+		"<author>Author: cnicks@phaseivengr.com</author>"
+
+string VERSION = "0.1 (August 25, 2017)";
+
+// Load last used values
+string attFrom = cfgget("attcopy.from", "From...");
+string attTo = cfgget("attcopy.to", "To...");
+
+//string copyEmpty = cfgget("attcopy.mode.copyEmpty" "0"); // 1 to copy attributes without values (to copy set of names), 0 to only copy those with values filled in.
+string cfg = "";
+
+// Define variables
+int debug = 0;
+int mode = 0; // set default copy mode. 
+string setting = "CHANGE DISPLAY OFF; "; // This runs right before the rest of the command
+string cmd = "ATTRIBUTE ";
+string Result;
+//int mode = strtol(cfgget("attcopy.mode.copyEmpty"));
+
+
+ //If run without arguments, show usage info and exit.
+if (argc == 1) {
+	  dlgMessageBox(usage);
+	  exit(1);
+}
+/*
+if (argv[1] == "--install") {
+   exit("edit .sch; set context instance 'Copy Attributes' 'run ATT-COPY';");
+}
+*/
+if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+}
+if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+}
+
+attFrom = argv[1]; if (debug) {dlgMessageBox ("From: " + attFrom);} //Debug
+if (!argv[2]){
+	dlgMessageBox ("Enter part name to copy to.");
+	exit(0);
+}
+attTo = argv[2]; if (debug) {dlgMessageBox ("To: " + attTo);} //Debug
+cmd += attTo + " "; // Add the name of part to copy to into the command
+
+if (argv[3]){
+	if(argv[3] == "-A"){
+	mode = 1;
+	if (debug) {
+		sprintf(cfg, "%d", mode);
+		dlgMessageBox ("Copy Empty= " + cfg);} //Debug
+	}
+}
+
+
+// Copy Attributes function
+string copyAtt(string from, string to) {
+		string attList; // Attributes list
+	
+	// Beginning Schematic
+	if (schematic){
+		schematic(S){
+			S.parts(P){
+				P.instances(I){
+					if (P.name == from) {
+					//partList += P.name + " "; // add partname to partList string
+						P.attributes(A) {
+							if (mode == 0){
+								if (A.value) {
+									attList += cmd;
+									attList += A.name + " ";
+									attList += "'" + A.value + "'; ";
+								}
+							}
+							else {
+								attList += cmd;
+								attList += A.name + " ";
+								attList += "'" + A.value + "'; ";
+							
+							}
+						}
+							
+					}
+					return attList;
+				}
+			}
+		}
+	}
+	// End Schematic
+	
+	// Beginning Board
+	if (board){
+		board(B){
+			B.elements(E){
+					if (E.name == from) {
+					//partList += P.name + " "; // add partname to partList string
+						E.attributes(A) {
+							if (mode == 0){
+								if (A.value) {
+									attList += cmd;
+									attList += A.name + " ";
+									attList += "'" + A.value + "'; ";
+								}
+							}
+							else {
+								attList += cmd;
+								attList += A.name + " ";
+								attList += "'" + A.value + "'; ";
+							
+							}
+						}
+							
+					}
+					return attList;
+			}
+		}
+	}
+	// End Board
+}
+// End copy attrbutes
+
+// Save last used values to eaglerc.usr
+// This doesn't actually save to the file until eagle closes, but it does hold the changes in memory.
+
+
+cfgset("attcopy.from", attFrom);
+cfgset("attcopy.to", attTo);
+
+//int checkbox settings need to be converted to string to store with cfgset
+//sprintf(cfg, "%d", mode);
+//cfgset("attcopy.mode.copyEmpty", cfg);
+
+if (debug) {dlgMessageBox (copyAtt(attFrom, attTo));} //Debug
+Result += setting + copyAtt(attFrom, attTo);
+exit(Result);
+
+
