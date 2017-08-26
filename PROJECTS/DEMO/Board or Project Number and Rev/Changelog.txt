@@ -1,1 +1,1 @@
-Place to keep track of changes made
+Keep track of changes made in txt or in DESCRIPTION file.

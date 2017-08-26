@@ -1,3 +1,0 @@
-Board Files Folder:
-- All Eagle .brd and .sch files.
-- Design specific scripts, config files, drillrack, libraries, etc.

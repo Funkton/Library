@@ -1,1 +1,1 @@
-This is an example project to show Eagle project folder template.
+This is an example project to show Eagle project folder template. Project epf files should be placed with project folder or individual panel and board folders.
