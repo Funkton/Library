@@ -7,7 +7,7 @@ ATTRIB MFPN constant;
 ATTRIB PARTNO constant;
 ATTRIB RATE constant;
 ATTRIB SIZE constant;
-ATTRIB STATUS constant;
+ATTRIB STATUS variable;
 ATTRIB TOPOLOGY constant;
 ATTRIB TYPE constant;
 ATTRIB VDROP constant;

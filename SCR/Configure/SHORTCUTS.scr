@@ -54,7 +54,7 @@ BRD:
 	ASSIGN CA+M 	'SET WIRE_BEND 3; SPLIT'; #mouse Alt-thumb+forefinger=C+M
 	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
 #	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
-	ASSIGN C+L 		'SET WIRE_BEND 1; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round.
+	ASSIGN C+L 		'SET WIRE_BEND 1; SET OBSTACLE_MODE IGNORE; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round. Obstacle turned off until it routes on grid.
 	ASSIGN CA+L 	'LINE'; #mouse, (LINE; CHANGE LAYER 21;)
 #	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse Follow-me settings are not great.
 	ASSIGN C+T 		TEXT;

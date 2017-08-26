@@ -45,7 +45,7 @@ BRD:
 	
 #	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
-
+#MENU SHOW Doesn't handle 2 digit des, need to make list in ulp to call from
 		MENU
 		'Step Layer {\
 			UP       	: RUN trace-layer -; |\
@@ -58,6 +58,16 @@ BRD:
 				}'\
 		'SELECT : RUN SELECT;'\
 		'SHOW {\
+			ELEMENTS {\
+				ALL		:	SHOW A? C* D? F? J? Q? R? S? U?|\
+				C...	: 	SHOW C*|\
+				R...	: 	SHOW R*|\
+				L...	: 	SHOW L*|\
+				U...	: 	SHOW U*|\
+				J...	: 	SHOW J*|\
+				D...	: 	SHOW D*|\
+				Q...	: 	SHOW Q*|\
+					}|\
 			Show Class		: RUN showclass; |\
 			GRP in SCH : RUN SHOW-GROUP-PARTS; |\
 			PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
@@ -111,6 +121,7 @@ SCH:
 		MENU 
 		'GROUP {\
 			SCH to BRD		: RUN select-sch-group-to-brd-group; |\
+			Rats Group		: RUN group-rats; |\
 				}'\	
 		'SELECT : RUN SELECT;'\
 		'SHOW {\

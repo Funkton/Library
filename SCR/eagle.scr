@@ -19,7 +19,6 @@
 #SCRIPT COLORS.scr
 SCRIPT SHORTCUTS.scr
 SCRIPT MENU.scr
-SCRIPT LAYERS.scr
 
 #----------------------------------#
 #------------ GENERAL--------------#
@@ -83,10 +82,11 @@ SCRIPT LAYERS.scr
 #---------- BOARD EDITOR ----------#
 #----------------------------------#
 
+
 BRD:
 		# Context and menu set from Configure/MENU.scr
 
-		#SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
+SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
 
 		#New 8.2.2 Layer Presets
 		# Every time eagle.scr runs it errors stating the maximum number of presets has been reached, even though no new presets are being defined.
