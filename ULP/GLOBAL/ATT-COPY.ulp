@@ -24,181 +24,295 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+1.2 0526/17
+	- Added flags -O, -V, and -D (overwrite, has value, and default)
+	- Removed flag -A
+	- Checks destination for what attributes have been defined when not in overwrite mode.
+	- Reorganize and tidy up code
+
+1.1 08/25/17
+	- Fixed issue with lower case partnames not being recognized. Now converts From and To arguments to uppercase.
 1.0 08/25/17
 	- Basic proof of concept. No error handling.
 
 	
 BUGS:
-	
+- No part validation
+
+To-Do:
+- Add error handling for non-existent parts
+- Build dialog entry. (some people don't like the command line)
+
 Feature Wish List:
-DONE - Add option to copy all attribute names or only with values.
+DONE - Add option to copy all attribute names or only those with values. (-V)
 DONE - Command line argument entry. ie, RUN ATT-COPY 'from 'to' -flags.
+
+- Add ability to copy to multiple target parts (group?).
 - Open dialog if no arguments are given.
-- Part Context entry. (opens dialog to enter copy TO part name)
+- Part Context entry. (opens dialog to enter copy destination part name if not specified)
 
 Advanced:
 - Editable box? Enter FROM part, scan, popup checkboxes for selection of attrbutes to copy.
 
 */
 
-#usage 	"en: <b>ATT-COPY.ulp</b> - Copy attributes from one part to another.<hr><p>"
-		"<b>Usage:</b><br>"
-		"RUN ATT-COPY <i>from to</i> [flags] <p>\n"
-		"<b>Example:</b><br>"
-		"RUN ATT-COPY R1 R2<br> Would copy R1's attributes (with non-empty values) to R2.<br><br>"
-		"RUN ATT-COPY R1 R2 -A<br> Would copy R1's attributes (ALL) to R2"
-		"<p>"
-		"<b>Flags:</b> <i>Must be added after part names.</i><br>"
-		"<b><i>-A</i></b> : Copy all attributes"
-		"<p>"
-		"<b>Options:</b> <i>Must be ran without part names.</i><br>"
-		"RUN ATT-COPY <i>option</i> <br>\n"
+#usage 	"en: <b>ATT-COPY.ulp</b> - Copy attributes from one part to another."
+		"<hr><b>Usage:</b>"
+		"<br>RUN ATT-COPY <i>source detination options</i>"
+		"<br>RUN ATT-COPY <i>utilities</i>"
+		"<p><b>Example:</b>"
+		"<br>RUN ATT-COPY R1 R2<br> Would copy R1's attributes to R2 without overwriting any value."
+		"<p>RUN ATT-COPY R1 R2 -O<br> Would overwrite any values already in R2"
+		"<p>RUN ATT-COPY R1 R2 -O -D<br> Would overwrite using default value"
+		"<p>RUN ATT-COPY R1 R2 -V<br> Would only copy attributes that have values defined in source part"
+		"<hr><b>Options:</b>"
+		"<p><b>Flags:</b> <i>Must be added after part names.</i><br>"
+		"<b><i>-O</i></b> : Overwrite values<br>"
+		"<b><i>-V</i></b> : Named mode. Copies only attribute names that have values (source)<br>"
+		"<b><i>-D</i></b>	: Use default value for all names copied. Specify in ulp. Default is blank"
+		
+		"<p><b>Utiliy:</b><br>"
 		/*"<b><i>--install</i></b> : Installs the utility to the board context menus.<br>\n"*/
 		"<b><i>--version</i></b> : Shows the version number of the ULP being called.<br>\n"
-		"<b><i>--locate-ulp</i></b> : Shows the location of the ULP being called (Useful for debug).<p>\n"
-		"<b>Limitations:</b><br>"
-		"- No error handling, use at your own risk!<br>"
-		"- Module handling has not been tested<br>"
-		"- Design Blocks handling has not been tested"
+		"<b><i>--locate-ulp</i></b> : Shows the location of the ULP being called (Useful for debug).<br>\n"
+		"<i>-- options must be ran without part names.</i>"
+		"<p><b>Limitations:</b>"
+		"<br>- No part validation"
+		"<br>- No part validation"
+		"<br>- Module handling has not been tested"
+		"<br>- Design Blocks handling has not been tested"
+		"<p><b>Known Bugs:</b>"
+		"<br>- Any attributes added with schemtic availblbe can only be deleted from sch editor.(greyed out in brd)"
 		"<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
-string VERSION = "0.1 (August 25, 2017)";
+string VERSION = "1.2 (August 27, 2017)";
 
-// Load last used values
-string attFrom = cfgget("attcopy.from", "From...");
-string attTo = cfgget("attcopy.to", "To...");
-
-//string copyEmpty = cfgget("attcopy.mode.copyEmpty" "0"); // 1 to copy attributes without values (to copy set of names), 0 to only copy those with values filled in.
-string cfg = "";
-
-// Define variables
-int debug = 0;
-int mode = 0; // set default copy mode. 
+// ------ SETTINGS -------
+string defaultValue = ""; // Set defualt value to use with new attributes
 string setting = "CHANGE DISPLAY OFF; "; // This runs right before the rest of the command
 string cmd = "ATTRIBUTE ";
+string endCmd = "; "; // Delimiter to use in between commands
+
+int debug = 0;
+int mode = 0; 
+int overwrite = 0; 
+int useDefault = 0;
+// ------------------------
+
+// ------ VARIBLES -------
 string Result;
-//int mode = strtol(cfgget("attcopy.mode.copyEmpty"));
+string srcPart, destPart;
+string destAtt []; // This holds the attributes already defined for destination part. Then they can be ignored if only copying names to avoid overwrites.
+int cnt = 0;
+// ------------------------
 
-
- //If run without arguments, show usage info and exit.
-if (argc == 1) {
-	  dlgMessageBox(usage);
-	  exit(1);
-}
-/*
-if (argv[1] == "--install") {
-   exit("edit .sch; set context instance 'Copy Attributes' 'run ATT-COPY';");
-}
-*/
-if (argv[1] == "--version"){
-   string tmp = "ULP Version: " + VERSION;
-   dlgMessageBox(tmp);
-   exit(0);
-}
-if (argv[1] == "--locate-ulp"){
-   dlgMessageBox(argv[0]);
-   exit(0);
-}
-
-attFrom = argv[1]; if (debug) {dlgMessageBox ("From: " + attFrom);} //Debug
-if (!argv[2]){
-	dlgMessageBox ("Enter part name to copy to.");
-	exit(0);
-}
-attTo = argv[2]; if (debug) {dlgMessageBox ("To: " + attTo);} //Debug
-cmd += attTo + " "; // Add the name of part to copy to into the command
-
-if (argv[3]){
-	if(argv[3] == "-A"){
-	mode = 1;
-	if (debug) {
-		sprintf(cfg, "%d", mode);
-		dlgMessageBox ("Copy Empty= " + cfg);} //Debug
+// ------ OPTIONS ---------
+ //If run without arguments, show usage info and exit. To-do: build dialog window
+	if (argc == 1) {
+			dlgMessageBox(usage);
+			exit(1);
 	}
-}
+	if (argv[1] == "--version"){
+		 string tmp = "ULP Version: " + VERSION;
+		 dlgMessageBox(tmp);
+		 exit(0);
+	}
+	if (argv[1] == "--locate-ulp"){
+		 dlgMessageBox(argv[0]);
+		 exit(0);
+	}
 
-
-// Copy Attributes function
-string copyAtt(string from, string to) {
-		string attList; // Attributes list
+	if (!argv[2] || argv[2] == "-O" || argv[2] == "-V" || argv[2] == "-D"){
+		// To-do: Entry dialog for destination part if non specified
+		dlgMessageBox ("Error: Enter destination part name");
+		exit(0);
+	}
 	
-	// Beginning Schematic
-	if (schematic){
-		schematic(S){
-			S.parts(P){
-				P.instances(I){
-					if (P.name == from) {
-					//partList += P.name + " "; // add partname to partList string
-						P.attributes(A) {
-							if (mode == 0){
-								if (A.value) {
-									attList += cmd;
-									attList += A.name + " ";
-									attList += "'" + A.value + "'; ";
-								}
-							}
-							else {
-								attList += cmd;
-								attList += A.name + " ";
-								attList += "'" + A.value + "'; ";
-							
+	// Set modes and flags
+		// There has to be a function out there that will just look for a string match in any of the arguments put into the command line.
+	if (argv[3]){
+		if(argv[3] == "-V" || argv[4] == "-V" || argv[5] == "-V"){
+		mode = 1;		if (debug) {dlgMessageBox ("Att must have Value");}
+		}
+		if(argv[3] == "-O" || argv[4] == "-O" || argv[5] == "-O"){ 
+		overwrite = 1; if(debug) {dlgMessageBox ("Overwrite Enabled");}
+		}
+		if(argv[3] == "-D" || argv[4] == "-D" || argv[5] == "-D"){ 
+		useDefault = 1; if(debug) {dlgMessageBox ("Use Default Value");}
+		}
+	}
+// End flags
+// ------------------------
+
+// ------ FUNCTIONS -------
+
+	// existingAtt function
+	void existingAtt (string target){
+	// places all attributes defined for target part into array
+		if (debug) {dlgMessageBox("Gathering existing attributes from " + target + " part.");}
+		if (schematic){
+			schematic(S){
+				S.parts(P){
+					P.instances(I){
+						if (P.name == target) {
+							P.attributes(A) {
+								destAtt[cnt] = A.name;
+								cnt++;
 							}
 						}
-							
+						
 					}
-					return attList;
 				}
 			}
 		}
-	}
-	// End Schematic
-	
-	// Beginning Board
-	if (board){
-		board(B){
-			B.elements(E){
-					if (E.name == from) {
-					//partList += P.name + " "; // add partname to partList string
+
+		if (board){
+			board(B){
+				B.elements(E){
+					if (E.name == target) {
 						E.attributes(A) {
-							if (mode == 0){
-								if (A.value) {
-									attList += cmd;
-									attList += A.name + " ";
-									attList += "'" + A.value + "'; ";
-								}
-							}
-							else {
-								attList += cmd;
-								attList += A.name + " ";
-								attList += "'" + A.value + "'; ";
-							
-							}
+							destAtt[cnt] = A.name;
+							cnt++;
 						}
-							
 					}
-					return attList;
+				}
 			}
 		}
+
+		if (debug) {
+			string tmp;
+			sprintf(tmp, "%d", cnt);
+			dlgMessageBox (target + " has " + tmp + " attributes.");
+		}
 	}
-	// End Board
+	// End existingAtt function
+
+	// Copy Attributes function
+	string copyAtt(string fromPart, string toPart) {
+			string attList; // Attributes list
+		
+		// Beginning Schematic
+		
+		if (schematic){
+			schematic(S){
+				S.parts(P){
+					P.instances(I){
+						if (P.name == fromPart) {
+							P.attributes(A) {
+							
+								int addFlag = 1;
+								
+								if (overwrite == 0){
+								//check to see if attribute has already been defined in destination part
+									for (int i=0; i<cnt; i++) {
+												if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
+											if (destAtt[i] == A.name){
+												if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
+												addFlag = 0;
+												break;
+											}
+										}
+								}
+								if (mode == 1){
+									//Named only mode: Only add names that have values
+									if (!A.value) {
+									addFlag = 0;
+									}
+								}
+								
+								if (addFlag == 1){
+									attList += cmd; // Add command string 
+									attList += A.name; 		// Add name to command
+									if (useDefault){
+										attList += " '" + defaultValue + "'";	// Add default value to command
+									}else {
+										attList += " '" + A.value + "'";
+									}
+									attList += endCmd; // Places command delimiter
+								}
+								// end of attributes loop
+							}							
+						}
+								
+					}
+				}
+			}
+		}
+		// End Schematic
+		
+		// Beginning Board
+		if (board){
+			board(B){
+				B.elements(E){
+					if (E.name == fromPart) {
+						E.attributes(A) {
+							int addFlag = 1;
+							
+							if (overwrite == 0){
+							//check to see if attribute has already been defined in destination part
+								for (int i=0; i<cnt; i++) {
+											if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
+										if (destAtt[i] == A.name){
+											if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
+											addFlag = 0;
+											break;
+										}
+									}
+							}
+							if (mode == 1){
+								//Named only mode: Only add names that have values
+								if (!A.value) {
+								addFlag = 0;
+								}
+							}
+							
+							if (addFlag == 1){
+								attList += cmd; // Add command string 
+								attList += A.name; 		// Add name to command
+								if (useDefault){
+									attList += " '" + defaultValue + "'";	// Add default value to command
+								}else {
+									attList += " '" + A.value + "'";
+								}
+								attList += endCmd; // Places command delimiter
+							}
+							// end of attributes loop
+							
+						}
+					}
+				}
+			}
+		}
+		// End Board
+		
+		if (debug){dlgMessageBox(attList);}
+		
+	return attList;
+	}
+	// End copy attrbutes
+// ------------------------
+
+// ------ ULP -------------
+// Set parts to operate on.
+// To-do: add part validation
+srcPart = strupr(argv[1]);
+destPart = strupr(argv[2]);
+
+	if (debug) {dlgMessageBox ("Copy attributes from: " + srcPart + " to: " + destPart);} //Debug
+
+cmd += destPart + " "; // Add the name of part to copy to into the command
+
+// Check what attributes are already named
+existingAtt (destPart);
+
+// If there is a schematic available, add attributes from there. Added from brd do not show up in sch.
+if (project.schematic){
+	Result += "edit .sch; ";
 }
-// End copy attrbutes
 
-// Save last used values to eaglerc.usr
-// This doesn't actually save to the file until eagle closes, but it does hold the changes in memory.
-
-
-cfgset("attcopy.from", attFrom);
-cfgset("attcopy.to", attTo);
-
-//int checkbox settings need to be converted to string to store with cfgset
-//sprintf(cfg, "%d", mode);
-//cfgset("attcopy.mode.copyEmpty", cfg);
-
-if (debug) {dlgMessageBox (copyAtt(attFrom, attTo));} //Debug
-Result += setting + copyAtt(attFrom, attTo);
+// Build and run the full command
+Result += setting + copyAtt(srcPart, destPart);
+	if (debug) {dlgMessageBox ("Full command string: " + Result);} //Debug
 exit(Result);
-
-

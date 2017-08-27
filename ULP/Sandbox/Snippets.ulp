@@ -19,6 +19,28 @@ void delete(real x, real y, int type) {
   }
   return;
 }
+// Query a string for symbols. Checks for []?*+^$.{}()|\\
+int isMatch(string s, string test, int useRegex)
+{
+	string regex = !useRegex ?  "^" : test;
+	if (!useRegex)
+	{
+		for(int i = 0; test[i];)
+		{
+			switch(test[i])
+			{
+				case '[': regex += strsub(test, i, strchr(test, ']', i) - i + 1), i += strchr(test, ']', i) - i + 1; break;
+				case '?': regex += ".", i++; break;
+				case '*': regex += ".*", i++; break;
+				case '+': case '^': case '$': case '.': case '{': case '}': case '(': case ')':  case '|': case '\\':
+				regex += "\\" + test[i], i++; break;
+				default: regex += test[i], i++;
+			}
+		}
+		regex +='$';
+	}
+	return strxstr(s, regex, 0) == 0;
+}
 
 // Shows how to retreive current grid information.
 string getGrid (){
