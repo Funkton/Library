@@ -24,7 +24,13 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
-1.2 0526/17
+1.3 09/05/17
+	- Changed flag handler (from Rachael P. https://goo.gl/Y4rYVb)
+	- Added auto confirm for overwriting constant attributes (SET CONFIRM).
+	- Added part validation function.
+	- Added function to switch to the sheet destination part is located on. (previously errored)
+	
+1.2 08/27/17
 	- Added flags -O, -V, and -D (overwrite, has value, and default)
 	- Removed flag -A
 	- Checks destination for what attributes have been defined when not in overwrite mode.
@@ -37,16 +43,15 @@ Version:
 
 	
 BUGS:
-- No part validation
+- Errors on "VALUE" attribute.
 
 To-Do:
-- Add error handling for non-existent parts
+- Add command to use value tool for "VALUE" attributes
 - Build dialog entry. (some people don't like the command line)
 
 Feature Wish List:
 DONE - Add option to copy all attribute names or only those with values. (-V)
 DONE - Command line argument entry. ie, RUN ATT-COPY 'from 'to' -flags.
-
 - Add ability to copy to multiple target parts (group?).
 - Open dialog if no arguments are given.
 - Part Context entry. (opens dialog to enter copy destination part name if not specified)
@@ -58,8 +63,8 @@ Advanced:
 
 #usage 	"en: <b>ATT-COPY.ulp</b> - Copy attributes from one part to another."
 		"<hr><b>Usage:</b>"
-		"<br>RUN ATT-COPY <i>source detination options</i>"
-		"<br>RUN ATT-COPY <i>utilities</i>"
+		"<br>RUN ATT-COPY <i>source destination flags</i>"
+		"<br>RUN ATT-COPY <i>utility</i>"
 		"<p><b>Example:</b>"
 		"<br>RUN ATT-COPY R1 R2<br> Would copy R1's attributes to R2 without overwriting any value."
 		"<p>RUN ATT-COPY R1 R2 -O<br> Would overwrite any values already in R2"
@@ -77,23 +82,23 @@ Advanced:
 		"<b><i>--locate-ulp</i></b> : Shows the location of the ULP being called (Useful for debug).<br>\n"
 		"<i>-- options must be ran without part names.</i>"
 		"<p><b>Limitations:</b>"
-		"<br>- No part validation"
-		"<br>- No part validation"
 		"<br>- Module handling has not been tested"
 		"<br>- Design Blocks handling has not been tested"
 		"<p><b>Known Bugs:</b>"
-		"<br>- Any attributes added with schemtic availblbe can only be deleted from sch editor.(greyed out in brd)"
+		"<br>- Please submit to author"
 		"<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
-string VERSION = "1.2 (August 27, 2017)";
+string VERSION = "1.3";
 
 // ------ SETTINGS -------
 string defaultValue = ""; // Set defualt value to use with new attributes
 string setting = "CHANGE DISPLAY OFF; "; // This runs right before the rest of the command
-string cmd = "ATTRIBUTE ";
-string endCmd = "; "; // Delimiter to use in between commands
+string autoConfirm = "SET CONFIRM YES; ";
+string cmd = "; ATTRIBUTE "; //Must have ; between commands
+string endCmd = "; SET CONFIRM OFF;"; // Command to end entire sequence (ie. change back settings)
+string location = ""; // Change sheet (in sch) to dest part location.
 
 int debug = 0;
 int mode = 0; 
@@ -110,39 +115,49 @@ int cnt = 0;
 
 // ------ OPTIONS ---------
  //If run without arguments, show usage info and exit. To-do: build dialog window
-	if (argc == 1) {
-			dlgMessageBox(usage);
-			exit(1);
-	}
-	if (argv[1] == "--version"){
-		 string tmp = "ULP Version: " + VERSION;
-		 dlgMessageBox(tmp);
-		 exit(0);
-	}
-	if (argv[1] == "--locate-ulp"){
-		 dlgMessageBox(argv[0]);
-		 exit(0);
-	}
+if (argc == 1) {
+		dlgMessageBox(usage);
+		exit(1);
+}
+if (argv[1] == "--version"){
+	 string tmp = "ULP Version: " + VERSION;
+	 dlgMessageBox(tmp);
+	 exit(0);
+}
+if (argv[1] == "--locate-ulp"){
+	 dlgMessageBox(argv[0]);
+	 exit(0);
+}
 
-	if (!argv[2] || argv[2] == "-O" || argv[2] == "-V" || argv[2] == "-D"){
-		// To-do: Entry dialog for destination part if non specified
-		dlgMessageBox ("Error: Enter destination part name");
-		exit(0);
-	}
+if (!argv[2] || argv[2] == "-O" || argv[2] == "-V" || argv[2] == "-D"){
+	// To-do: Entry dialog for destination part if non specified
+	dlgMessageBox ("Error: Enter destination part name");
+	exit(0);
+}
+
+// Setting Flags
+for (int i = 1 ; i < argc ; i++) {
+ string argument = "";
+ if (argc > 0) {
+		argument = argv[i];
+		if (argument == "-V") {
+			 mode = 1;
+		} else if (argument == "-O") {
+			 overwrite = 1;
+		} else if (argument == "-D") {
+			 useDefault = 1;
+		} else {
+			 // Do nothing at the moment
+		}
+}
+}
+
+if(debug) {
+	string result = "";
+	sprintf (result, "FLAGS | Mode: %d, Overwrite: %d, Use Default: %d", mode, overwrite, useDefault);
+	dlgMessageBox(result);
+}
 	
-	// Set modes and flags
-		// There has to be a function out there that will just look for a string match in any of the arguments put into the command line.
-	if (argv[3]){
-		if(argv[3] == "-V" || argv[4] == "-V" || argv[5] == "-V"){
-		mode = 1;		if (debug) {dlgMessageBox ("Att must have Value");}
-		}
-		if(argv[3] == "-O" || argv[4] == "-O" || argv[5] == "-O"){ 
-		overwrite = 1; if(debug) {dlgMessageBox ("Overwrite Enabled");}
-		}
-		if(argv[3] == "-D" || argv[4] == "-D" || argv[5] == "-D"){ 
-		useDefault = 1; if(debug) {dlgMessageBox ("Use Default Value");}
-		}
-	}
 // End flags
 // ------------------------
 
@@ -189,6 +204,61 @@ int cnt = 0;
 	}
 	// End existingAtt function
 
+	// validPart function. Returns 1 if part exists in design
+	int validPart (string lookupPart) {
+		int valid = 0;
+		if (schematic){
+			schematic(S){
+				S.parts(P){
+					if (P.name == lookupPart) {
+						valid = 1;
+					}
+				}
+			}
+		}
+		if (board){
+			board(B){
+				B.elements(E){
+					if (E.name == lookupPart) {
+						valid = 1;
+					}
+				}
+			}
+		}
+		
+		if (valid) {
+			return 1;
+		} else {
+			string error= "";
+			sprintf (error, "ERROR! %s is not a valid part", lookupPart);
+			dlgMessageBox(error);
+			exit(0);
+			return 0;
+		}
+	}
+	// End validPart
+	
+	// locatePart function. Return edit command to switch to the sheet the part is located on (sch only)
+	string locatePart (string lookupPart) {
+		string sheetNum;
+		project.schematic(S){
+			S.parts(P){
+				P.instances(I) {
+					if (P.name == lookupPart) {
+						if (debug) {
+							string tmp;
+							sprintf(tmp, "%s is on sheet: %d", lookupPart, I.sheet);
+							dlgMessageBox (tmp);
+						}
+					sprintf (sheetNum, "EDIT .s%d; ", I.sheet);
+					return sheetNum;
+					}
+				}
+			}
+		}
+	}
+	// End locatePart function
+	
 	// Copy Attributes function
 	string copyAtt(string fromPart, string toPart) {
 			string attList; // Attributes list
@@ -207,12 +277,12 @@ int cnt = 0;
 								if (overwrite == 0){
 								//check to see if attribute has already been defined in destination part
 									for (int i=0; i<cnt; i++) {
-												if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
-											if (destAtt[i] == A.name){
-												if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
-												addFlag = 0;
-												break;
-											}
+										if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
+										if (destAtt[i] == A.name){
+											if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
+											addFlag = 0;
+											break;
+										}
 										}
 								}
 								if (mode == 1){
@@ -230,7 +300,7 @@ int cnt = 0;
 									}else {
 										attList += " '" + A.value + "'";
 									}
-									attList += endCmd; // Places command delimiter
+									//attList += endCmd; // Places command delimiter // Placed ; into cmd -CN 090517
 								}
 								// end of attributes loop
 							}							
@@ -253,13 +323,14 @@ int cnt = 0;
 							if (overwrite == 0){
 							//check to see if attribute has already been defined in destination part
 								for (int i=0; i<cnt; i++) {
-											if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
-										if (destAtt[i] == A.name){
-											if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
-											addFlag = 0;
-											break;
-										}
+									if (debug){dlgMessageBox("Checking: " + A.name + " against: " + destAtt[i]);}
+									
+									if (destAtt[i] == A.name){
+										if (debug){dlgMessageBox("Not changing " + destAtt[i]);}
+										addFlag = 0;
+										break;
 									}
+								}
 							}
 							if (mode == 1){
 								//Named only mode: Only add names that have values
@@ -276,7 +347,7 @@ int cnt = 0;
 								}else {
 									attList += " '" + A.value + "'";
 								}
-								attList += endCmd; // Places command delimiter
+								//attList += endCmd; // Places command delimiter // Placed ; into cmd -CN 090517
 							}
 							// end of attributes loop
 							
@@ -287,7 +358,7 @@ int cnt = 0;
 		}
 		// End Board
 		
-		if (debug){dlgMessageBox(attList);}
+		// if (debug){dlgMessageBox(attList);}
 		
 	return attList;
 	}
@@ -300,19 +371,28 @@ int cnt = 0;
 srcPart = strupr(argv[1]);
 destPart = strupr(argv[2]);
 
+//Validate parts
+validPart(srcPart);
+validPart(destPart);
+
 	if (debug) {dlgMessageBox ("Copy attributes from: " + srcPart + " to: " + destPart);} //Debug
 
-cmd += destPart + " "; // Add the name of part to copy to into the command
+cmd += destPart + " "; // Add the name of part to copy to into the command // todo: Move into copyAtt function?
 
 // Check what attributes are already named
 existingAtt (destPart);
 
 // If there is a schematic available, add attributes from there. Added from brd do not show up in sch.
 if (project.schematic){
-	Result += "edit .sch; ";
+	// Result += "edit .sch; ";
+	Result += locatePart(destPart);
+}
+
+if (overwrite){
+	Result += autoConfirm;
 }
 
 // Build and run the full command
-Result += setting + copyAtt(srcPart, destPart);
-	if (debug) {dlgMessageBox ("Full command string: " + Result);} //Debug
+Result += setting + copyAtt(srcPart, destPart) + endCmd;
+	if (debug) {dlgMessageBox ("Full command string:\n" + Result);} //Debug
 exit(Result);
