@@ -2,6 +2,7 @@
 Title : attView.ulp
 Purpose : Easy viewer of all parts' attributes
 Author : Cameron Nicks
+Link: https://goo.gl/Gh9nsG
 
 License : Creative Commons Attribution-ShareAlike 4.0 International
         : CC BY-SA 4.0
@@ -24,6 +25,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+0.2 09/05/17
+	- Added library name label for selected part
+	- Added direct goo.gl link
+	
 0.1 09/05/17
 	- Basic proof of concept editor dialog
 
@@ -38,6 +43,7 @@ To-Do:
 - Add in ATT-COPY functions
 
 Feature Wish List:
+- Dialog edit box to manually type in part name (change selected part to this box)
 - More ignore handling features (libraries, attributes, ?)
 - Copy and paste function
 	^- Checkboxes to select which get copied
@@ -69,7 +75,7 @@ Advanced:
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
-string VERSION = "0.1 Sandbox";
+string VERSION = "0.2 Sandbox";
 
 // ------ SETTINGS -------
 int debug = 1;
@@ -184,6 +190,39 @@ void getAtt(string s){
 }
 // End getAtt function
 
+// getLib function: retreive library name for selected part. Send part name, recieve library name
+string getLib(string s){
+	string libName;
+	
+	if (schematic){
+		schematic(S){
+			S.parts(P){
+				if (P.name == s){
+					libName = P.device.library;
+				}
+			}
+		}
+		return libName;
+	}
+	if (board){
+		board(B){
+			B.elements(E){
+				if (E.name == s){
+					libName = E.package.library;
+				}
+			}
+		}
+		return libName;
+	}
+	else {
+		string error;
+		sprintf(error, "getLib error looking up %s", s);
+		dlgMessageBox (error);
+	exit(0);
+	}
+}
+// End getLib function
+
 // locatePart function. Return edit command to switch to the sheet the part is located on (sch only)
 	string locatePart (string lookupPart) {
 		string sheetNum;
@@ -235,30 +274,42 @@ getAtt(partsList[Selected]);
 //int Result = 
 dlgDialog("Attributes List") {
 string partName;
+string libraryName;
+
+	dlgVBoxLayout {
+	//dlgLabel("Select Part to View Attributes");
 	
-	dlgGridLayout {
+		dlgGroup("View Attributes"){
+			dlgGridLayout {
 
-dlgCell(0, 0, 0, 1) dlgLabel("Select Part to View Attributes");
-
-dlgCell(1, 0, 1, 1)	dlgListBox(partsList, Selected) {
-			if (dlgSelectionChanged()){
-				partName = partsList[Selected];
-				getAtt(partsList[Selected]);
-			}
-		};
-dlgCell(2, 0) dlgPushButton("-Close") dlgReject();
-		
-	dlgCell(0, 2)	dlgLabel("Selected Part:");
-	dlgCell(0, 3)	dlgLabel(partName, 1);
-	dlgCell(0, 4)	dlgSpacing(200);
-		
-	dlgCell(1, 2, 1, 4)	dlgListView("Attribute\tValue", combinedList, Selected);
-	dlgCell(2, 2)	dlgPushButton("+Edit") exit(editAtt(partsList[Selected]));
-		
+			dlgCell(0, 0)	dlgLabel("Selected Part:");
+			dlgCell(0, 1)	{dlgLabel(partName, 1); dlgStretch (1);};
 			
+			
+			//dlgCell(0, 0, 0, 1) dlgLabel("Select Part to View Attributes");
 
-  //dlgPushButton("+OK") getAtt(partsList[Selected]);
-  }
+			dlgCell(1, 0, 1, 1)	dlgListBox(partsList, Selected) {
+					if (dlgSelectionChanged()){
+						partName = partsList[Selected];
+						getAtt(partsList[Selected]);
+						libraryName = getLib(partsList[Selected]);
+					}
+				};
+			dlgCell(2, 0) dlgPushButton("-Close") dlgReject();
+				
+			dlgCell(0, 2)	dlgLabel("Library:");
+			dlgCell(0, 3)	{dlgLabel(libraryName, 1); dlgStretch (1);};
+			dlgCell(0, 4)	dlgSpacing(200);
+				
+			dlgCell(1, 2, 1, 4)	dlgListView("Attribute\tValue", combinedList, Selected);
+			dlgCell(2, 2)	dlgPushButton("+Edit") exit(editAtt(partsList[Selected]));
+				
+					
+
+			//dlgPushButton("+OK") getAtt(partsList[Selected]);
+			}
+		}
+	}
 };
 	//getAtt(partsList[Selected]);
 //dlgMessageBox("last selected\n" + attList[Selected]);
