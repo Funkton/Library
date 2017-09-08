@@ -1,0 +1,490 @@
+/*
+	Title : expSetting.ulp
+	Purpose : Export Eagle Settings into SCR files. The goal of being able to clone an entire Eagle setup
+	Author : Cameron Nicks
+	Link:
+	
+	License : Creative Commons Attribution-ShareAlike 4.0 International
+	: CC BY-SA 4.0
+	: https://creativecommons.org/licenses/by-sa/4.0/
+	
+	*******************************************************************************
+	*                Copyright (c) 2017 Cameron Nicks                             *
+	*******************************************************************************
+	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+	EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+	OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+	WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+	ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	
+	Version:
+	
+	0.1 09/08/17
+  - Basic proof of concept framework.
+  - Exports all ASSIGN shortcuts
+	
+	
+	BUGS:
+	- Common ASSIGN entries are in each editor section, instead of at the top in general section.
+	- No extensive testing done yet.
+	
+	To-Do:
+	- Add version number / copyright information to dialog
+	- Change filename to filesave dialog. So you can browse and select existing
+	- Add in MENU and SETTINGS export
+	
+	Feature Wish List:
+	- Add snapshot save/load option which will make a file of eaglerc options without converting to SCR commands.
+	- Save and load all filename / options to eaglerc. They should default to user entries
+	- Checkbox to add exported file as include in eagle.scr (to autoload)
+	- Add EXP-LAYERS.ulp functions. Export all Layer names / fills / colors as well as palette.
+  ^- DISPLAY TAB
+	
+	Advanced:
+	- Ability to check existing scr file and add in changes instead of overwrite.
+	
+*/
+
+#usage  "en: <b>expSetting.ulp</b> - Eagle Settings Exporter"
+"<hr><b>Usage:</b>"
+"<br>RUN expSetting"
+"<br>RUN expSetting <i>utility</i>"
+"<p>Use dialog tabs to select Eagle settings type."
+"<br>Enter filename and select options."
+"<br>Change default export folder by selecting Browse... button"
+"<p><b>Utiliy:</b>"
+/*"<b><i>--install</i></b> : Installs the utility to the board context menus.<br>\n"*/
+"<br><b><i>help</i></b> : Shows this usage information."
+//"<br><b><i>--version</i></b> : Shows the version number of the ULP being called."
+//"<br><b><i>--locate-ulp</i></b> : Shows the location of the ULP being called (Useful for debug)."
+"<p><b>Limitations:</b>"
+"<br>- Overwrites file (if exists) without prompt"
+"<br>- Only ASSIGN tab is functional."
+"<p><b>Known Bugs:</b>"
+"<br>- Please submit to author"
+"<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
+"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
+"<author>Author: cnicks@phaseivengr.com</author>"
+
+string Version = "0.1 sandbox";
+
+//-- SETUP / VARIABLES --
+
+// ------ SETTINGS -------
+int defaultTab = 0; // Tab order: ASSIGN, DISPLAY, SET, MENU
+int debug = 1;
+
+string fileName;
+string outputDir;
+// ------------------------
+
+//Move header somewhere. Construct in each export function?
+string scrHeader = "";
+sprintf(scrHeader, "#Generated: %s, From: %s, Version: %s (Cameron Nicks: https://goo.gl/y1y1zn ) \n#OS: %s \n#%s \n#-------------------------------------------------#\n", t2string(time()), filename(argv[0]), Version, OS_SIGNATURE, EAGLE_SIGNATURE);
+
+//-- SCRIPT VARIABLES --
+// These are used for constructing script files
+string cmd;
+
+enum {BRD, SCH, LBR, DEV, PAC, SYM, GEN};//Sections of SCR files. General and editors (SCH, BRD, LBR, DEV, PAC and SYM).
+string scrBrd[], scrSch[], scrLbr[], scrDev[], scrPac[], scrSym[], scrGen[]; // Arrays to hold all the information to be placed into each scr section. Each line tab delimited
+int cntBrd, cntSch, cntLbr, cntDev, cntPac, cntSym, cntGen; //Counters for each SCR section arrays
+
+enum {ASSIGN, CHANGE, DISPLAY, GRID, MENU, SET, RUN};
+string scrCmd[] = {"ASSIGN", "CHANGE", "DISPLAY", "GRID", "MENU", "SET", "RUN"}; //These are some of the useful commands to use in SCR files, although anything the command line can accept is valid.
+
+// Todo: list out the available commands for use with each command
+//string cmdChange [] = {"Layer", "Text", "SIZE"};
+//--
+
+//-- CONFIG VARIABLES --
+// These are used when retreiving information form eaglerc
+string cfgSystem = "EAGLE:"; //Prefixed to cfgget requests. See HELP Configuration Parameters section
+string cfgEditor[] = {"Brd.", "Sch.", "Lbr."};
+string cfgOptions[] = {"Cmd.", "Directories.", "Interface.", "Option."};
+string cfgEditorSubType[] = {"Key.", "MenuContext.", "MenuText." }; //These can be used after Brd (or sch and lbr) (Brd.Key..., Brd.MenuContext...)
+//Todo: Make multi-dimensional array or sub arrays to hold all of the secondary options each cfgEditor can use. (convert cfgSetting)
+//Example: cfgEditor[0] = cfgSubType;
+
+//--
+
+//-- ASSIGN export Variables
+string keyList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+string singleKeys[] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "BS"};
+string modifiers[] = { "A", "AC", "C", "SA", "SAC", "SC", "S"}; // Possible regular modifier combinations (ordering from eaglerc.usr)(Shift not possible with A-Z, 0-9)
+string macMod[] = { "M", "MA", "MAC", "MC", "SM", "SMA", "SMAC", "SMC"}; // Mac OS has extra CMD (M) modifier.
+
+//Lists of defined shortcuts. Call validShortcuts() to populate
+string usedBrdShortcuts[];
+string usedSchShortcuts[];
+string usedLbrShortcuts[];
+
+//--
+
+// For some reason cannot access OS_SIGNATURE[0] directly.
+string osType = OS_SIGNATURE;
+string os;
+sprintf(os, "%c", osType[0]);
+//msgBox(os);
+//-----------------------------
+
+//-- FUNCTIONS --
+
+/* Shows a message box with a simple text message */
+void msgBox(string msg){
+dlgMessageBox(msg);
+}
+
+
+// Function: getCfgVal
+// Get setting value using cfgget from eaglerc
+string getCfgVal (string prefix, string setting, string lookUp){
+	string cfgName; //what name to lookup using cfgget
+	string cfgVal; //Holds cfgget result
+	cfgName = cfgSystem + prefix + setting + lookUp; // Period separators are currently in the cfgSetting string.
+	cfgVal = cfgget(cfgName, "-0");
+
+	if (cfgVal == "-0"){
+	//if (debug){string err = "No Value Set"; msgBox(err);};
+	}else {
+	//if (debug){string tmp; sprintf(tmp, "Checking eaglrc.usr for %s = %s", cfgName, cfgVal); msgBox(tmp);}
+	}
+	return cfgVal;
+}
+// End getCfgVal function
+
+//Function: validShortcuts
+	//Fills used Shortcuts arrays with all shortcuts in use. For use with exportAssign.
+// Todo: Check for shortcuts that are common to all 3 and put them in GEN area
+void validShortcuts (){
+		
+	string keyShortcuts[]; //Holds all valid keyboard shortcut combinations
+	string keyCombo;
+	int keyCnt = 0;
+	int usedBrd, usedSch, usedLbr; //how many shortcuts are defined
+
+	// Loop through single keys
+	for (int i =0; singleKeys[i]; i++){
+		sprintf(keyCombo, "%s", singleKeys[i] );
+		keyShortcuts[keyCnt] = keyCombo;
+		keyCnt++;
+	}
+	//--
+
+	// Loop through all keys with standard modifiers (A-Z, 0-9 cannot use shift)
+	for (int n = 0; modifiers[n]; n++){
+		for (int c = 0; singleKeys[c]; ++c) {
+			sprintf(keyCombo, "%s+%s", modifiers[n], singleKeys[c] );
+			keyShortcuts[keyCnt] = keyCombo;
+			keyCnt++;
+		}
+		if (n == 6) break; //Don't use Shift with A-Z, 0-9
+		for (int i = 0; keyList[i]; i++) {
+			sprintf(keyCombo, "%s+%c", modifiers[n], keyList[i] );
+			keyShortcuts[keyCnt] = keyCombo;
+			keyCnt++;
+		}
+	}
+	//--
+
+	// Loop through all the extra key combinations that are available on Mac OS (CMD)
+	if (os == "M"){
+		msgBox("MAC gets an extra modifier");
+		for (int n = 0; macMod[n]; n++){
+			for (int c = 0; singleKeys[c]; ++c) {
+				sprintf(keyCombo, "%s+%s", macMod[n], singleKeys[c] );
+				keyShortcuts[keyCnt] = keyCombo;
+				keyCnt++;
+			}
+			if (n == 6) break; //Don't use Shift with A-Z, 0-9
+			for (int i = 0; keyList[i]; i++) {
+				sprintf(keyCombo, "%s+%c", macMod[n], keyList[i] );
+				keyShortcuts[keyCnt] = keyCombo;
+				keyCnt++;
+			}
+		}
+	}
+	//--
+
+
+	// Check for shortcuts used in board
+	for(int j = 0; keyShortcuts[j]; j++){
+		string isDefined;
+
+		isDefined = getCfgVal(cfgEditor[BRD], cfgEditorSubType[0], keyShortcuts[j]);
+		if (isDefined == "-0"){ //For some reason != was not working
+			continue;
+		} else {
+			usedBrdShortcuts[usedBrd] = keyShortcuts[j];
+			usedBrd++;
+		}
+	}
+
+	// Check for shortcuts used in schematic
+	for(int k = 0; keyShortcuts[k]; k++){
+		string isDefined;
+
+		isDefined = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], keyShortcuts[k]);
+		if (isDefined == "-0"){ //For some reason != was not working
+			continue;
+		} else {
+			usedSchShortcuts[usedSch] = keyShortcuts[k];
+			usedSch++;
+		}
+	}
+	// Check for shortcuts used in library
+	for(int p = 0; keyShortcuts[p]; p++){
+		string isDefined;
+
+		isDefined = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], keyShortcuts[p]);
+		if (isDefined == "-0"){ //For some reason != was not working
+			continue;
+		} else {
+			usedLbrShortcuts[usedLbr] = keyShortcuts[p];
+			usedLbr++;
+		}
+	}
+
+
+}
+// End validShortcuts
+
+
+//Function: addToScr
+	// Adds cmdLine string into scr file section
+// Use in a loop to add commands into the SCR sections.
+void addToScr (int section, string cmdLine){
+	switch (section){
+		case BRD:
+			scrBrd[cntBrd] = cmdLine;
+			cntBrd++;
+			break;
+		
+		case SCH:
+			scrSch[cntSch] = cmdLine;
+			cntSch++;
+			break;
+		
+		case LBR:
+			scrLbr[cntLbr] = cmdLine;
+			cntLbr++;
+			break;
+		
+		case DEV:
+			scrDev[cntDev] = cmdLine;
+			cntDev++;
+			break;
+		
+		case PAC:
+			scrPac[cntPac] = cmdLine;
+			cntPac++;
+			break;
+		
+		case SYM:
+			scrSym[cntSym] = cmdLine;
+			cntSym++;
+			break;
+		
+		case GEN:
+			scrGen[cntGen] = cmdLine;
+			cntGen++;
+			break;
+		
+		default:
+			dlgMessageBox("ERROR: An unspecified error has occurred.");
+			break;
+	}
+}
+// End
+
+//Function: exportAssign
+// Exports assigned shortcuts by editor
+void exportAssign(int brd, int sch, int lbr){
+	
+  validShortcuts(); //Fill used Shortcut arrays will all defined shortcuts.
+  cmd = "ASSIGN";
+	
+	//-- Save all ASSIGN settings from eaglerc
+	if (brd){
+		for(int i = 0; usedBrdShortcuts[i]; i++){
+			
+			string cmdValue;
+			string cmdLine;
+			
+			cmdValue = getCfgVal(cfgEditor[BRD], cfgEditorSubType[0], usedBrdShortcuts[i]);
+			
+			if (cmdValue == "-0"){ //For some reason != was not working
+				continue;
+			} else {
+				sprintf(cmdLine, "%s\t %s\t '%s';", cmd, usedBrdShortcuts[i], cmdValue);
+				addToScr(BRD, cmdLine);
+			}
+		}
+		if (debug){	string tmp;	sprintf(tmp, "%d shortcuts added to BRD section.", cntBrd);	msgBox(tmp);}
+	}
+	
+	if (sch){
+		for(int i = 0; usedSchShortcuts[i]; i++){
+			
+			string cmdValue;
+			string cmdLine;
+			
+			cmdValue = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], usedSchShortcuts[i]);
+			
+			if (cmdValue == "-0"){ //For some reason != was not working
+				continue;
+			} else {
+				sprintf(cmdLine, "%s\t %s\t '%s' ;", cmd, usedSchShortcuts[i], cmdValue);
+				addToScr(SCH, cmdLine);
+			}
+		}
+		if (debug){	string tmp;	sprintf(tmp, "%d shortcuts added to SCH section.", cntSch);	msgBox(tmp);}
+	}
+	
+	if (lbr){
+		for(int i = 0; usedLbrShortcuts[i]; i++){
+			
+			string cmdValue;
+			string cmdLine;
+			
+			cmdValue = getCfgVal(cfgEditor[LBR], cfgEditorSubType[0], usedLbrShortcuts[i]);
+			
+			if (cmdValue == "-0"){ //For some reason != was not working
+				continue;
+			} else {
+				sprintf(cmdLine, "%s\t %s\t '%s' ;", cmd, usedLbrShortcuts[i], cmdValue);
+				addToScr(LBR, cmdLine);
+			}
+		}
+		if (debug){	string tmp;	sprintf(tmp, "%d shortcuts added to LBR section.", cntLbr);	msgBox(tmp);}
+	}
+	//-- All shortcuts added to array sections
+}
+//--
+
+//Export SCR File
+void saveSCR(string dirPath, string file, int brd, int sch, int lbr){
+  string filePath = dirPath + '/' + file;
+  output (filePath, "wt"){
+		
+		printf(scrHeader);
+		printf("\n#FILE: %s \n#DIRECTORY: %s\n\n", file, dirPath);
+		if (brd){
+			printf("\nBRD:\n\n");
+			for (int i = 0; scrBrd[i]; i++){
+				printf("%s\n", scrBrd[i]);
+			}
+		}
+		if (sch){
+			printf("\nSCH:\n\n");
+			for (int i = 0; scrSch[i]; i++){
+				printf("%s\n", scrSch[i]);
+			}
+		}
+		if (lbr){
+			printf("\nLBR:\n\n");
+			for (int i = 0; scrLbr[i]; i++){
+				printf("%s\n", scrLbr[i]);
+			}
+			printf("\nDEV:\n\n");
+			for (int j = 0; scrDev[j]; j++){
+				printf("%s\n", scrDev[j]);
+			}
+			printf("\nPAC:\n\n");
+			for (int k = 0; scrPac[k]; k++){
+				printf("%s\n", scrPac[k]);
+			}
+			printf("\nSYM:\n\n");
+			for (int l = 0; scrSym[l]; l++){
+				printf("%s\n", scrSym[l]);
+			}
+		}
+		exit(0);
+	}
+}
+//-- 
+
+/******************************************************************************
+*																		MAIN()                                    *
+******************************************************************************/
+int main()
+{
+  int includeBrd = 1;
+  int includeSch = 1;
+  int includeLbr  = 1;
+	
+  int result = dlgDialog("Eagle Settings Exporter by C. Nicks") {
+		
+		dlgGridLayout {
+			dlgCell(0,0,1,2) {
+				
+				dlgGroup("EXPORT to SCR") {
+					dlgTabWidget(defaultTab) {
+						dlgTabPage("ASSIGN") {
+							fileName = "SHORTCUTS.scr";
+							dlgLabel("Save all used shortcuts.");
+							dlgHBoxLayout{
+								dlgLabel("Export to:");
+								dlgStringEdit(fileName);
+								dlgRedisplay();
+							}
+							dlgHBoxLayout {
+								dlgLabel("Include:");
+								dlgCheckBox("BRD", includeBrd);
+								dlgCheckBox("SCH", includeSch);
+								dlgCheckBox("LBR", includeLbr);
+								dlgStretch(1);
+							}
+							
+						}
+						dlgTabPage("DISPLAY"){
+							dlgLabel("To-do: Export all settings that effect display.");
+							dlgLabel("DISPLAY presets, Layers, fills, colors, palettes, etc.");
+							
+						}
+						dlgTabPage("SET"){
+							dlgLabel("To-do: Export all settings located in");
+							dlgLabel("Options -> Set... -> Misc");
+							
+						}
+						dlgTabPage("MENU"){
+							dlgLabel("To-do: Export all Menu / Context items");
+							
+						}
+					}
+				}
+			}
+			
+      outputDir = path_scr[0] + '/';
+      dlgCell(2,0) dlgLabel("Folder:");
+      dlgCell(2,1) dlgStringEdit(outputDir);
+      dlgCell(2,2) dlgPushButton("Browse...") {
+        string newDir;
+        newDir = dlgDirectory("Select a directory", path_scr[0]);
+        if (newDir) {
+          outputDir = newDir + '/';
+          msgBox(outputDir);
+				}
+			}
+      dlgCell(3,0,3,2) dlgHBoxLayout {
+        dlgPushButton("Help") {
+          dlgMessageBox("Version: " + Version + "<br>" + usage);
+				}
+        dlgStretch(1);         //Allows for a larger dialog and avoids buttons being streched out
+        dlgPushButton("Export") {
+					dlgAccept();
+					exportAssign(includeBrd, includeSch, includeLbr);
+					saveSCR(outputDir, fileName, includeBrd, includeSch, includeLbr);
+				}
+        dlgPushButton("-Cancel") dlgReject();
+			}
+      dlgCell(4,1) dlgSpacing(200);    //Allows the outputPath field to have some width
+		}
+	};
+  return result;
+}
