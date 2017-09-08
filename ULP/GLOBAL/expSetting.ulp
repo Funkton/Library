@@ -2,7 +2,7 @@
 	Title : expSetting.ulp
 	Purpose : Export Eagle Settings into SCR files. The goal of being able to clone an entire Eagle setup
 	Author : Cameron Nicks
-	Link:
+	Link: rebrand.ly/expSetting
 	
 	License : Creative Commons Attribution-ShareAlike 4.0 International
 	: CC BY-SA 4.0
@@ -77,7 +77,7 @@ string Version = "0.1 sandbox";
 
 // ------ SETTINGS -------
 int defaultTab = 0; // Tab order: ASSIGN, DISPLAY, SET, MENU
-int debug = 1;
+int debug = 0;
 
 string fileName;
 string outputDir;
