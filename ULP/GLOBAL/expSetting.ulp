@@ -24,6 +24,9 @@
 	
 	Version:
 	
+	0.2 09/11/17
+	- Fix bug in shortcut modifieres (AC->CA, SAC->SCA)
+	
 	0.1 09/08/17
   - Basic proof of concept framework.
   - Exports all ASSIGN shortcuts
@@ -70,6 +73,7 @@
 "<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
 "<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 "<author>Author: cnicks@phaseivengr.com</author>"
+"<br>Like this script? Consider a donation to paypal.me/CameronNicks"
 
 string Version = "0.1 sandbox";
 
@@ -116,7 +120,7 @@ string cfgEditorSubType[] = {"Key.", "MenuContext.", "MenuText." }; //These can 
 //-- ASSIGN export Variables
 string keyList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 string singleKeys[] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "BS"};
-string modifiers[] = { "A", "AC", "C", "SA", "SAC", "SC", "S"}; // Possible regular modifier combinations (ordering from eaglerc.usr)(Shift not possible with A-Z, 0-9)
+string modifiers[] = { "A", "C", "CA", "SA", "SC", "SCA", "S"}; // Possible regular modifier combinations (ordering from eaglerc.usr)(Shift not possible with A-Z, 0-9)
 string macMod[] = { "M", "MA", "MAC", "MC", "SM", "SMA", "SMAC", "SMC"}; // Mac OS has extra CMD (M) modifier.
 
 //Lists of defined shortcuts. Call validShortcuts() to populate
