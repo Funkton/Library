@@ -23,6 +23,12 @@
 	ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	
 	Version:
+	0.4 09/13/17
+	- Fixed Library check in validShortcuts. cfgEditor[SCH] -> cfgEditor[LBR]. Thanks aa4649
+	
+	0.3 09/11/17
+	- Added AC, SCA back into modifiers list. Mac uses AC, windows CA
+	- Function changes. getCfgVal -> validShortcuts, exportAssign
 	
 	0.2 09/11/17
 	- Fix bug in shortcut modifieres (AC->CA, SAC->SCA)
@@ -37,13 +43,13 @@
 	- No extensive testing done yet.
 	
 	To-Do:
-	- Add version number / copyright information to dialog
-	- Change filename to filesave dialog. So you can browse and select existing
+	DONE - Add version number / copyright information to dialog
+	- Change filename to filesave dialog. So you can browse and select existing. See BOM-xs for overwrite confirm example
 	- Add in MENU and SETTINGS export
 	
 	Feature Wish List:
 	- Add snapshot save/load option which will make a file of eaglerc options without converting to SCR commands.
-	- Save and load all filename / options to eaglerc. They should default to user entries
+	- Save and load all ulp filename / options to eaglerc (cfgset). They should default to user entries
 	- Checkbox to add exported file as include in eagle.scr (to autoload)
 	- Add EXP-LAYERS.ulp functions. Export all Layer names / fills / colors as well as palette.
   ^- DISPLAY TAB
@@ -53,13 +59,15 @@
 	
 */
 
-#usage  "en: <b>expSetting.ulp</b> - Eagle Settings Exporter"
+#usage  "en: <b>expSetting.ulp</b> - Export Eagle Settings"
 "<hr><b>Usage:</b>"
 "<br>RUN expSetting"
 "<br>RUN expSetting <i>utility</i>"
 "<p>Use dialog tabs to select Eagle settings type."
 "<br>Enter filename and select options."
 "<br>Change default export folder by selecting Browse... button"
+"<br><br>To automatically load settings, add SCRIPT command into eagle.scr"
+"<br><i>Example: SCRIPT SHORTCUTS.scr</i>"
 "<p><b>Utiliy:</b>"
 /*"<b><i>--install</i></b> : Installs the utility to the board context menus.<br>\n"*/
 "<br><b><i>help</i></b> : Shows this usage information."
@@ -70,12 +78,12 @@
 "<br>- Only ASSIGN tab is functional."
 "<p><b>Known Bugs:</b>"
 "<br>- Please submit to author"
-"<p><hr> Cameron Nicks: https://goo.gl/y1y1zn <br>"
+"<p><hr> Cameron Nicks: https://rebrand.ly/EagleLibrary <br>"
 "<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 "<author>Author: cnicks@phaseivengr.com</author>"
 "<br>Like this script? Consider a donation to paypal.me/CameronNicks"
 
-string Version = "0.1 sandbox";
+string Version = "0.4 9/13/2017";
 
 //-- SETUP / VARIABLES --
 
@@ -89,7 +97,7 @@ string outputDir;
 
 //Move header somewhere. Construct in each export function?
 string scrHeader = "";
-sprintf(scrHeader, "#Generated: %s, From: %s, Version: %s (Cameron Nicks: https://goo.gl/y1y1zn ) \n#OS: %s \n#%s \n#-------------------------------------------------#\n", t2string(time()), filename(argv[0]), Version, OS_SIGNATURE, EAGLE_SIGNATURE);
+sprintf(scrHeader, "#Generated: %s, From: %s, Version: %s (Cameron Nicks: https://rebrand.ly/EagleLibrary ) \n#OS: %s \n#%s \n#-------------------------------------------------#\n", t2string(time()), filename(argv[0]), Version, OS_SIGNATURE, EAGLE_SIGNATURE);
 
 //-- SCRIPT VARIABLES --
 // These are used for constructing script files
@@ -120,7 +128,7 @@ string cfgEditorSubType[] = {"Key.", "MenuContext.", "MenuText." }; //These can 
 //-- ASSIGN export Variables
 string keyList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 string singleKeys[] = {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "BS"};
-string modifiers[] = { "A", "C", "CA", "SA", "SC", "SCA", "S"}; // Possible regular modifier combinations (ordering from eaglerc.usr)(Shift not possible with A-Z, 0-9)
+string modifiers[] = { "A", "AC", "C", "CA", "SA", "SAC", "SC", "SCA", "S"}; // Possible regular modifier combinations (ordering from eaglerc.usr)(Shift not possible with A-Z, 0-9)
 string macMod[] = { "M", "MA", "MAC", "MC", "SM", "SMA", "SMAC", "SMC"}; // Mac OS has extra CMD (M) modifier.
 
 //Lists of defined shortcuts. Call validShortcuts() to populate
@@ -151,13 +159,8 @@ string getCfgVal (string prefix, string setting, string lookUp){
 	string cfgName; //what name to lookup using cfgget
 	string cfgVal; //Holds cfgget result
 	cfgName = cfgSystem + prefix + setting + lookUp; // Period separators are currently in the cfgSetting string.
-	cfgVal = cfgget(cfgName, "-0");
-
-	if (cfgVal == "-0"){
-	//if (debug){string err = "No Value Set"; msgBox(err);};
-	}else {
-	//if (debug){string tmp; sprintf(tmp, "Checking eaglrc.usr for %s = %s", cfgName, cfgVal); msgBox(tmp);}
-	}
+	cfgVal = cfgget(cfgName, "");
+	//if (debug){string tmp; sprintf(tmp, "Checking eaglrc.usr:\n %s = %s", cfgName, cfgVal); msgBox(tmp);}
 	return cfgVal;
 }
 // End getCfgVal function
@@ -187,7 +190,7 @@ void validShortcuts (){
 			keyShortcuts[keyCnt] = keyCombo;
 			keyCnt++;
 		}
-		if (n == 6) break; //Don't use Shift with A-Z, 0-9
+		if (modifiers[n] == "S") break; //Don't use Shift with A-Z, 0-9
 		for (int i = 0; keyList[i]; i++) {
 			sprintf(keyCombo, "%s+%c", modifiers[n], keyList[i] );
 			keyShortcuts[keyCnt] = keyCombo;
@@ -198,14 +201,14 @@ void validShortcuts (){
 
 	// Loop through all the extra key combinations that are available on Mac OS (CMD)
 	if (os == "M"){
-		msgBox("MAC gets an extra modifier");
+		if (debug){msgBox("MAC gets an extra modifier");}
 		for (int n = 0; macMod[n]; n++){
 			for (int c = 0; singleKeys[c]; ++c) {
 				sprintf(keyCombo, "%s+%s", macMod[n], singleKeys[c] );
 				keyShortcuts[keyCnt] = keyCombo;
 				keyCnt++;
 			}
-			if (n == 6) break; //Don't use Shift with A-Z, 0-9
+			if (modifiers[n] == "S") break; //Don't use Shift with A-Z, 0-9
 			for (int i = 0; keyList[i]; i++) {
 				sprintf(keyCombo, "%s+%c", macMod[n], keyList[i] );
 				keyShortcuts[keyCnt] = keyCombo;
@@ -221,9 +224,7 @@ void validShortcuts (){
 		string isDefined;
 
 		isDefined = getCfgVal(cfgEditor[BRD], cfgEditorSubType[0], keyShortcuts[j]);
-		if (isDefined == "-0"){ //For some reason != was not working
-			continue;
-		} else {
+		if (isDefined){
 			usedBrdShortcuts[usedBrd] = keyShortcuts[j];
 			usedBrd++;
 		}
@@ -234,9 +235,7 @@ void validShortcuts (){
 		string isDefined;
 
 		isDefined = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], keyShortcuts[k]);
-		if (isDefined == "-0"){ //For some reason != was not working
-			continue;
-		} else {
+		if (isDefined){
 			usedSchShortcuts[usedSch] = keyShortcuts[k];
 			usedSch++;
 		}
@@ -245,10 +244,8 @@ void validShortcuts (){
 	for(int p = 0; keyShortcuts[p]; p++){
 		string isDefined;
 
-		isDefined = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], keyShortcuts[p]);
-		if (isDefined == "-0"){ //For some reason != was not working
-			continue;
-		} else {
+		isDefined = getCfgVal(cfgEditor[LBR], cfgEditorSubType[0], keyShortcuts[p]);
+		if (isDefined){
 			usedLbrShortcuts[usedLbr] = keyShortcuts[p];
 			usedLbr++;
 		}
@@ -322,9 +319,7 @@ void exportAssign(int brd, int sch, int lbr){
 			
 			cmdValue = getCfgVal(cfgEditor[BRD], cfgEditorSubType[0], usedBrdShortcuts[i]);
 			
-			if (cmdValue == "-0"){ //For some reason != was not working
-				continue;
-			} else {
+			if (cmdValue){
 				sprintf(cmdLine, "%s\t %s\t '%s';", cmd, usedBrdShortcuts[i], cmdValue);
 				addToScr(BRD, cmdLine);
 			}
@@ -340,9 +335,7 @@ void exportAssign(int brd, int sch, int lbr){
 			
 			cmdValue = getCfgVal(cfgEditor[SCH], cfgEditorSubType[0], usedSchShortcuts[i]);
 			
-			if (cmdValue == "-0"){ //For some reason != was not working
-				continue;
-			} else {
+			if (cmdValue){
 				sprintf(cmdLine, "%s\t %s\t '%s' ;", cmd, usedSchShortcuts[i], cmdValue);
 				addToScr(SCH, cmdLine);
 			}
@@ -358,9 +351,7 @@ void exportAssign(int brd, int sch, int lbr){
 			
 			cmdValue = getCfgVal(cfgEditor[LBR], cfgEditorSubType[0], usedLbrShortcuts[i]);
 			
-			if (cmdValue == "-0"){ //For some reason != was not working
-				continue;
-			} else {
+			if (cmdValue){
 				sprintf(cmdLine, "%s\t %s\t '%s' ;", cmd, usedLbrShortcuts[i], cmdValue);
 				addToScr(LBR, cmdLine);
 			}
