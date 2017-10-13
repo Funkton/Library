@@ -31,32 +31,48 @@
 #----------------------------------#
 
 BRD:
+		
+#Evoluent Vertical Mouse
+
+		#buttons 6+1 = C+M
+	ASSIGN C+M 		MOVE; #mouse thumb+forefinger=C+M
+	ASSIGN CA+M 	'SET WIRE_BEND 1; SPLIT'; #mouse Alt-thumb+forefinger=C+M
+	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
+	ASSIGN CSA+M 	'MITER -0'; #mouse thumb+forefinger=C+M
+								#'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
+
+		#buttons 6+2 = C+G
+	ASSIGN C+G 		GROUP; #thumb+Middle
+	ASSIGN CA+G 	'Display'; #Alt+thumb+Middle
+	ASSIGN CS+G 	'CHANGE LAYER';#Shift+thumb+Middle
+	ASSIGN CSA+G 	'';#Alt+Shift+thumb+Middle
+	
+		#buttons 6+3 = C+R
+	ASSIGN C+R		DELETE; #mouse Better than ripup with Cmd.Delete.WireJointsWithoutCtrl =1
+	ASSIGN CA+R 	RIPUP; #mouse Swapped with delete. 
+	ASSIGN CS+R 	'MITER -0';
+	ASSIGN CSA+R 	SLICE; #mouse
+	
+		#button 4 = C+I
+	ASSIGN C+I 		INFO;
+	ASSIGN CA+I 	SHOW;
+	ASSIGN CS+I 	'RUN SHOW-BRD-PART-NETS GND';
+	ASSIGN CSA+I 	'RUN SHOW-GROUP-PARTS'; #mouse
+	
+		#buttons 6+4 = C+L
+	ASSIGN C+L 		'SET WIRE_BEND 1; MITER -0; ROUTE';
+	ASSIGN CA+L 	'CHANGE LAYER; LINE';
+	ASSIGN CS+L 	'SET WIRE_BEND 1; SET OBSTACLE_MODE IGNORE; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round. Obstacle turned off until it routes on grid.
+	ASSIGN CSA+L	'';
+	
+	
+# Keyboard Shortcuts
 	ASSIGN A+A 		ATTRIBUTE;
 	ASSIGN A+R 		RATSNEST;
 	ASSIGN A+S 		SIGNAL;
 	ASSIGN A+M		'run toggle 47';
 	ASSIGN C+E 		ERRORS;
-	ASSIGN C+G 		GROUP; #mouse
-	ASSIGN CA+G 	'Display'; #mouse
-#	ASSIGN CS+G 	''; #mouse mimmick old shift+click to place via. Must be in ROUTE
 	ASSIGN C+H 		HOLE;
-	
-	#thumb+middle click #Evoluent 6+4 buttons = C+I
-	ASSIGN C+I 		INFO;
-	ASSIGN CA+I 	SHOW;
-	ASSIGN CSA+I 	'RUN SHOW-BRD-PART-NETS GND';
-#	ASSIGN CAS+I	CHANGE;
-	
-	ASSIGN CSA+I 	'RUN SHOW-GROUP-PARTS'; #mouse
-	ASSIGN A+M		'run toggle 47';
-	ASSIGN C+M 		MOVE; #mouse thumb+forefinger=C+M
-	ASSIGN CSA+M 	'MITER -0'; #mouse thumb+forefinger=C+M
-	ASSIGN CA+M 	'SET WIRE_BEND 3; SPLIT'; #mouse Alt-thumb+forefinger=C+M
-	ASSIGN CS+M 	'RUN MOVEBY'; #mouse thumb+forefinger=C+M
-#	ASSIGN CSA+M 	'RUN GRP-ROTATE 45' #mouse thumb+forefinger=C+M
-	ASSIGN C+L 		'SET WIRE_BEND 1; SET OBSTACLE_MODE IGNORE; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round. Obstacle turned off until it routes on grid.
-	ASSIGN CA+L 	'LINE'; #mouse, (LINE; CHANGE LAYER 21;)
-#	ASSIGN CSA+L 	'SET WIRE_BEND 8; ROUTE'; #mouse Follow-me settings are not great.
 	ASSIGN C+T 		TEXT;
 #	ASSIGN C+T 		PASTE;
 	ASSIGN C+X 		CHANGE;
@@ -67,10 +83,6 @@ BRD:
 	ASSIGN SC+D 	DRC;
 	ASSIGN SC+N 	NAME;
 	ASSIGN SC+P 	POLYGON;
-	ASSIGN CA+R 	RIPUP; #mouse Swapped with delete. 
-	ASSIGN C+R		DELETE; #mouse Better than ripup with Cmd.Delete.WireJointsWithoutCtrl =1
-	ASSIGN CS+R 	'MITER -0';
-	ASSIGN CSA+R 	SLICE; #mouse
 	ASSIGN SC+S 	SMASH;
 	ASSIGN SC+V 	VALUE;
 	ASSIGN C+F 		'RUN find.ulp';
@@ -216,6 +228,7 @@ LBR:
 	ASSIGN C+F 		'RUN find.ulp';
 	ASSIGN C+G 		GROUP;
 	ASSIGN CA+G 	'Display';
+	ASSIGN CS+G 	'CHANGE LAYER';#Shift+thumb+Middle
 	ASSIGN C+H 		HOLE;
 	ASSIGN C+I 		INFO;
 	ASSIGN CA+I 	SHOW;

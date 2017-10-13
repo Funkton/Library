@@ -54,7 +54,6 @@ BRD:
 		'RENDER {\
 			Top       : SCRIPT RenderT.scr; |\
 			Bottom : SCRIPT RenderB.scr; |\
-			Mirror Brd : RUN mirror-board; |\
 				}'\
 		'SELECT : RUN SELECT;'\
 		'SHOW {\

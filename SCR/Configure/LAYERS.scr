@@ -12,6 +12,7 @@ LAYER 147 docuMeasures;
 LAYER 150 Mechanical2;
 LAYER 151 tNotes;
 LAYER 152 bNotes;
+LAYER 247 libMeasures;
 LAYER 250 Mechanical3;
 LAYER 251 tDocuLIB;
 LAYER 252 1MMGRID;

@@ -1,0 +1,10 @@
+#Setup standard attributes
+# For some reason you have to specify individual technologies, so this doesn't work to setup attributes for any device with more than one technology. Why not add attributes for all by default? A different version of a part will almost always have the same attributes.
+# -----------------------------
+ATTRIBUTE PARTNO;
+ATTRIBUTE MANF constant;
+ATTRIBUTE MFPN constant;
+ATTRIBUTE STATUS;
+ATTRIBUTE DATASHEET constant;
+ATTRIBUTE DESC constant;
+# -----------------------------
