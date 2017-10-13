@@ -24,6 +24,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+1.4 10/12/17
+	- Built toPart parameter into copyAtt function.
+	-
+	
 1.3 09/05/17
 	- Changed flag handler (from Rachael P. https://goo.gl/Y4rYVb)
 	- Added auto confirm for overwriting constant attributes (SET CONFIRM).
@@ -47,12 +51,11 @@ BUGS:
 
 To-Do:
 - Add command to use value tool for "VALUE" attributes
-- Build dialog entry. (some people don't like the command line)
+- Build dialog entry. (some people don't like the command line)(add into attView)
 
 Feature Wish List:
-DONE - Add option to copy all attribute names or only those with values. (-V)
-DONE - Command line argument entry. ie, RUN ATT-COPY 'from 'to' -flags.
-- Add ability to copy to multiple target parts (group?).
+- Independent copy paste (paste would repeat last used srcPart (cfgget) with new destPart)
+- Add ability to copy to multiple target parts (group?). See https://gitlab.com/rachaelp/eagle-utils/blob/master/ulp/unlock.ulp for example of argv iteration
 - Open dialog if no arguments are given.
 - Part Context entry. (opens dialog to enter copy destination part name if not specified)
 
@@ -90,7 +93,7 @@ Advanced:
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
-string VERSION = "1.3";
+string VERSION = "1.4";
 
 // ------ SETTINGS -------
 string defaultValue = ""; // Set defualt value to use with new attributes
@@ -283,7 +286,7 @@ if(debug) {
 											addFlag = 0;
 											break;
 										}
-										}
+									}
 								}
 								if (mode == 1){
 									//Named only mode: Only add names that have values
@@ -293,6 +296,7 @@ if(debug) {
 								}
 								
 								if (addFlag == 1){
+									cmd += toPart + " "; // Add the name of part to copy to into the command
 									attList += cmd; // Add command string 
 									attList += A.name; 		// Add name to command
 									if (useDefault){
@@ -340,6 +344,7 @@ if(debug) {
 							}
 							
 							if (addFlag == 1){
+								cmd += toPart + " "; // Add the name of part to copy to into the command
 								attList += cmd; // Add command string 
 								attList += A.name; 		// Add name to command
 								if (useDefault){
@@ -367,7 +372,6 @@ if(debug) {
 
 // ------ ULP -------------
 // Set parts to operate on.
-// To-do: add part validation
 srcPart = strupr(argv[1]);
 destPart = strupr(argv[2]);
 
@@ -376,8 +380,6 @@ validPart(srcPart);
 validPart(destPart);
 
 	if (debug) {dlgMessageBox ("Copy attributes from: " + srcPart + " to: " + destPart);} //Debug
-
-cmd += destPart + " "; // Add the name of part to copy to into the command // todo: Move into copyAtt function?
 
 // Check what attributes are already named
 existingAtt (destPart);

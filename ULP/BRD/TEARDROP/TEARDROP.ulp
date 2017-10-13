@@ -54,6 +54,9 @@ string ULPname = "Teardrop Generator v";
 string Release = "1.13";
 string ReleaseDate = "Dec 29, 2013";  // ars662001@yahoo.com
 
+// C. Nicks
+// Changed to ignore airwires.
+
 
 string HistoryText2 =
   "<p>"
@@ -259,6 +262,8 @@ int shape;
 
       // find wires starting within teardrop-apex radius of the via and ending outside it.
       S.wires(W) {
+				if(W.layer!=19)  // no airwires      
+       {
        dd=(C.contact.pad.diameter[W.layer]-C.contact.pad.drill)/2;
        if((dd/W.width)>=1.8)      radius = C.contact.pad.diameter[W.layer] * User_Tear_RadiusB_2;
        else if((dd/W.width)>=1.5) radius = C.contact.pad.diameter[W.layer] * User_Tear_RadiusA_2;
@@ -267,8 +272,7 @@ int shape;
        radius_sq = radius * radius;
 
        d=u2mil(int(sqrt( pow(W.x1-W.x2,2) + pow(W.y1-W.y2,2) )));
-       if(W.layer!=19)  // no airwires      
-       {
+       
         // quick check first.  See if either wire endpoint is within a square of size 2 x radius of the pad.
         in1 = 0;
         in2 = 0;
@@ -464,6 +468,9 @@ real d,dd;
     //radius = V.drill * User_Tear_Radius;
 
     S.wires(W) {
+if(W.layer!=19) // no airwires      
+     //if((W.layer!=19) && ( d>0 ) )// no airwires      
+     {
      dd=(V.diameter[W.layer]-V.drill)/2;
      if((dd/W.width)>=1.8)      radius = V.diameter[W.layer] * User_Tear_RadiusB_2;
      else if((dd/W.width)>=1.5) radius = V.diameter[W.layer] * User_Tear_RadiusA_2;
@@ -473,9 +480,7 @@ real d,dd;
    
      d=u2mil(int(sqrt( pow(W.x1-W.x2,2) + pow(W.y1-W.y2,2) )));
         
-     if(W.layer!=19) // no airwires      
-     //if((W.layer!=19) && ( d>0 ) )// no airwires      
-     {
+     
         
       // quick check first.  See if either wire endpoint is within a square of size 2 x radius of the via.
       in1 = 0;

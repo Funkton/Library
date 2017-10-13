@@ -25,6 +25,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+0.3 MM/DD/YY
+	- Show attributes list without selecting
+
 0.2 09/05/17
 	- Added library name label for selected part
 	- Added direct goo.gl link
@@ -43,6 +46,7 @@ To-Do:
 - Add in ATT-COPY functions
 
 Feature Wish List:
+- Edit in library button (open device).
 - Dialog edit box to manually type in part name (change selected part to this box)
 - More ignore handling features (libraries, attributes, ?)
 - Copy and paste function
@@ -75,10 +79,10 @@ Advanced:
 		"<author>Author: Cameron.Nicks+Layout@gmail.com</author><br>"
 		"<author>Author: cnicks@phaseivengr.com</author>"
 
-string VERSION = "0.2 Sandbox";
+string VERSION = "0.3 Sandbox";
 
 // ------ SETTINGS -------
-int debug = 1;
+int debug = 0;
 int Selected = 0;
 // ------------------------
 
@@ -276,6 +280,8 @@ dlgDialog("Attributes List") {
 string partName;
 string libraryName;
 
+int AttSelected = -1;
+
 	dlgVBoxLayout {
 	//dlgLabel("Select Part to View Attributes");
 	
@@ -301,7 +307,7 @@ string libraryName;
 			dlgCell(0, 3)	{dlgLabel(libraryName, 1); dlgStretch (1);};
 			dlgCell(0, 4)	dlgSpacing(200);
 				
-			dlgCell(1, 2, 1, 4)	dlgListView("Attribute\tValue", combinedList, Selected);
+			dlgCell(1, 2, 1, 4)	dlgListView("Attribute\tValue", combinedList, AttSelected);
 			dlgCell(2, 2)	dlgPushButton("+Edit") exit(editAtt(partsList[Selected]));
 				
 					

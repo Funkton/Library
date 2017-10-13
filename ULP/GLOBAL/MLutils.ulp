@@ -1,0 +1,558 @@
+#usage "<b>MLUtils v1.0 </b><br>"
+"This ULP adds some useful functions to Eagle's context menus.<br>"
+
+"<table><th><td><b>In schematics editor:</b></td></th>"
+"<tr><td>Find [part] in board.</td><td>Rightclick any part in the schematics to locate it in the board editor.</td></tr>"
+"<tr><td>Navigate [a net].</td><td>Rightclick any net and choose navigate to find all its connections. You get a detailed list and you can choose which one to jump to.</td></tr>"
+"<tr><td>Show connected [signals] in board.</td><td>Show all the signals connected to the symbol.</td></tr>"
+"</table><br><br>"
+
+"<table><th><td><b>In board editor:</b></td></th>"
+"<tr><td>Move a polygon.</td><td>Select a wire of a polygon and move it around.</td></tr>"
+"<tr><td>Ripup a polygon.</td><td>Select a wire of a polygon and rip it up.</td></tr>"
+"<tr><td>Count vias inside a polygon.</td><td>Select a wire of a polygon and get number.</td></tr>"
+
+"<tr><td>Navigate [a net] in schematics.</td><td>Navigate the chosen net in the schematic.</td></tr>"
+"<tr><td>Group a segment past pads and vias.</td><td valign=middle rowspan=2>Useful to grab all the wires connected in a specific layer.</td></tr>"
+"<tr><td>Group a segment upto pads or vias.</td></tr>"
+"<tr><td>Display affected layers.</td><td>Display all the layers for the chosen signal.</td></tr>"
+"</table><br><br>"
+
+"<i>Requires Eagle version 6.0.0 or later.</i><br>"
+
+"<hr><b>Usage:</b><br>"
+"To install, simply run the ulp with argument \"install\". The ULP will create the context menu required.. To remove, run the ulp with argument \"remove\".<i>Note, the remove process may also remove other context menu tools installed.</i>"
+
+"Once the context menu has been created, use the ULP as follows:"
+"<ul><li>Right click on the objects coverd by this tool package</li>"
+"<li>Select function  from the menu</li>"
+
+"<br>"
+"<author>Author: Morten Leikvoll Nov 2016</author>"
+
+//v1.0
+
+#require 6.0000
+
+string colorString(string s, string color)
+{
+	return "<html><b><center><font color="+color+">"+s+"</font></center></b></html>";
+}
+
+//http://geomalgorithms.com/a03-_inclusion.html
+real isLeft(int x1,int y1,int x2,int y2, UL_VIA v)
+{
+	return (real(x2)-real(x1))*(real(v.y)-real(y1))-(real(v.x)-real(x1))*(real(y2)-real(y1));
+}
+
+int IsPointInPolygon(UL_VIA v, UL_POLYGON p)
+{
+	int wn = 0;
+	int nwn = 0;
+	int hascont=0;
+	real t;
+	int i=0;
+	p.fillings(w)
+	{
+		hascont=1;
+		break;
+	}
+	p.contours(w,1)
+	{
+		if(w.y1<=v.y)
+		{
+			if(w.y2>v.y) if(isLeft(w.x1,w.y1,w.x2,w.y2,v)>0) ++wn;
+		}
+		else
+		{
+			if(w.y2<=v.y) if(isLeft(w.x1,w.y1,w.x2,w.y2,v)<0) --wn;
+		}
+		i++;
+	}
+
+	if(hascont) p.contours(w,-1)
+	{
+		if(w.y1<=v.y)
+		{
+			if(w.y2>v.y) if(isLeft(w.x1,w.y1,w.x2,w.y2,v)>0) ++nwn;
+		}
+		else
+		{
+			if(w.y2<=v.y) if(isLeft(w.x1,w.y1,w.x2,w.y2,v)<0) --nwn;
+		}
+	}
+
+	return (wn+nwn)?1+hascont:0;
+}
+
+
+string tmpstr;
+string found="";
+int found_page=-1;
+int foundx,foundy;
+int i;
+
+if(argc>=1)
+{
+	if(argv[1]=="install")
+	{
+		tmpstr=	"EDIT .sch;"
+						"SET CONTEXT wire 'Net:Navigate' 'run MLUtils.ulp';"
+						"SET CONTEXT instance 'Symbol:Locate part in board' 'run MLUtils.ulp instance';"
+						"SET CONTEXT instance 'Symbol:Show connected signals in board' 'run MLUtils.ulp showconnected';"
+						"EDIT .brd;"
+						"SET CONTEXT element 'Part:Locate in sch' 'run MLUtils.ulp element';"
+						"SET CONTEXT wire 'Polygon:Move' 'run MLUtils.ulp movepolygon';"
+						"SET CONTEXT wire 'Polygon:Ripup' 'run MLUtils.ulp ripuppolygon';"
+						"SET CONTEXT wire 'Polygon:viacount' 'run MLUtils.ulp viacount';"
+						"SET CONTEXT wire '-' ';';"
+						"SET CONTEXT wire 'Net:Navigate' 'run MLUtils.ulp';"
+						"SET CONTEXT wire '--' ';';"
+						"SET CONTEXT wire 'Segment:Group past' 'run MLUtils.ulp groupsignal';"
+						"SET CONTEXT wire 'Segment:Group upto' 'run MLUtils.ulp groupsignal narrow';"
+						"SET CONTEXT wire '---' ';';"
+						"SET CONTEXT wire 'Layers:Display affected' 'run MLUtils.ulp display';"
+						"SET CONTEXT wire 'Layers:Hide' 'run MLUtils.ulp hidelayer';"
+						"SET CONTEXT via 'Layers:Display affected' 'run MLUtils.ulp display';"
+//todo						"SET CONTEXT wire 'Airwire:Finnish' 'run MLUtils.ulp doairwire';"
+//todo						"SET CONTEXT wire 'Segment:Rename' 'run MLUtils.ulp renamesegment';"
+//todo						"SET CONTEXT all 'Help' 'run MLUtils.ulp showhelp';"
+
+//todo						"OPEN .lbr";
+//todo						"SET CONTEXT wire 'Polygon:Move' 'run MLUtils.ulp movepolygon';"
+						""
+						;
+		exit(tmpstr);
+	}
+
+	if(argv[1]=="remove")
+	{
+		tmpstr=	"EDIT .sch;"
+						"SET CONTEXT wire;"
+						"SET CONTEXT instance;"
+						"EDIT .brd;"
+						"SET CONTEXT element;"
+						"SET CONTEXT wire;"
+						"SET CONTEXT via;"
+//						"OPEN .lbr";
+//						"SET CONTEXT wire;"
+						;
+		exit(tmpstr);
+	}
+	if(argv[1]=="hidelayer")
+	{
+			board(B) B.signals(S) S.wires(W) if(ingroup(W))
+			{
+				sprintf (tmpstr,"display -%d",W.layer);
+				exit(tmpstr);
+			}
+			board(B) B.signals(S) S.polygons(P) P.wires(W) if(ingroup(W))
+			{
+				sprintf (tmpstr,"display -%d",W.layer);
+				exit(tmpstr);
+			}
+	}
+	if(argv[1]=="viacount")
+	{
+		UL_POLYGON plg;
+		int ins=0;
+		int outs=0;
+		int note=0;
+
+		if(board)
+		{
+			board(B) B.signals(S) S.polygons(P) if(ingroup(P))
+			{
+				plg=P;
+				found=S.name;
+			}
+			if(plg)
+			{
+				board(B) B.signals(S) if(S.name==found) S.vias(V)
+				{
+					i=IsPointInPolygon(V,plg);
+					if(i)
+					{
+						if(i==1) note|=1;
+						ins++;
+					}
+				}
+				board(B) B.signals(S) if(S.name!=found) S.vias(V)
+				{
+					i=IsPointInPolygon(V,plg);
+					if(i)
+					{
+						if(i==1) note|=2;
+						outs++;
+					}
+				}
+				sprintf(tmpstr,"Found %d same net, %d different net.\n\n%s",ins,outs,(note&1)?"Note:Count may change after ratsnest.":"");
+				dlgMessageBox(tmpstr);
+			}
+		}
+	}
+	if(argv[1]=="display")
+	{
+		int showlayers[];
+		if(project.board)
+		{
+
+			board(B) B.signals(S) if(ingroup(S))
+			{
+				//Dont span vias, they usually cover all layers
+				//Dont do contacts, they do not have context object
+				S.wires(W) showlayers[W.layer]=1;
+				S.polygons(P)  showlayers[P.layer]=1;
+			}
+			
+			tmpstr="display ";
+			for(int i=0;i<16;i++) if(showlayers[i]) sprintf(tmpstr,"%s %d",tmpstr,i);
+			exit(tmpstr);
+		}
+		else dlgMessageBox("No board found in this project");
+	}
+	if(argv[1]=="showconnected")
+	{
+		if(project.board)
+		{
+			tmpstr="edit .brd;show @ ";
+			sheet(S) S.instances(I) if(ingroup(I))
+			{
+				S.nets(N)
+				{
+					int netdone=0;
+					N.segments(SEG)
+					{
+						SEG.pinrefs(PR)
+						{
+							if(PR.part.name==I.part.name && PR.instance.name==I.name)
+							{
+								sprintf(tmpstr,"%s %s",tmpstr,N.name);
+								netdone=1;
+								break;
+							}
+						}
+						if(netdone) break;
+					}
+				}
+			}
+			exit(tmpstr);
+		}
+		else dlgMessageBox("No board found in this project");
+	}
+	
+	if(argv[1]=="groupsignal")
+	{
+		int swx;
+		int swy;
+		int swl;
+		string swn;
+
+		int bufx[];
+		int bufy[];
+		int bufl[];
+		string bufn[];
+		int bufidx;
+		
+		
+		int viastop=0;
+		int stophere;
+		int first;
+
+		if(argv[2]=="narrow") viastop=1;
+
+		board(B)
+		{
+			bufidx=0;
+			B.signals(S) if(ingroup(S)) S.wires(W) if(ingroup(W))
+			{
+					bufx[bufidx]=W.x2;
+					bufy[bufidx]=W.y2;
+					bufl[bufidx]=W.layer;
+					bufn[bufidx]=S.name;
+					bufidx++;
+					bufx[bufidx]=W.x1;
+					bufy[bufidx]=W.y1;
+					bufl[bufidx]=W.layer;
+					bufn[bufidx]=S.name;
+					bufidx++;
+			}
+
+			for(bufidx--;bufidx>=0;bufidx--)
+			{
+				swx=bufx[bufidx];
+				swy=bufy[bufidx];
+				swl=bufl[bufidx];
+				swn=bufn[bufidx];
+				B.signals(S) if(S.name==swn)
+				{
+					stophere=0;
+					if(viastop) S.vias(V) if(V.start<=swl && V.end>=swl && V.x==swx && V.y==swy) stophere=1;
+					if(!stophere) S.wires(W) if(!ingroup(W))
+					{
+						if(W.x1==swx && W.y1==swy && W.layer==swl)
+						{
+							bufx[bufidx]=W.x2;
+							bufy[bufidx]=W.y2;
+							bufl[bufidx]=W.layer;
+							bufn[bufidx]=S.name;
+							bufidx++;
+							setgroup(W);
+						} 
+						if(W.x2==swx && W.y2==swy && W.layer==swl)
+						{
+							bufx[bufidx]=W.x1;
+							bufy[bufidx]=W.y1;
+							bufl[bufidx]=W.layer;
+							bufn[bufidx]=S.name;
+							bufidx++;
+							setgroup(W);
+						}
+					}
+				}
+			}
+		}
+//		exit("change layer (>cr0 0);");
+		exit("group");
+	}
+	if(argv[1]=="instance")
+	{
+		if(project.board)
+		{
+			schematic(SCH) SCH.sheets(S) S.instances(I) if(ingroup(I)) found=I.part.name;
+			project.board(B) B.elements(E) if(E.name==found)
+			{
+				foundx=E.x;
+				foundy=E.y;
+			}
+			sprintf(tmpstr,"edit .brd;grid mm;window (%f %f);grid last;show @ %s",u2mm(foundx),u2mm(foundy),found);
+			exit(tmpstr);
+		}
+		else dlgMessageBox("No board found in this project");
+	}
+
+	if(argv[1]=="element")
+	{
+		if(project.schematic)
+		{
+			board(B) B.elements(E) if(ingroup(E))
+			{
+				 found=E.name;
+				 project.schematic(SCH) SCH.sheets(S) S.instances(I) if(I.part.name==found)
+				 {
+				 	 found_page=S.number;
+					 foundx=I.x;
+					 foundy=I.y;
+				 }
+			}
+			if(found_page>0) sprintf(tmpstr,"edit .s%d;grid mm;window (%f %f);grid last;show @ %s",found_page,u2mm(foundx),u2mm(foundy),found);
+			else dlgMessageBox("Not found in schematic");
+			exit(tmpstr);
+		}
+		else dlgMessageBox("No schematic found in this project");
+	}
+	if(argv[1]=="ripuppolygon")
+	{
+		board(B) B.signals(S) S.polygons(P) if(ingroup(P))
+		{
+			sprintf(tmpstr,"group (c@);ripup @ (@);");
+			exit(tmpstr);
+		}
+	}
+	if(argv[1]=="movepolygon")
+	{
+		if(board) board(B) B.signals(S) S.polygons(P) if(ingroup(P)) P.wires(W) setgroup(W);
+		if(library) library(L) L.packages(PC) PC.polygons(P) if(ingroup(P))  P.wires(W) setgroup(W);
+		exit("move (>c@)");
+	}
+}
+
+if(argc!=1) exit("");
+found="";
+	
+if(schematic) schematic(SCH)//Look for the selected net
+{
+	SCH.sheets(SHT) SHT.nets(NET) NET.segments(SEG) SEG.wires(WIR) if(ingroup(WIR))
+	{
+		if(found!="")//Redundant test
+		{
+			output("debug.txt","wt")
+			{
+				printf("ingroup() board tree\n");
+				printf("schematic:%s\n",ingroup(SCH)?"yes":"no");
+				SCH.sheets(SHT)
+				{
+					printf("\tschematic sheet %d:%s\n",SHT.number,ingroup(SHT)?"yes":"no");
+					SHT.nets(NET)
+					{
+						printf("\tschematic net %s:%s\n",NET.name,ingroup(NET)?"yes":"no");
+						NET.segments(SEG)
+						{
+							printf("\t\tschematic net segment:%s\n",ingroup(SEG)?"yes":"no");
+							SEG.wires(WIR) printf("\t\t\tschematic net segment wire:%s\n",ingroup(WIR)?"yes":"no");
+						}
+					}
+				}
+			}
+
+			dlgMessageBox("Bug detected? Several grouped wires detected in Sch.MenuContext.Wire context. Debug.txt created.");
+			exit(0);
+		}
+		found=NET.name;
+		found_page=SHT.number;
+	}
+}
+else if(board) board(B) B.signals(S) if(ingroup(S))
+{
+		found=S.name;
+}
+
+if(found=="")//Redundant test
+{
+	dlgMessageBox("No wire selected");
+	exit(0);
+}
+
+numeric string list[];
+int x[];
+int y[];
+int x2[];
+int y2[];
+int s[];
+string p[];
+string net[];
+string info;
+int drv;
+int sink;
+int pdrv;
+int psink;
+int pas;
+int pcount;
+int scount;
+int minx=2147483647,maxx=-2147483648,miny=2147483647,maxy=-2147483647;
+
+
+project.schematic(SCH)//Find pins connected
+{
+	drv=0;
+	sink=0;
+	pdrv=0;
+	psink=0;
+	pas=0;
+	i=0;
+	//Find selected net connected to pins
+	SCH.allnets(NET) if(NET.name==found)
+	{
+		NET.pinrefs(PR)
+		{
+			pcount=0;
+			scount=0;
+			PR.instance.gate.symbol.pins(P) scount++;
+			PR.part.device.gates(G) G.symbol.pins(P) pcount++;
+
+			switch(PR.pin.direction)
+			{
+			case PIN_DIRECTION_NC:
+				info="not connected";break;
+			case PIN_DIRECTION_IN:
+				info="input";sink++;break;
+			case PIN_DIRECTION_OUT:
+				info="output (totem-pole)";drv++;break;
+			case PIN_DIRECTION_IO:
+				info="in/output (bidirectional)";drv++;sink++;break;
+			case PIN_DIRECTION_OC:
+				info="open collector";break;
+			case PIN_DIRECTION_PWR:
+				info="power input pin";psink++;break;
+			case PIN_DIRECTION_PAS:
+				info="passive";pas++;sink++;break;
+			case PIN_DIRECTION_HIZ:
+				info="high impedance output";drv++;break;
+			case PIN_DIRECTION_SUP:
+				info="supply pin";pdrv++;break;
+			default:
+				sprintf(info,"unknown (%d)",PR.pin.direction);
+			}
+			sprintf(list[i],"%s (%s)\t%s\t%d/%d\t%d.%s%s\t%s",PR.instance.name,PR.instance.value,PR.pin.name,scount,pcount,PR.instance.sheet,PR.instance.row,PR.instance.column,info);
+			x[i]=PR.pin.x;
+			y[i]=PR.pin.y;
+			x2[i]=PR.pin.x;
+			y2[i]=PR.pin.y;
+
+			if(PR.pin.x<minx) minx=PR.pin.x;
+			if(PR.pin.x>maxx) maxx=PR.pin.x;
+			if(PR.pin.y<miny) miny=PR.pin.y;
+			if(PR.pin.y>maxy) maxy=PR.pin.y;
+
+			s[i]=PR.instance.sheet;
+			p[i]=PR.instance.name + " " + found;
+			net[i]=NET.name;
+			i++;
+		}
+	}
+	int ii=i;
+
+
+	//Find selected net not connected to pins
+	SCH.sheets(S) S.nets(NET)	if(NET.name==found)
+	{
+		pcount=0;
+		for(int t=0;t<ii;t++) if(s[t]==S.number) pcount++;
+		if(pcount) continue;
+
+		pcount=0;
+		NET.segments(SG) SG.wires(W)
+		{
+				if(W.x1<minx) minx=W.x1;
+				if(W.x2<minx) minx=W.x2;
+				if(W.x1>maxx) maxx=W.x1;
+				if(W.x2>maxx) maxx=W.x2;
+
+				if(W.y1<miny) miny=W.y1;
+				if(W.y2<miny) miny=W.y2;
+				if(W.y1>maxy) maxy=W.y1;
+				if(W.y2>maxy) maxy=W.y2;
+				pcount++;
+		}
+		x[i]=minx;
+		y[i]=miny;
+		x2[i]=maxx;
+		y2[i]=maxy;
+		s[i]=S.number;
+		p[i]=found;
+		sprintf(list[i],"Loose wire%s\t-\t-\t%d\t-",pcount>1?"s":"",S.number);
+		i++;
+	}
+}
+
+int sortcol=4;
+string cmd;
+int sel=found_page;
+
+if(i)
+{
+	dlgDialog("Connected pins")
+	{
+		dlgListView("Name\tPin\tPincount\tLocation\tDirection",list,sel,sortcol)
+		{
+			sprintf(cmd,"edit .s%d;grid mil;window (%f %f) (%f %f);grid last;show @ %s",s[sel],u2mil(x[sel]),u2mil(y[sel]),u2mil(x2[sel]),u2mil(y2[sel]),p[sel]);
+			exit(cmd);
+		}
+		if(drv+pdrv==0)
+		{
+			if(sink+psink==0) dlgLabel(colorString("Passive net","orange"));
+			else if(pas) dlgLabel(colorString("No explicit driver found","orange"));
+			else dlgLabel(colorString("No driver found","red"));
+		}
+		if(drv>1 && pdrv==0) dlgLabel(colorString("Multiple drivers","red"));
+		if(pdrv>1) dlgLabel(colorString("Multiple power drivers found","red"));
+		if(drv==1 && pdrv==1) dlgLabel(colorString("Multiple power and logic driver found","red"));
+		if(pdrv==1 && drv==0) dlgLabel(colorString("Power net","green"));
+		if(drv==1 && pdrv==0) dlgLabel(colorString("Ok net","green"));
+		dlgLabel("<center>Doubleclick to go there</center>");
+	};
+}
+else
+{
+	dlgMessageBox("None found");
+}

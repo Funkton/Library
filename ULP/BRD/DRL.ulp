@@ -19,6 +19,15 @@
  *
  *  Units can be switched between mm and inch.
  */
+ 
+/*
+	Version:
+	1.1
+	- Made cancel button close. Previously still opened filesave dialog. C.Nicks
+	
+	1.0 
+	- Original.
+*/
 
 string unitName[] = { "mm", "in" };
 int    Unit, unitPrec[] = { 2, 3 }, RoundFactor = pow(10, unitPrec[Unit]),
@@ -99,7 +108,7 @@ board(B) {
       conf += s;
       }
 
-  dlgDialog("Edit Drill Configuration") {
+  Result = dlgDialog("Edit Drill Configuration") {
      dlgVBoxLayout {
      dlgLabel("Edit only if you are sure what you do!");
      dlgTextEdit(conf);
@@ -108,11 +117,12 @@ board(B) {
         }
      };
 
+	if (Result){
+		fileName = dlgFileSave("Save Configuration File", filesetext(B.name, ".drl"), "*.drl");
+		if (fileName == "") exit(0);
 
-  fileName = dlgFileSave("Save Configuration File", filesetext(B.name, ".drl"), "*.drl");
-  if (fileName == "") exit(0);
-
-  output(fileName) {
-    printf("%s",conf);
-    }
-  }
+		output(fileName) {
+			printf("%s",conf);
+		}
+	}
+}
