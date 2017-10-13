@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.6.0">
+<eagle version="8.3.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -557,6 +558,35 @@ High-Output-Drive, 10MHz, 10V/μ s, Rail-to-Rail I/O Op Amp with Shutdown</descr
 <technologies>
 <technology name="">
 <attribute name="PARTNO" value="01-100533-00"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="MAX991?*" prefix="U">
+<description>IC OPAMP GP 200KHZ RRO SC70-5
+&lt;p&gt;
+&lt;a href="https://datasheets.maximintegrated.com/en/ds/MAX9910-MAX9913.pdf"&gt;Datasheet&lt;/a&gt;</description>
+<gates>
+<gate name="G$1" symbol="OPAMP" x="0" y="0"/>
+</gates>
+<devices>
+<device name="0EXK" package="SC-70-5">
+<connects>
+<connect gate="G$1" pin="VDD" pad="5"/>
+<connect gate="G$1" pin="VIN+" pad="1"/>
+<connect gate="G$1" pin="VIN-" pad="3"/>
+<connect gate="G$1" pin="VOUT" pad="4"/>
+<connect gate="G$1" pin="VSS" pad="2"/>
+</connects>
+<technologies>
+<technology name="+T">
+<attribute name="DATASHEET" value="https://datasheets.maximintegrated.com/en/ds/MAX9910-MAX9913.pdf"/>
+<attribute name="DESC" value="IC OPAMP GP 200KHZ RRO SC70-5"/>
+<attribute name="MANF" value="Maxim Integrated"/>
+<attribute name="MFPN" value="MAX9910EXK+T"/>
+<attribute name="PARTNO" value="01-100576-00"/>
+<attribute name="STATUS" value="Active" constant="no"/>
 </technology>
 </technologies>
 </device>

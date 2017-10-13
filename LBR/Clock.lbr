@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.3.0">
+<eagle version="8.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1390,6 +1390,83 @@ ECS- Freq (200=20MHz) - Load Capacitance (20=20pF) - 5PXDU</description>
 <technologies>
 <technology name="">
 <attribute name="PARTNO" value="" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="32MHZ-?-" prefix="Y">
+<description>32MHZ CRYSTAL OSCILLATORS
+&lt;p&gt;
+&lt;a href="http://abracon.com/Resonators/ABM8X.pdf"&gt;Abracon 32MHz 10pF&lt;/a&gt; &lt;br&gt;
+&lt;a href="https://media.digikey.com/pdf/Data%20Sheets/NDK%20PDFs/NX3225SA-32M-EXS00A-02994.pdf"&gt;NDK 32MHz 16pF&lt;/a&gt;</description>
+<gates>
+<gate name="G$1" symbol="CRYSTAL_GND" x="0" y="0"/>
+</gates>
+<devices>
+<device name="3.2X2.5" package="4-DFN_3.2X2.5">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="3"/>
+<connect gate="G$1" pin="GND" pad="2 4"/>
+</connects>
+<technologies>
+<technology name="ABM8X">
+<attribute name="DATASHEET" value="https://goo.gl/iAaHRj"/>
+<attribute name="DESC" value="CRYSTAL 32MHZ 10PF SMD"/>
+<attribute name="ESR" value="60Ω"/>
+<attribute name="LOAD" value="10pF"/>
+<attribute name="MANF" value="Abracon"/>
+<attribute name="MFPN" value="ABM8X-102-32.000MHZ-T"/>
+<attribute name="PARTNO" value="08-100084-00"/>
+<attribute name="STABILITY" value="±25ppm"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±10ppm"/>
+</technology>
+<technology name="NDK16PF">
+<attribute name="DATASHEET" value="https://media.digikey.com/pdf/Data%20Sheets/NDK%20PDFs/NX3225SA-32M-EXS00A-02994.pdf"/>
+<attribute name="DESC" value="CRYSTAL 32.0000MHZ 16PF SMD"/>
+<attribute name="ESR" value="50Ω"/>
+<attribute name="LOAD" value="16pF"/>
+<attribute name="MANF" value="NDK"/>
+<attribute name="MFPN" value="NX3225SA-32M-EXS00A-02994"/>
+<attribute name="PARTNO" value="08-100088-00"/>
+<attribute name="STABILITY" value="±15ppm"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±10ppm"/>
+</technology>
+</technologies>
+</device>
+<device name="3.2X2.5-MP" package="4-DFN_3.2X2.5-MP">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="3"/>
+<connect gate="G$1" pin="GND" pad="2 4"/>
+</connects>
+<technologies>
+<technology name="ABM8X">
+<attribute name="DATASHEET" value="https://goo.gl/iAaHRj"/>
+<attribute name="DESC" value="CRYSTAL 32MHZ 10PF SMD"/>
+<attribute name="ESR" value="60Ω"/>
+<attribute name="LOAD" value="10pF"/>
+<attribute name="MANF" value="Abracon"/>
+<attribute name="MFPN" value="ABM8X-102-32.000MHZ-T"/>
+<attribute name="PARTNO" value="08-100084-00"/>
+<attribute name="STABILITY" value="±25ppm"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±10ppm"/>
+</technology>
+<technology name="NDK16PF">
+<attribute name="DATASHEET" value="https://media.digikey.com/pdf/Data%20Sheets/NDK%20PDFs/NX3225SA-32M-EXS00A-02994.pdf"/>
+<attribute name="DESC" value="CRYSTAL 32.0000MHZ 16PF SMD"/>
+<attribute name="ESR" value="50Ω"/>
+<attribute name="LOAD" value="16pF"/>
+<attribute name="MANF" value="NDK"/>
+<attribute name="MFPN" value="NX3225SA-32M-EXS00A-02994"/>
+<attribute name="PARTNO" value="08-100088-00"/>
+<attribute name="STABILITY" value="±15ppm"/>
+<attribute name="STATUS" value="Active" constant="no"/>
+<attribute name="TOL" value="±10ppm"/>
 </technology>
 </technologies>
 </device>

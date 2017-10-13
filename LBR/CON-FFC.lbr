@@ -1211,7 +1211,8 @@
 <attribute name="FEAT" value="Slide Lock ZIF"/>
 <attribute name="MANF" value="TE Connectivity AMP Connectors"/>
 <attribute name="MFPN" value="3-1734839-5"/>
-<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="PARTNO" value="29-100906-00
+"/>
 <attribute name="PITCH" value="0.5mm"/>
 <attribute name="RATE" value="0.5A"/>
 <attribute name="STATUS" value="Active" constant="no"/>

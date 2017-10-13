@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.3.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
@@ -48,7 +49,7 @@
 <layer number="38" name="bTest" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
 <layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
 <layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
@@ -2448,8 +2449,8 @@ Settings used:&lt;ul&gt;
 <wire x1="4" y1="-4" x2="-2" y2="-4" width="0" layer="51"/>
 <wire x1="-2" y1="-4" x2="-4" y2="-2" width="0" layer="51"/>
 <wire x1="-4" y1="-2" x2="-4" y2="5" width="0" layer="51"/>
-<smd name="FEED" x="0" y="-6" dx="2" dy="2" layer="1"/>
-<rectangle x1="-2" y1="-8" x2="2" y2="-4" layer="41"/>
+<smd name="FEED" x="0" y="-6.5" dx="2.2" dy="2.2" layer="1"/>
+<rectangle x1="-1.75" y1="-8.4" x2="1.75" y2="-4.4" layer="41"/>
 <rectangle x1="-6" y1="-6" x2="6" y2="6" layer="39"/>
 <smd name="GND@5" x="0" y="0" dx="3" dy="3" layer="1" thermals="no"/>
 <smd name="GND@2" x="0" y="4.5" dx="3" dy="3" layer="1" thermals="no"/>
@@ -3645,7 +3646,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="P$2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -3662,7 +3670,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="P$2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name=".5IN_PATCH" package="RND_PATCH">
@@ -3671,7 +3686,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="P$2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name=".1&quot;" package="1X02_.1&quot;_40Y">
@@ -3680,7 +3702,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="P$2" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_0402_LAUNCH" package="0402_LAUNCH">
@@ -3689,7 +3718,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="P$2" pad="2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -3705,7 +3741,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_13.56_SPIRAL" package="13.56_SPIRAL">
@@ -3714,7 +3757,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_4.9UH" package="13.56_4.9UH">
@@ -3723,7 +3773,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="2" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_BOBBIN_.25X.078" package="BOBBIN_.25X.078">
@@ -3733,7 +3790,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3751,7 +3813,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="2" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_MELEXIS" package="MELEXIS_CC">
@@ -3760,7 +3829,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="2" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="-WTTM" package="1.5IN_433MHZ_PATCH">
@@ -3794,7 +3870,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="ANT" pad="ANT"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_PATCH_915" package="900MHZ_PATCH">
@@ -3802,7 +3885,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="ANT" pad="ANT"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_25X25_915_PATCH" package="APAE915R2540ABDB1-T">
@@ -3811,7 +3901,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="36-100145-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="36-100145-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3820,7 +3915,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="ANT" pad="ANT"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_PAD_08X04" package="SMD-40-WIRE">
@@ -3828,7 +3930,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="ANT" pad="P"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="_25X25_915_PATCH_MASK" package="APAE915R2540ABDB1-T_MASK">
@@ -3837,7 +3946,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="36-100145-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="36-100145-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3846,7 +3960,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="ANT" pad="1"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 <device name="-2.4GHZ-5DBI-25X25X4.5" package="WLP.2450.25.4.A.02">
@@ -3874,7 +3995,14 @@ Used on &lt;b&gt;45-100300-00</description>
 <connect gate="G$1" pin="G" pad="3"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -3892,7 +4020,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value="http://taoglas.com/images/product_images/original_images/SWLP.2450.12.4.B.02%20SMD%202.4%20GHz%20Patch%20Antenna%20140110.pdf"/>
+<attribute name="DESC" value="ANTENNA WI-FI WLAN 2.4GHZ"/>
+<attribute name="MANF" value="Taoglas Limited"/>
+<attribute name="MFPN" value="SWLP.2450.12.4.B.02"/>
 <attribute name="PARTNO" value="36-100153-00"/>
+<attribute name="STATUS" value="Active" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3903,7 +4036,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3914,7 +4052,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value=""/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3940,7 +4083,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3951,7 +4099,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="PARTNO" value="36-100170-00"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="36-100170-00" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3962,7 +4115,12 @@ Used on &lt;b&gt;45-100300-00</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="irl.01" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -3983,7 +4141,12 @@ ANT1204F002R0433A
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -4000,7 +4163,14 @@ ANT1204F002R0433A
 <connect gate="G$1" pin="ANT1" pad="P$2"/>
 </connects>
 <technologies>
-<technology name=""/>
+<technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -4017,7 +4187,12 @@ ANT1204F002R0433A
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -4037,6 +4212,12 @@ ANT1204F002R0433A
 <technologies>
 <technology name="">
 <attribute name="BOM" value="EXCLUDE"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -4048,6 +4229,12 @@ ANT1204F002R0433A
 <technologies>
 <technology name="">
 <attribute name="BOM" value="EXCLUDE"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -4059,6 +4246,12 @@ ANT1204F002R0433A
 <technologies>
 <technology name="">
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -4070,6 +4263,12 @@ ANT1204F002R0433A
 <technologies>
 <technology name="">
 <attribute name="BOM" value="EXCLUDE" constant="no"/>
+<attribute name="DATASHEET" value=""/>
+<attribute name="DESC" value=""/>
+<attribute name="MANF" value=""/>
+<attribute name="MFPN" value=""/>
+<attribute name="PARTNO" value="" constant="no"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
