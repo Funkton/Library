@@ -26,7 +26,7 @@ string Hilfe = "<qt><b>MOUNT TRACE</b> zeigt alle Bauteile auf der Top-Seite mit
 
 #require 5.1000;
 
-string Version = "Version 1.3.0"; // 2006-04-27
+string Version = "Version 1.4.0"; // 2006-04-27
                                   // 2008-04-10 changed GROUP ... (>x y); alf@cadsoft.de
                                   // 2008-11-03 correct SHOW comand Version 5.x
                                   // 2010-09-06 Tippfehler in Description berichtigt
@@ -36,7 +36,7 @@ string Version = "Version 1.3.0"; // 2006-04-27
                                   //            was nur mit dem entsprechenden ulpmessage.ulp durchführbar ist.
                                   //            Das aber eine weitere Bestätigung (Testendruck) benötigt.
                                   // 2010-09-08 Packagevarianten werden berücksichtigt npackage[];
-                                  //
+                                  // 2017-10-13 Added part list into dialog. Added show box. C.Nicks
 
 numeric string nshow[], nvalue[], npackage[];
 int    ncnt[];
@@ -112,7 +112,8 @@ void generate_list(void) {
     }
     set_trace_zero();
   }
-  cmd = "DISPLAY NONE 21 -23 25 27 51;\nRUN '" + argv[0] + "' +;\n";
+  //cmd = "DISPLAY NONE 21 -23 25 27 51;\nRUN '" + argv[0] + "' +;\n"; // EDIT C.Nick 10/13/17
+	cmd = "RUN '" + argv[0] + "' +;\n";
   exit(cmd);
 }
 
@@ -149,10 +150,10 @@ void traceplus() {
   if (argv[1] == "+") sprintf(cmd, "SHOW %s", nshow[cnt]);
   else if (argv[1] == "++") {
     if (language() == "de") {
-      sprintf(cmd, "RUN ulpmessage '%d Stück <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+      sprintf(cmd, "RUN ulpmessage '%d Stück <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font><br>PARTS:<b>%s</b>';\nSHOW @ %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt], nshow[cnt]);
     }
     else {
-      sprintf(cmd, "RUN ulpmessage '%d part(s) <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font>';\nSHOW %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt]);
+      sprintf(cmd, "RUN ulpmessage '%d part(s) <b>%s</b><br>Package <font color=\"blue\"><b>%s</b></font><br>PARTS:<b>%s</b>';\nSHOW @ %s", ncnt[cnt], nvalue[cnt], npackage[cnt], nshow[cnt], nshow[cnt]);
     }
   }
   cnt++;

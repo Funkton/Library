@@ -1,0 +1,177 @@
+/*
+	C.Nicks edited version
+	
+	Still buggy when setting colors. Wrong palette is being set.
+	I think it has to do with the bit masking and shifting.
+	
+	Wish list:
+	- Retreive alpha from layer. DONE
+	- Display layer number (dlgListView)
+	- Change alpha int to spinBox percentage (opacity)
+	
+*/
+
+#usage "run setalpha 1 90\n"
+"to set the alpha value of whatever color layer 1 is using to 90\n"
+
+
+string UsedLayers[]  = { "NONE" };
+int    usedLayerN[] = { 0 };
+int    colorN[];
+int    nAlpha = 212;
+int    cnt = 0;
+int    Selected = 0;
+int    setLayer = 0;
+int		cAlpha = 0; //Alpha layer is currently set to
+int	debug = 1;
+
+//----- LAYER FUNCTIONS -----
+
+string LayerNames[];
+  //Names (plus numbers in brackets) of all available (used) layers
+int LayerNumbers[];
+int LayerColors[];
+  //Numbers of all available (used) schematics layers
+int LayerNumber=0;
+  //Available (used) layers counter
+int LayerVisible[];
+  //1 for each layer that is currently visible (0 otherwise)
+int InvalidLayers[]={91,92,93};
+  //Layers in which NO graphics should be placed (nets, busses, pins)
+int InvalidLayerNr=3;
+  //Invalid layers count
+	string IntToStr(int x) {
+  //Returns the integer X formatted as string
+  string Text;
+  sprintf(Text,"%d",x);
+  return Text;
+  }
+
+int MemoriseLayer(UL_LAYER L,int Index) {
+  //Writes name and number of the LAYER into the position INDEX of the global
+  //arrays LAYERNAMES and LAYERNUMBERS. Returns the next unused index of the
+  //arrays
+  int Nr,LayerValid = 1;
+  //Check, whether the layer is one of the unsupported layers
+  for (Nr=0; Nr<InvalidLayerNr; Nr++)
+    if (L.number == InvalidLayers[Nr])
+      LayerValid = 0;
+  //If not, and the layer is visible, add it to the layer collection
+  if (LayerValid == 1) {
+    LayerNames[Index] += 	IntToStr(L.number)+"  " + L.name;
+    LayerNumbers[Index] = L.number;	
+		LayerColors[Index] = L.color;
+    Index++;
+    }
+  return Index;
+  }
+
+void CollectLayers(void) {
+  //Collects all currently used layers and writes their names and numbers
+  //into the global variables LAYERNAMES and LAYERNUMBERS
+	
+  board(B)
+    B.layers(L) {
+      //Check, whether the layer is visible or not
+      if ((L.used) && (L.visible))
+        LayerVisible[L.number]=1;
+      else
+        LayerVisible[L.number]=0;
+      //Memorise the used layer's name and number for dialog display
+			if (L.used){
+				LayerNumber = MemoriseLayer(L,LayerNumber);
+				
+				usedLayerN[cnt] = L.number;
+				UsedLayers[cnt]  = L.name;
+				colorN[cnt]     = L.color;
+				++cnt;
+			}
+    }
+  }
+	
+int getAlpha (int LayerNumber){
+	// Get the alpha value for layer.
+	int result;
+	
+	if (board) board(B) {
+		B.layers(L) {
+			if (L.number == LayerNumber){
+				result = (palette(L.color) >> 24  ^ 0xFFFFFF00);
+			}
+		}
+	}
+		//if (debug){	dlgMessageBox (IntToStr(result));	}
+	return result;
+}
+
+
+	
+int menue(void) {
+	
+string LayerLabel ;
+
+  dlgDialog("Set Layer Alpha") {
+    dlgGroup("Layer Alpha") {
+			dlgLabel(LayerLabel, 1);
+      dlgVBoxLayout {
+        dlgLabel("&Layer");
+        dlgListBox(LayerNames, Selected) {
+					if (dlgSelectionChanged()){
+						nAlpha = getAlpha (LayerNumbers[Selected]);
+						LayerLabel = LayerNames[Selected];
+						//dlgRedisplay();
+					}
+				};
+      }
+      dlgVBoxLayout {
+        dlgLabel("Alpha");
+        dlgIntEdit(nAlpha, 0, 255);
+      }
+    }
+
+    dlgHBoxLayout {
+      dlgPushButton("+OK") {
+        setLayer = (LayerNumbers[Selected] -1); // Why is this grabbing the wrong layer number?
+				if (debug){
+					string temp;
+					sprintf(temp, "Layer: %d, is set to color: %d", setLayer, LayerColors[setLayer]);
+					dlgMessageBox(temp);
+					}
+        dlgAccept();
+        return 1;
+      }
+      dlgStretch(1);
+      dlgPushButton("-&Cancel") { dlgReject(); exit (0);}
+    }
+  };
+  return 0;
+}
+
+
+if (board) board(B) {
+	//Memorise layer names, numbers and visibility
+  CollectLayers();
+
+/*
+  B.layers(L) {
+    usedLayerN[cnt] = L.number;
+    UsedLayers[cnt]  = L.name;
+    colorN[cnt]     = L.color;
+    ++cnt;
+  }
+*/
+	
+	nAlpha = getAlpha (LayerNumbers[Selected]);
+
+  if (menue()) {
+    int color = (palette(colorN[setLayer]) & 0x00FFFFFF) | (nAlpha << 24);
+    string s;
+    sprintf(s, "SET PALETTE %d 0x%08X;", colorN[setLayer], color);
+  if (debug) dlgMessageBox(s, "OK");
+    exit(s);
+  }
+
+} else {
+  dlgMessageBox("Run this ULP from a Board", "OK");
+  exit (0);
+}

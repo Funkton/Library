@@ -1,6 +1,3 @@
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //  This EAGLE User Language Program creates a comma separated
 //  file with mount information for SMDs on top and bottom.
@@ -13,6 +10,16 @@
 // Rev 1.1 CN 03/01/17  Added attribute 'PARTNO' to output
 //                      Moved THROUGH HOLE PARTS section into separate file.
 //						Added Company, Contact, and Copyright information to file output.
+//
+// Rev 1.2 CN 10/13/17  Removed extra space before each csv value. Change - to . in file name.
+//											Added removal based on Value= DNP
+//											Added variant information to file
+//
+////////////////////////////////////////////////////////////
+//
+// KNOWN BUGS:
+// 						Commas in value move the cell over. Must enclose if comma found.
+//
 //////////////////////////////////////////////////////////////////////////////
 //
 // THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND,
@@ -40,28 +47,40 @@
     "<p>"
 
 // Define strings
-string Version = "Rev 1.1";
+string Version = "Rev 1.2";
 string Boardname;
 string Company = "Phase IV Engineering\n2820 Wilderness Place Suite C\nBoulder CO 80301\n303-443-6611 ext.123";
-string Contact = "Cameron Nicks, cnicks@phaseivengr.com";
+string Contact = "Cameron Nicks (cnicks@phaseivengr.com)";
 string Copyright = "Information contained within this file is confidential. Any reproduction in part or whole is strictly prohibited without written permission or as required by non-disclosure agreement.";
 
+string CurrentVariant = variant();
+string BomNum = "";
 
 // Main
 if (board) board(B)
 {
+	// Get some global attributes.
+		B.attributes(A) {
+			if (A.name == "BOMNO"){
+				BomNum = A.value;
+			}
+		}
+	
 	Boardname = filename(B.name);
     // Get filename
-    string fileName = dlgFileSave("Save File", filesetext(B.name, " -XY-SMD.csv"), "* -XY-SMD.csv");
+    string fileName = dlgFileSave("Save File", filesetext(B.name, "-XY-SMD.csv"), "*.csv");
     if (fileName == "") exit(0);
 
     output(fileName)
     {
 		printf ("Company:\n%s\n\n", Company);
-		printf ("Contact:\n%s\n\n", Contact);
+		printf ("Contact:,%s\n\n", Contact);
 		
-		printf("Board:\n%s \n\n", Boardname);
+		printf("Board:,%s \n", Boardname);
+		printf("Variant:,%s%s \n\n", BomNum, CurrentVariant);
 //		printf("%s;\n\n", EAGLE_SIGNATURE);
+
+		
 
 		//
         // PROCESS SURFACE MOUNT PARTS
@@ -95,7 +114,7 @@ if (board) board(B)
         // PROCESS TOP SIDE SMD PARTS
         //
 
-        printf ("\nRefDes, LocationX, LocationY, Rotation, Value, Package, Partno\n");
+        printf ("\nRefDes,LocationX,LocationY,Rotation,Value,Package,Partno\n");
 
         B.elements(E) if (E.populate)
         {
@@ -136,6 +155,12 @@ if (board) board(B)
                     if ((A.value == "T") || (A.value != "1"))
                         bomDNP = 1;
                 }
+								else if (A.name == "VALUE")
+								{
+									// Exclude part from BOM?
+                    if (A.value == "DNP")
+                        bomDNP = 1;
+								}
             }
 
             if (wasSmd)
@@ -190,7 +215,7 @@ if (board) board(B)
 
 				if (!bomDNP)
 				{
-	                printf("%s, %5.4f, %5.4f, %3.0f, %s, %s, %s\n",
+	                printf("%s,%5.4f,%5.4f,%3.0f,%s,%s,%s\n",
 	                    E.name, x, y,
 	                    E.angle, value, name, partno);
 				}
@@ -267,6 +292,12 @@ if (board) board(B)
                     if ((A.value == "T") || (A.value != "1"))
                         bomDNP = 1;
                 }
+								else if (A.name == "VALUE")
+								{
+									// Exclude part from BOM?
+                    if (A.value == "DNP")
+                        bomDNP = 1;
+								}
             }
 
             if (wasSmd)
@@ -321,7 +352,7 @@ if (board) board(B)
 
 				if (!bomDNP)
 				{
-	                printf("%s, %5.4f, %5.4f, %3.0f, %s, %s, %s\n",
+	                printf("%s,%5.4f,%5.4f,%3.0f,%s,%s,%s\n",
 	                    E.name, x, y,
 	                    E.angle, value, name, partno);
 				}

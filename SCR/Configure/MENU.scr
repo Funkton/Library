@@ -51,10 +51,6 @@ BRD:
 			UP       	: RUN trace-layer -; |\
 			DOWN 		: RUN trace-layer +; |\
 				}'\
-		'RENDER {\
-			Top       : SCRIPT RenderT.scr; |\
-			Bottom : SCRIPT RenderB.scr; |\
-				}'\
 		'SELECT : RUN SELECT;'\
 		'SHOW {\
 			ELEMENTS {\
@@ -66,37 +62,78 @@ BRD:
 				J...	: 	SHOW J*|\
 				D...	: 	SHOW D*|\
 				Q...	: 	SHOW Q*|\
-					}|\
+			}|\
 			Show Class		: RUN showclass; |\
 			GRP in SCH : RUN SHOW-GROUP-PARTS; |\
 			PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
 			Show Values : RUN SHOWVALS; |\
-				}'\
+		}'\
 		'RATS 	{\
 			All			: SCRIPT Rats-All.scr; |\
 			None		: SCRIPT Rats-None.scr; |\
 			Hide Pwr	: SCRIPT Rats-Pwr-Hide.scr; |\
 			Show Pwr	: SCRIPT Rats-Pwr-Show.scr; |\
-				}'\
+		}'\
 		'POUR 	{\
 			All			: SCRIPT Pour-All.scr; |\
 			V* Nets		: SCRIPT Pour-V.scr; |\
 			Clr GND		: SCRIPT Pour-CLR-GND.scr; |\
-				}'\
+		}'\
 		'POLYGON {\
 			Solid/Outline 	:	RUN CFGTOGGLE Option.DrawUnprocessedPolygonEdgesContinuous;|\			
 			Process 		:	RUN CFGTOGGLE Option.PolygonRatsnest; |\
-				}'\
+		}'\
      '---'\
 		'OPTIONS {\
 			Set Used Layers	:	RUN UseLayers;|\
 			Display {\
-			Pad Names 		:	RUN CFGTOGGLE Option.PadNames;|\
-			Signals on Pad	: 	RUN CFGTOGGLE Option.SignalNamesOnPads;|\
-			Signals on Trace:	RUN CFGTOGGLE Option.SignalNamesOnTraces;|\
-			Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins;|\
-					}|\
-				}'\
+				Pad Names 		:	RUN CFGTOGGLE Option.PadNames;|\
+				Signals on Pad	: 	RUN CFGTOGGLE Option.SignalNamesOnPads;|\
+				Signals on Trace:	RUN CFGTOGGLE Option.SignalNamesOnTraces;|\
+				Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins;|\
+			}|\
+			'RENDER {\
+				Top       : SCRIPT RenderT.scr; |\
+				Bottom : SCRIPT RenderB.scr; |\
+			}'\
+		}'\
+		'UTIL {\
+			ATTRIBUTES {\
+				COPY				: RUN ATT-COPY; |\
+				VIEW LIST		: RUN attview; |\
+			}|\
+			EXPORT {\
+				BOM					: edit .sch; RUN BOM-EX; |\
+				XY File (SMD) : RUN XYSMD; |\
+				XY File (TH) : RUN XYTH; |\
+			}|\
+			DOC {\
+				DRILLEGEND			: RUN DRL; RUN Drills; |\
+				PRINT PDF		:	DISPLAY PDF; PRINT 1 -1 FILE %P/../%N.%E.pdf |\
+			}|\
+			MOUNT	{\
+				Usage			: RUN mount-trace; |\
+				Build List : RUN mount-trace; |\
+				Show Next : RUN mount-trace +; |\
+				Show Prev : RUN mount-trace -; |\
+				Info Next :	RUN mount-trace ++; |\
+				Info Prev : RUN mount-trace --; |\
+			}|\
+			PANELIZE {\
+				TEXT			: RUN PANELIZE-TEXTMM; |\
+				RENAME {\
+					PARTS   : RUN PART-SUFFIX; |\
+					SIGNALS	: RUN rename-signal; |\
+				}|\
+			}|\
+			SETTINGS {\
+				Export Layer Styles : RUN board-layer-styles; |\
+			}|\
+			TEARDROP {\
+				ADD				: RUN TEARDROP; |\
+				REMOVE		: RUN CLEANWIRE; |\
+			}|\
+		}'\	
 				
 				#TO-DO:
 				#Statistics section.
@@ -131,7 +168,11 @@ SCH:
 			GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
 			GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\
 			Show Values : RUN SHOWVALS; |\
-			}'\		
+		}'\		
+		'UTIL {\
+			Print PDF		:	PRINT SHEETS ALL FILE %P/../%N.%E.pdf |\
+			BOM					: RUN BOM-EX; |\
+		}'\	
 
 #----------------------------------#
 #--------- LIBRARY EDITOR ---------#
