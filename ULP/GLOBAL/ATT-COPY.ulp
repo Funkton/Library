@@ -296,8 +296,8 @@ if(debug) {
 								}
 								
 								if (addFlag == 1){
-									cmd += toPart + " "; // Add the name of part to copy to into the command
-									attList += cmd; // Add command string 
+									attList += cmd + " "; // Add the name of part to copy to into the command
+									attList += toPart + " "; // Add command string 
 									attList += A.name; 		// Add name to command
 									if (useDefault){
 										attList += " '" + defaultValue + "'";	// Add default value to command
@@ -341,11 +341,11 @@ if(debug) {
 								if (!A.value) {
 								addFlag = 0;
 								}
-							}
+							}	
 							
 							if (addFlag == 1){
-								cmd += toPart + " "; // Add the name of part to copy to into the command
-								attList += cmd; // Add command string 
+								attList += cmd + " "; // Add the name of part to copy to into the command
+								attList += toPart + " "; // Add command string 
 								attList += A.name; 		// Add name to command
 								if (useDefault){
 									attList += " '" + defaultValue + "'";	// Add default value to command
