@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -162,7 +163,7 @@ DS, DSK,-614, 621&lt;/a&gt;</description>
 <attribute name="DESC" value="CAP 200mF -20% +80% 3.3V SMD"/>
 <attribute name="MANF" value="Elna"/>
 <attribute name="MFPN" value="DSK-3R3H204T614-H2L"/>
-<attribute name="PARTNO" value="02-100701-00" constant="no"/>
+<attribute name="PARTNO" value="NEW" constant="no"/>
 <attribute name="RATE" value="3.3V"/>
 <attribute name="SIZE" value="1.8mm x Dia 6.80mm"/>
 <attribute name="STATUS" value="Active" constant="no"/>
@@ -188,7 +189,7 @@ DS, DSK,-614, 621&lt;/a&gt;</description>
 <attribute name="DESC" value="CAP 330mF -20% +80% 3.3V SMD"/>
 <attribute name="MANF" value="Elna"/>
 <attribute name="MFPN" value="DSK-3R3H334T-HL"/>
-<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="PARTNO" value="02-100701-00"/>
 <attribute name="RATE" value="3.3V"/>
 <attribute name="SIZE" value="2.8mm x Dia 6.80mm"/>
 <attribute name="STATUS" value="Active" constant="no"/>

@@ -1,2 +1,0 @@
-#Test for in-route Change Width Command
-# Cannot make width changes while keeping ROUTE command active. You can type a number in to change size, but not anywhere else.

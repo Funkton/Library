@@ -1,7 +1,6 @@
 #usage "<b>Collection of useful routines</b>\n"
        "<p>"
        "<author>Author: support@cadsoft.de</author>"
-			 "<author>Author: Cameron Nicks</author>"
 
 // THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
 
@@ -22,28 +21,27 @@ int R;
 return R; // 1 = Execute, 0 = Cancel
 }
 
-
-int YesNo(string EnglishText) {
-  //Asks the user ENGLISHTEXT  and lets him choose YES or
-  //NO. Returns 1 for YES or 0 for NO
-  if (dlgMessageBox(";<html><nobr>"+EnglishText+
-      "</nobr></html>","&Yes",,"&No"==0)
-    return 1;
-  else
-    return 0;
+// get ULP program name
+string get_ulp_name(void) {
+  string s = strsub(argv[0], 0, strlen(argv[0])-4);
+  string p = s;
+  char c = '/';
+  int pos = strrchr(s, c);
+  if (pos >= 0) {
+     p = strsub(s, pos + 1);
   }
-	
-string NowText(int Seconds) {
-  //Returns the current date and time in international form, either with
-  //(SECONDS!=0) or without (SECONDS=0) seconds (YYYY-MM-DD HH:MM:SS)
-  if (Seconds)
-    return t2string(time(),"yyyy-MM-dd, hh:mm:ss");
-  return t2string(time(),"yyyy-MM-dd, hh:mm");
-  }
+  return p;
+}
 
-string TodayText() {
-  //Returns the current date in international form (YYYY-MM-DD)
-  return t2string(time(),"yyyy-MM-dd");
+// get ULP path
+string get_ulp_path(void) {
+   string ulp_path = "";
+   char c = '/';
+   int pos = strrchr(argv[0], c);
+   if (pos >= 0) {
+      ulp_path = strsub(argv[0], 0, pos + 1);
+      }
+   return ulp_path;
 }
 
 // get project path, if in board or schematic, otherwise library path
@@ -66,333 +64,4 @@ string a[];
   int n = fileglob(a, FileName);
   if (n == 0) return 0;
   else return 1;
-}
-
-
-// Returns the index of the first digit of the numeric part of Name
-// -1 indicates there is no numeric part in Name. AUTHIER TABANON
-int GetNumberIndex(string Name)
-{
-  int l = strlen(Name) - 1;
-  for (int i = l; i >= 0; --i) {
-      if (!isdigit(Name[i]))
-         return i < l ? i + 1 : -1;
-      }
-  return 0;
-}
-
-//----- ARGUMENT HANDLING ----
-// from swap.ulp by Danny Damhave
-int  firstInList = 1;
-
-int isMatch(string s, string test, int useRegex)
-{	
-	string regex = !useRegex ?  "^" : test;
-	if (!useRegex)
-	{
-		for(int i = 0; test[i];)
-		{
-			switch(test[i])
-			{
-				case '[': regex += strsub(test, i, strchr(test, ']', i) - i + 1), i += strchr(test, ']', i) - i + 1; break;
-				case '?': regex += ".", i++; break;
-				case '*': regex += ".*", i++; break;
-				case '+': case '^': case '$': case '.': case '{': case '}': case '(': case ')':  case '|': case '\\':
-				regex += "\\" + test[i], i++; break;
-				default: regex += test[i], i++;
-			}
-		}
-		regex +='$';
-	}
-	return strxstr(s, regex, 0) == 0;
-}
-
-int inList(string name)
-{
-	for(int i = firstInList; i < argc && argv[i] != ""; i++)
-	{
-		if (regexFlag)
-		{
-			if (isMatch(name, argv[i], regexFlag)) return true;
-		}
-		else
-		{
-			if (isMatch(strupr(name), strupr(argv[i]), regexFlag)) return true;		
-		}
-	}
-	return false;
-}
-
-//----- LAYER PROCEDURES -----
-
-int AWIsBRDLayerUsed(UL_BOARD B,int Layer) {
-  //Returns 1, if something is drawn in the LAYER (but pads or vias) of the
-  //board B (0 otherwise)
-  B.circles(C)
-    if (C.layer==Layer)
-      return 1;
-  B.elements(E) {
-    E.texts(T)
-      if (T.layer==Layer)
-        return 1;
-    E.package.circles(C)
-      if (C.layer==Layer)
-        return 1;
-    E.package.polygons(P)
-      if (P.layer==Layer)
-        return 1;
-    E.package.rectangles(R)
-      if (R.layer==Layer)
-        return 1;
-    E.package.texts(T)
-      if (T.layer==Layer)
-        return 1;
-    E.package.wires(W)
-      if (W.layer==Layer)
-        return 1;
-    }
-  B.polygons(P)
-    if (P.layer==Layer)
-      return 1;
-  B.rectangles(R)
-    if (R.layer==Layer)
-      return 1;
-  B.signals(S)
-    S.wires(W)
-      if (W.layer==Layer)
-        return 1;
-  B.texts(T)
-    if (T.layer==Layer)
-      return 1;
-  B.wires(W)
-    if (W.layer==Layer)
-      return 1;
-  return 0;
-}
-
-//----- LAYER FUNCTIONS -----
-
-string LayerNames[];
-  //Names (plus numbers in brackets) of all available (used) schematics layers
-int LayerNumbers[];
-  //Numbers of all available (used) schematics layers
-int LayerNumber=0;
-  //Available (used) schematics layers count
-int LayerVisible[];
-  //1 for each layer that is currently visible (0 otherwise)
-	int InvalidLayers[]={91,92,93};
-  //Layers in which NO graphics should be placed (nets, busses, pins)
-int InvalidLayerNr=3;
-  //Invalid layers count
-	string IntToStr(int x) {
-  //Returns the integer X formatted as string
-  string Text;
-  sprintf(Text,"%d",x);
-  return Text;
-  }
-
-int MemoriseLayer(UL_LAYER Layer,int Index) {
-  //Writes name and number of the LAYER into the position INDEX of the global
-  //arrays LAYERNAMES and LAYERNUMBERS. Returns the next unused index of the
-  //arrays
-  int Nr,LayerValid=1;
-  //Check, whether the layer is one of the unsupported layers
-  for (Nr=0;Nr<InvalidLayerNr;Nr++)
-    if (Layer.number==InvalidLayers[Nr])
-      LayerValid=0;
-  //If not, and the layer is visible, add it to the layer collection
-  if (LayerValid==1) {
-    LayerNames[Index]+=Layer.name+"  ("+IntToStr(Layer.number)+")";
-    LayerNumbers[Index]=Layer.number;
-    Index++;
-    }
-  return Index;
-  }
-
-void CollectLayers(void) {
-  //Collects all currently used layers and writes their names and numbers
-  //into the global variables LAYERNAMES and LAYERNUMBERS
-  schematic(S)
-    S.layers(L) {
-      //Check, whether the layer is visible or not
-      if ((L.used) && (L.visible))
-        LayerVisible[L.number]=1;
-      else
-        LayerVisible[L.number]=0;
-      //Memorise the layer's name and number for dialog display
-      LayerNumber=MemoriseLayer(L,LayerNumber);
-      }
-  }
-
-//----- GROUP ANALYSIS FUNCTIONS -----
-
-int GroupContainsOnlyText() {
-  //Returns 1 if the current group contains only text (0 otherwise)
-  sheet(SH) {
-    SH.busses(B)
-      B.segments(S) {
-        S.labels(L)
-          if (ingroup(L))
-            return 0;
-        S.wires(W)
-          if (ingroup(W))
-            return 0;
-        }
-    SH.circles(C)
-      if (ingroup(C))
-        return 0;
-    SH.frames(F)
-      if (ingroup(F))
-        return 0;
-    SH.nets(N)
-      N.segments(S) {
-        S.wires(W)
-          if (ingroup(W))
-            return 0;
-        S.labels(L)
-          if (ingroup(L))
-            return 0;
-        S.junctions(J)
-          if (ingroup(J))
-            return 0;
-        }
-    SH.parts(P)
-      P.instances(I)
-        if (ingroup(I))
-          return 0;
-    SH.polygons(P)
-      if (ingroup(P))
-        return 0;
-    SH.rectangles(R)
-      if (ingroup(R))
-        return 0;
-    SH.wires(W)
-      if (ingroup(W))
-        return 0;
-    SH.texts(T)
-      if (ingroup(T))
-        return 1;
-    }
-  return 0;
-  }
-
-int GroupContainsOnlyPolygons() {
-  //Returns 1 if the current group contains only polygons (0 otherwise)
-  sheet(SH) {
-    SH.busses(B)
-      if (ingroup(B))
-        return 0;
-    SH.circles(C)
-      if (ingroup(C))
-        return 0;
-    SH.frames(F)
-      if (ingroup(F))
-        return 0;
-    SH.nets(N)
-      if (ingroup(N))
-        return 0;
-    SH.parts(P)
-      P.instances(I)
-        if (ingroup(I))
-          return 0;
-    SH.rectangles(R)
-      if (ingroup(R))
-        return 0;
-    SH.texts(T)
-      if (ingroup(T))
-        return 0;
-    SH.wires(W)
-      if (ingroup(W))
-        return 0;
-    SH.polygons(P)
-      if (ingroup(P))
-        return 1;
-    }
-  return 0;
-  }
-
-int GroupContainsNetParts() {
-  //Returns 1 if the current group contains some net PARTS and not the WHOLE
-  //net (0 otherwise)
-  int GroupFlag,Grouped,Ungrouped;
-  sheet(SH)
-    SH.nets(N)
-      N.segments(S) {
-        Grouped=0;
-        Ungrouped=0;
-        S.wires(W) {
-          GroupFlag=ingroup(W);
-          if (GroupFlag)
-            Grouped=1;
-          else
-            Ungrouped=1;
-          }
-        if ((Grouped) && (Ungrouped))
-          return 1;
-        }
-  return 0;
-  }
-
-int GroupContainsPolygonParts() {
-  //Returns 1 if the current group contains some polygon PARTS and not the
-  //WHOLE polygon (0 otherwise)
-  sheet(SH)
-    SH.polygons(P)
-      if (ingroup(P))
-        P.wires(W)
-          if (ingroup(W)<3)
-            return 1;
-  return 0;
-  }
-
-int GroupContainsThinPolygons() {
-  //Returns 1 if the current group contains polygons with a line width of less
-  //than 0.1mm (0 otherwise)
-  sheet(SH)
-    SH.polygons(P)
-      if (ingroup(P))
-        P.wires(W)
-          if (u2mic(W.width)<100)
-            return 1;
-  return 0;
-  }
-
-int GroupContainsNoLabels() {
-  //Returns 1 if the current group contains some net, but NOT some connected
-  //labels
-  int SegmentFullInGroup,LabelInGroup;
-  sheet(SH)
-    SH.nets(N)
-      N.segments(S) {
-        SegmentFullInGroup=1;
-        S.wires(W)
-          if (!ingroup(W))
-            SegmentFullInGroup=0;
-        if (SegmentFullInGroup) {
-          LabelInGroup=1;
-          S.labels(L)
-            if (!ingroup(L))
-              LabelInGroup=0;
-          if (!LabelInGroup)
-            return 1;
-          }
-        }
-  return 0;
-  }
-
-int GroupContainsMustGates() {
-  //Returns 1 if the current group contains gates with addlevel 'must'
-  sheet(SH)
-    SH.parts(P)
-      P.instances(I)
-        if ((ingroup(I)) && (I.gate.addlevel==GATE_ADDLEVEL_MUST))
-          return 1;
-  return 0;
-  }
-
-// Generates the EAGLE command necessary to change element name Old to New
-void Rename(string Old, string New)
-{
- 
-  printf("Name '%s' '%s';\n", Old, New);
 }

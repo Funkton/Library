@@ -1,0 +1,47 @@
+#usage "<b><h3>Apply attribute to all package/technology variants in current deviceset</h3></b>"
+  "run attribute_deviceset</b> <i>name</i> '<i>value</i>' <i>constant</i> (leave blank for variable)"
+  "<p>Example: <b>run attribute_deviceset PARTNO constant</b><br>"
+	"Would set the attribute named PARTNO as a constant type with blank value.<p>"
+  "A script with multiple calls can be used to setup standardized attribute sets."
+	"<hr>This ULP must be run in the device editor of a library."
+	
+	/*Cameron Nicks Edits
+	- Renamed to attribute-deviceset.ulp
+	TO-DO:
+	- run command instead of script file.
+	- Add error checking to make sure it is only run from device editor.
+	DONE 1.1 - Add ability to choose attribute type
+	- Fix for devices without " technology. Currently enables " as a technology
+	*/
+	
+string Version = "1.1";
+
+string fnam;                           //script output file name
+string cmd;                            //command to execute at end of ULP
+string pack;                           //package variant name string
+string techs[];                        //list of technologies
+int ntechs;                            //number of technologies in list
+int i;                                 //scratch integer and loop counter
+//
+//   Start of executable program.
+//
+fnam = argv[0];                        //init temp script name to full ULP pathname
+fnam = filesetext (fnam, ".scr");      //make script file of same generic name
+output (fnam, "wtD") {                 //open temporary script output file
+  deviceset (devset) {
+    devset.devices (dev) {
+
+      pack = dev.name;
+      if (pack == "''") pack = "";
+      printf ("package '%s';\n", pack);
+
+      ntechs = strsplit(techs, dev.technologies, ' ');
+      for (i = 0; i < ntechs; i++) {
+        printf ("technology %s;\n", techs[i]);
+        printf ("attribute %s %s %s;\n", argv[1], argv[2], argv[3]);
+        }                              //back for next technology this device
+      }                                //back for next DEV in device set
+    }                                  //end of device set
+  }                                    //done with output file
+cmd = "script " + fnam;
+exit (cmd);                            //run the temporary script

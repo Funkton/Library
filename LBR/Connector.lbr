@@ -29,7 +29,7 @@
 <layer number="18" name="Vias" color="2" fill="1" visible="no" active="yes"/>
 <layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="yes"/>
 <layer number="20" name="Dimension" color="15" fill="1" visible="no" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="22" name="bPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="yes"/>
@@ -59,8 +59,8 @@
 <layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="Mechanical" color="7" fill="1" visible="no" active="yes"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -74,7 +74,7 @@
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
 <layer number="100" name="PanelOutline" color="7" fill="1" visible="no" active="yes"/>
 <layer number="101" name="Stencil" color="7" fill="1" visible="no" active="yes"/>
-<layer number="102" name="V-Score" color="6" fill="4" visible="no" active="yes"/>
+<layer number="102" name="V-Score" color="6" fill="4" visible="yes" active="yes"/>
 <layer number="120" name="DimOutline" color="7" fill="1" visible="no" active="yes"/>
 <layer number="121" name="_tPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="122" name="_bPlace" color="7" fill="1" visible="no" active="yes"/>
@@ -1023,7 +1023,7 @@
 <smd name="3" x="0" y="-1.25" dx="0.35" dy="2.5" layer="16" stop="no" cream="no"/>
 <smd name="4" x="0.5" y="-1.25" dx="0.35" dy="2.5" layer="16" stop="no" cream="no"/>
 <smd name="5" x="1" y="-1.25" dx="0.35" dy="2.5" layer="16" stop="no" thermals="no" cream="no"/>
-<rectangle x1="-1.5" y1="-3.5" x2="1.5" y2="0" layer="102"/>
+<rectangle x1="-1.5" y1="-4" x2="1.5" y2="0" layer="102"/>
 <rectangle x1="-1.5" y1="-2.5" x2="1.5" y2="0" layer="30"/>
 <wire x1="-1.3" y1="0" x2="1.3" y2="0" width="0.05" layer="51"/>
 <wire x1="1.3" y1="0" x2="1.5" y2="-0.2" width="0.05" layer="51" curve="-90"/>
@@ -3591,7 +3591,7 @@ Mate: &lt;a href="http://www.on-shore.com/wp-content/uploads/2015/09/edz1550.pdf
 <attribute name="FINISH" value="TIN"/>
 <attribute name="MANF" value="MOLEX"/>
 <attribute name="MFPN" value="0430451227"/>
-<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="PARTNO" value="29-100911-00" constant="no"/>
 <attribute name="STATUS" value="Active" constant="no"/>
 </technology>
 <technology name="8">

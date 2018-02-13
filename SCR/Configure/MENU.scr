@@ -34,11 +34,14 @@ BRD:
 	SET CONTEXT ELEMENT  	'ROT - 180'			'RUN GRP-ROTATE 180 -';
 	SET CONTEXT ELEMENT  	'Show Part Airwires -GND'	'RUN SHOW-BRD-PART-NETS GND';
 	SET CONTEXT ELEMENT  	'Display Pad Names'			'RUN CFGTOGGLE Option.PadNames';
+	SET CONTEXT ELEMENT		'View Datasheet' 'RUN getDatasheet';
+	
 #	SET CONTEXT WIRE		'Length?'	'RUN length'; #Length needs modified to run from context.
 	SET CONTEXT WIRE		'Display Signal Names'	'RUN CFGTOGGLE Option.SignalNamesOnTraces';
 	SET CONTEXT WIRE  		'ROT - 45'			'RUN GRP-ROTATE 45 -';
 	SET CONTEXT WIRE  		'ROT - 90'			'RUN GRP-ROTATE 90 -';
 	SET CONTEXT WIRE  		'ROT - 180'			'RUN GRP-ROTATE 180 -';
+	
 	SET CONTEXT TEXT  		'ROT - 45'			'RUN GRP-ROTATE 45 -';
 	SET CONTEXT TEXT  		'ROT - 90'			'RUN GRP-ROTATE 90 -';
 	SET CONTEXT TEXT  		'ROT - 180'			'RUN GRP-ROTATE 180 -';
@@ -46,7 +49,7 @@ BRD:
 #	SET CONTEXT ELEMENT		'Move by Displacement'	'RUN MOVEBY'; #This has been replaced with RUN MOVEBY --install
 
 #MENU SHOW Doesn't handle 2 digit des, need to make list in ulp to call from
-		MENU
+	MENU
 		'Step Layer {\
 			UP       	: RUN trace-layer -; |\
 			DOWN 		: RUN trace-layer +; |\
@@ -66,7 +69,7 @@ BRD:
 			Show Class		: RUN showclass; |\
 			GRP in SCH : RUN SHOW-GROUP-PARTS; |\
 			PART - Nets : RUN SHOW-BRD-PART-NETS GND; |\
-			Show Values : RUN SHOWVALS; |\
+			Show Values : RUN SHOW_VALUES; |\
 		}'\
 		'RATS 	{\
 			All			: SCRIPT Rats-All.scr; |\
@@ -92,12 +95,13 @@ BRD:
 				Signals on Trace:	RUN CFGTOGGLE Option.SignalNamesOnTraces;|\
 				Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins;|\
 			}|\
-			'RENDER {\
+			RENDER {\
 				Top       : SCRIPT RenderT.scr; |\
 				Bottom : SCRIPT RenderB.scr; |\
-			}'\
+			}\
 		}'\
-		'UTIL {\
+		'UTILITY {\
+			Live DRC : RUN CFGTOGGLE Option.LiveDrc;; |\
 			ATTRIBUTES {\
 				COPY				: RUN ATT-COPY; |\
 				VIEW LIST		: RUN attview; |\
@@ -130,8 +134,8 @@ BRD:
 				Export Layer Styles : RUN board-layer-styles; |\
 			}|\
 			TEARDROP {\
-				ADD				: RUN TEARDROP; |\
-				REMOVE		: RUN CLEANWIRE; |\
+				[C:\LAYOUT\Library\ULP\BRD\TEARDROP\tear_exec30.png]	ADD			: RUN TEARDROP; |\
+				[C:\LAYOUT\Library\ULP\BRD\TEARDROP\de_tear30.png] REMOVE		: RUN CLEANWIRE; |\
 			}|\
 		}'\	
 				
@@ -153,25 +157,33 @@ SCH:
 	SET CONTEXT INSTANCE	'Move by Displacement'	'RUN MOVEBY';
 	SET CONTEXT INSTANCE	'Show in Brd'	'RUN SHOW-SCH-GROUP';
 	SET CONTEXT INSTANCE	'Show Airwires'	'RUN SHOW-SCH-GROUP -rats'; #This doesn't work to show group and only focuses on the single part right clicked on. Need context meu in blank space that can activate a whoel group.
-
+	SET CONTEXT INSTANCE	'View Datasheet' 'RUN getDatasheet';
+	
 		MENU 
 		'GROUP {\
-			SCH to BRD		: RUN select-sch-group-to-brd-group; |\
-			Rats Group		: RUN group-rats; |\
-				}'\	
-		'SELECT : RUN SELECT;'\
+			BRD Transfer Group			: RUN select-sch-group-to-brd-group; |\
+			BRD Show Group : RUN SHOW-SCH-GROUP; |\
+			BRD Show - Solo Nets : RUN SHOW-SCH-GROUP -rats; |\
+				}'\
 		'SHOW {\
-			Show Class		:	RUN showclass; |\
-			Part Origins	:	RUN CFGTOGGLE Option.ShowPartOrigins; |\
-			Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins; |\
-			GRP - Parts      : RUN SHOW-GROUP-PARTS; |\
-			GRP - Nets Parts : RUN SHOW-SCH-GROUP; |\
-			GRP - Rats Nets Parts : RUN SHOW-SCH-GROUP -rats; |\
-			Show Values : RUN SHOWVALS; |\
-		}'\		
+			Highlight Class		:	RUN showclass; |\
+			Highlight Values : RUN SHOW_VALUES; |\
+			Display Part Origins	:	RUN CFGTOGGLE Option.ShowPartOrigins; |\
+			Display Text Origins 	:	RUN CFGTOGGLE Option.ShowTextOrigins; |\
+		}'\
+		'CHANGE {\
+			Line Width	: CHANGE WIDTH |\
+			Text Size		: CHANGE SIZE |\
+			Text Align	:	CHANGE ALIGN |\
+			Package			: CHANGE PACKAGE |\
+			Technology	: CHANGE TECH |\
+			Component		: REPLACE |\			
+			Net Class		: CHANGE CLASS |\
+				}'\
 		'UTIL {\
 			Print PDF		:	PRINT SHEETS ALL FILE %P/../%N.%E.pdf |\
 			BOM					: RUN BOM-EX; |\
+			SELECT					: RUN SELECT; |\
 		}'\	
 
 #----------------------------------#
@@ -186,8 +198,24 @@ LBR:
 DEV:
 	# Device text command menu setup
 	MENU
-		'ATT - STD : SCRIPT ATT_STD.scr;' |\
-		'Copy Dev Att		: RUN copy-attribute-at-deviceset;'
+		'' |\
+		'ATTRIBUTE {\
+			Copy to All Tech/Var		: RUN attribute-copy-technologies; |\
+			Set - STANDARD : SCRIPT ATT_SET_STANDARD.scr; |\
+			Set - ACTIVE : SCRIPT ATT_SET_ACTIVE.scr; |\
+			Set - CAP : SCRIPT ATT_SET_CAP.scr; |\
+			Set - CONN : SCRIPT ATT_SET_CONN.scr; |\
+			Set - DIODE : SCRIPT ATT_SET_DIODE.scr; |\
+			Set - IND : SCRIPT ATT_SET_IND.scr; |\
+			Set - REG : SCRIPT ATT_SET_REG.scr; |\
+			Set - RES : SCRIPT ATT_SET_RES.scr; |\
+			Set - VENDOR : SCRIPT ATT_SET_VENDOR.scr; |\
+			INDIVIDUAL {\
+				BOM				: run attribute-deviceset BOM; |\
+				EXCLUDE				: run attribute-deviceset EXCLUDE; |\
+				EXTERNAL				: run attribute-deviceset _EXTERNAL_; |\
+			}|\
+		}'\	
 
 
 PAC:

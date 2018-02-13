@@ -20,6 +20,8 @@
 SCRIPT SHORTCUTS.scr
 SCRIPT MENU.scr
 
+# SCRIPT LAYERS.scr #Not ready, need to separate layers by editors
+
 #----------------------------------#
 #------------ GENERAL--------------#
 #----------------------------------#
@@ -27,6 +29,8 @@ SCRIPT MENU.scr
 
 	
 	set Interface.PreferredUnit 2;
+	
+	set Option.ToggleCtrlForGroupSelectionAndContextMenu 1; # Added ctrl-right click to mouse right click for context. Top thumb set to ctrl-right click.
 
 	set Cmd.Wire.IgnoreCtrlForRadiusMode 1;
 	set Option.DrawUnprocessedPolygonEdgesContinuous 0;
@@ -37,8 +41,6 @@ SCRIPT MENU.scr
 	set Option.ShowPartOrigins 1;
 	set Option.ShowTextOrigins 1;
 	set Option.SnapLength 1000;
-	set Option.UnpopulatedMarkScaling .7;
-	set Option.ToggleCtrlForGroupSelectionAndContextMenu 1;
 	set Warning.PartHasNoUserDefinableValue 0;
 	set Warning.SupplyPinAutoOverwriteGeneratedNetName 0;
 	SET REPLACE_SAME NAMES;
@@ -86,7 +88,7 @@ SCRIPT MENU.scr
 BRD:
 		# Context and menu set from Configure/MENU.scr
 
-SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
+# SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
 
 		#New 8.2.2 Layer Presets
 		# Every time eagle.scr runs it errors stating the maximum number of presets has been reached, even though no new presets are being defined.
@@ -152,6 +154,9 @@ SCRIPT LAYERS.scr #Set layers from master, Not ready yet. EXP-LAYERS.ulp in prog
 
 SCH:
 		# Context and menu set from Configure/MENU.scr
+	
+	set Option.UnpopulatedMarkScaling .7;
+		
 	GRID ON;
 	GRID DOTS;
 	Grid IN .1;
@@ -160,10 +165,12 @@ SCH:
 	Change Font Vector; #This doesn't actually get set on the first running of eagle.scr, must re-run to take effect
 	SET vector_font on;
 	Change Size 0.050;
-	Change Ratio 12;
+	Change Ratio 10;
 	CHANGE XREF ON;
+	CHANGE ALIGN top-left;
 
 	SET WIRE_BEND @ 0 4; #Only allow 90 angles
+	SET WIDTH_MENU 0.00 0.003in 0.006in 0.01in 0.015in 0.02in 0.025in 0.03in 0.035in 0.04in 0.045in 0.05in 0.1in;
 	
 
 		# Toolbar Hack Settings from eaglerc.usr - This hack puts the main toolbar at the bottom. Not officially supported, use at own risk.

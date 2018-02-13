@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -563,6 +564,7 @@ EIA CC1206 (3216 Metric)</description>
 </connects>
 <technologies>
 <technology name="">
+<attribute name="DESC" value="" constant="no"/>
 <attribute name="MFPN" value="" constant="no"/>
 <attribute name="PARTNO" value="" constant="no"/>
 <attribute name="RATE" value="" constant="no"/>
@@ -572,6 +574,7 @@ EIA CC1206 (3216 Metric)</description>
 <attribute name="VOLT" value="" constant="no"/>
 </technology>
 <technology name="6V-500MA-">
+<attribute name="DESC" value="FUSE PTC RESET 6V .50A 1206"/>
 <attribute name="MFPN" value="1206L050YR"/>
 <attribute name="PARTNO" value="10-100042-00"/>
 <attribute name="RATE" value="500mA"/>

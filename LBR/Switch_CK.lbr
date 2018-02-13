@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.3.0">
+<eagle version="8.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -1034,7 +1034,7 @@ http://www.bobstarr.net</description>
 <attribute name="FORCE" value="220gf"/>
 <attribute name="MANF" value="C&amp;K"/>
 <attribute name="MFPN" value="PTS840 GKP SMTR"/>
-<attribute name="PARTNO" value="NEW" constant="no"/>
+<attribute name="PARTNO" value="22-100089-00"/>
 <attribute name="RATE" value="0.05A @ 12VDC"/>
 <attribute name="TYPE" value="SPST-NO"/>
 </technology>

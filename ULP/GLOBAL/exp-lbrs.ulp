@@ -1,0 +1,1987 @@
+#usage "en:<b>Export of libraries from a drawing.</b><p>\n"
+          "This can be used to make individual changes to components in a project. "
+          "Just load schematic, board or both, use this ULP to generate one or several libraries "
+          "containing the used components. Make your changes in the library/libraries and use the "
+          "UPDATE command to introduce the changes to schematic and/or board.<p>"
+          "See Help for further details.<p>",
+       "de:<b>Export von Bibliotheken aus einer Zeichnungsdatei.</b><p>\n"
+          "Damit können Sie individuelle Änderungen an Komponenten in einem Projekt machen. "
+          "Laden Sie dazu Schaltplan, Board oder beides, verwenden Sie dieses ULP, um eine oder mehrere Bibliotheken "
+          "mit den verwendeten Komponenten zu generieren. Machen Sie Ihre Änderungen in der/den Bibliothek(en) "
+          "und verwenden Sie den UPDATE-Befehl, um die Änderungen in Schaltplan und/oder Board zu bringen.<p>"
+          "Siehe Hilfe für weitere Details.<p>"
+
+#require 6.0301
+
+string Version = "6.1";
+
+// Language:
+//----------
+// Please keep to alphabetic sorting for maintainability !
+string Dictionary[] = {
+   "en\v"
+   "de\v",
+   "+OK\v"
+   "+OK\v",
+   "Back\v"
+   "Zurück\v",
+   "Both managed and unmanaged libraries\v"
+   "Verwaltete und Nicht-Verwaltete Bibliotheken\v",
+   "&Browse...\v"
+   "&Durchsuchen...\v",
+   "Cancel\v"
+   "Abbrechen\v",
+   "Create multiple libraries\v"
+   "Erzeuge mehrere Bibliotheken\v",
+   "Create one library and parts replace script\v"
+   "Erzeuge eine Bibliothek und das Replace-Script\v",
+   "Creation mode\v"
+   "Erzeugungsmodus\v",
+   ":ERROR: Invalid command line option\v"
+   ":FEHLER: Ungültige Befehlszeilen-Option\v",
+   ":ERROR: No libraries are selected. Please select one or more libraries to export.\v"
+   ":FEHLER: Keine Bibliotheken gewählt. Wählen Sie eine oder mehrere zum Export aus.\v",
+   ":ERROR: objectType mismatch\v"
+   ":FEHLER: Unpassender ObjektTyp\v",
+   ":ERROR: Replace script can only be created from the schematic\v"
+   ":FEHLER: Replace-Script kann nur aus dem Schaltplan erzeugt werden\v",
+   "Export\v"
+   "Export\v",
+   "Export all\v"
+   "Alles exportieren\v",
+   "Export EAGLE libraries - Help\v"
+   "Export von EAGLE-Bibliotheken - Hilfe\v",
+   "Export EAGLE libraries from drawing\v"
+   "Export von EAGLE-Bibliotheken aus der Zeichnung\v",
+   "Export multiple libraries\v"
+   "In mehrere Bibliotheken exportieren\v",
+   "Export one library\v"
+   "In eine Bibliothek exortieren\v",
+   "Export original libraries\v"
+   "Original-Bibliotheken exportieren\v",
+   "Exporting device %s...\v"
+   "Exportiere Device %s...\v",
+   "Exporting libraries...\v"
+   "Exportiere Bibliotheken\v",
+   "Exporting library %s...\v"
+   "Exportiere Bibliothek %s...\v",
+   "Exporting package %s...\v"
+   "Exportiere Package %s...\v",
+   "Exporting replace script...\v"
+   "Exportiere Replace-Script...\v",
+   "Exporting symbol %s...\v"
+   "Exportiere Symbol %s...\v",
+   "File\v"
+   "Datei\v",
+   "Filter:\v"
+   "Filter:\v",
+   "Generate replace script\v"
+   "Erzeuge Replace-Script\v",
+   "Help...\v"
+   "Hilfe...\v",
+   "ID\tExport\tSource Library\tManaged\tDescription\v"
+   "ID\tExport\tQuell-Bibliothek\tVerwaltet\tBeschreibung\v",
+   "\v"
+   "frei\v",
+   "Load\v"
+   "Laden\v",
+   "Managed libraries only\v"
+   "Nur Verwaltete Bibliotheken\v",
+   "Merge to one library (name like drawing. Library names are used as prefix for symbol, package and device names)\v"
+   "In eine Bibliothek integrieren (Name wie Zeichnung. Die Bibliotheksnamen werden als Präfix für Symbol-, Package- und Devicenamen verwendet)\v",
+   "Merge to one library, original library names as prefix for symbol, package and device names\v"
+   "In eine Bibliothek integrieren, Original-Bibliotheksnamen als Präfix für Symbol-, Package- und Devicenamen verwenden\v",
+   "Merge to one library, unchanged symbol, package and device names\v"
+   "In eine Bibliothek integrieren, Symbol-, Package- und Devicenamen unverändert\v",
+   "No Libraries Found!\v"
+   "Keine Bibliotheken gefunden!\v",
+   "Nothing selected to export\v"
+   "Nichts zum Exportieren gewählt\v",
+   "Only export package variants for parts used in design\v"
+   "Nur die Package-Varianten exportieren, die im Design verwendet sind\v",
+   "Path:\v"
+   "Pfad:\v",
+   "Please select a library name from the list!\v"
+   "Bitte wählen Sie einen Bibliotheksnamen aus der Liste!\v",
+   "Please start from schematic or board editor!\v"
+   "Bitte starten Sie vom Schaltplan- oder Board-Editor!\v",
+   "Prefix parts with library name\v"
+   "Parts mit Bibliotheksnamen-Präfix\v",
+   "Select a directory\v"
+   "Verzeichnis wählen\v",
+   "Select all\v"
+   "Alle auswählen\v",
+   "Select all managed\v"
+   "Alle Verwalteten auswählen\v",
+   "Select all unmanaged\v"
+   "Alle nicht Verwalteten auswählen\v",
+   "Select none\v"
+   "Nichts auswählen\v",
+   "Selected 1 library for export\v"
+   "1 Bibliothek zum Export gewählt\v",
+   "Selected %d libraries for export\v"
+   "%d Bibliotheken zum Export gewählt\v",
+   "Settings\v"
+   "Einstellungen\v",
+   "Source Library\v"
+   "Quell-Bibliothek\v",
+   "Start\v"
+   "Start\v",
+   "Status\v"
+   "Status\v",
+   "Unmanaged libraries only\v"
+   "Nur Nicht-Verwaltete Bibliotheken\v"
+};
+
+string DlgLang = language();
+if (DlgLang != "de") DlgLang = "en";
+int LangIdx = strstr(Dictionary[0], DlgLang) / 3;
+
+// Translate, based on dictionary
+string TR(string s) {
+  string t = lookup(Dictionary, s, LangIdx, '\v');
+  return t ? t : s;
+}
+
+// Helper function to convert an integer value to a string
+string dtostr (int value) {
+   string strValue = "";
+   sprintf (strValue, "%d", value);
+   return strValue;
+}
+
+//-----------------------------------------------------------------------------
+
+// Used in DrawText
+string AlignName[];
+AlignName[ALIGN_BOTTOM_LEFT]   = "BOTTOM LEFT";
+AlignName[ALIGN_BOTTOM_CENTER] = "BOTTOM CENTER";
+AlignName[ALIGN_BOTTOM_RIGHT]  = "BOTTOM RIGHT";
+AlignName[ALIGN_CENTER_LEFT]   = "CENTER LEFT";
+AlignName[ALIGN_CENTER]        = "CENTER CENTER";
+AlignName[ALIGN_CENTER_RIGHT]  = "CENTER RIGHT";
+AlignName[ALIGN_TOP_LEFT]      = "TOP LEFT";
+AlignName[ALIGN_TOP_CENTER]    = "TOP CENTER";
+AlignName[ALIGN_TOP_RIGHT]     = "TOP RIGHT";
+
+string Croute[];
+Croute[CONTACT_ROUTE_ALL] = "ALL";
+Croute[CONTACT_ROUTE_ANY] = "ANY";  // 2012-09-26
+
+// Used in DrawDimension
+string DimType[];
+DimType[DIMENSION_PARALLEL] = "PARALLEL";
+DimType[DIMENSION_HORIZONTAL] = "HORIZONTAL";
+DimType[DIMENSION_VERTICAL] = "VERTICAL";
+DimType[DIMENSION_RADIUS] = "RADIUS";
+DimType[DIMENSION_DIAMETER] = "DIAMETER";
+DimType[DIMENSION_ANGLE] = "ANGLE";
+DimType[DIMENSION_LEADER] = "LEADER";
+
+string UnitName[];
+UnitName[GRID_UNIT_MIC] = "MIC";
+UnitName[GRID_UNIT_MM] = "MM";
+UnitName[GRID_UNIT_MIL] = "MIL";
+UnitName[GRID_UNIT_INCH] = "INCH";
+
+string x[] = { " " };
+string CurrentLbrName   = "";
+string EditName;
+string h, cmd = "";
+string ScriptName, PureScriptName;
+string WorkPath;
+string Status = "";
+string allPackages = "yes";
+string usedPackages[];
+string execStatus = "";
+
+int    n;
+int    initialLibNumber = 0;
+int    NameIndex = 0;
+int    excludeManaged = 0;
+int    exportViewed = 1;
+int    onelib = 1;
+int    prefixLibName = 1;
+int    genReplace = 1;
+int    NoGUI = 0;
+
+// A list of library names (less the lbr extension) to exclude
+// from the export. Any parts from the library names in this list
+// will not get exported or replaced.
+
+string DefaultExcludes =
+    "rcl:diode:rc-master:rc-master-smd:supply:supply0:supply1:supply2:supply3:supply4:"+
+    "led:jumper:frames:testpad";
+
+int    ListCount = 0;
+int    ListViewIndex = -1;
+int    ListSortCol = 0;
+string ListView[];
+string ListState[];
+string LibName[];
+string LibDesc[];
+string LibURN[];
+int    LibState[];
+int    LibManaged[];
+string libNames[];
+int    libManaged[];
+int    numLibsInit   = 0;
+int    numLibs       = 0;
+int    numExported   = 0;
+string Libraries[]   = {""};
+
+string symNames[] = {"baseName\v""URN\v"};
+string pacNames[] = {"baseName\v""URN\v"};
+string devNames[] = {"baseName\v""URN\v"};
+string lbrNames[] = {"baseName\v""URN\v"};
+
+char   ascii127[]       =   { 181,  196,  214,  220,  223, 0 }; // not allowed character 2010-05-12
+// www: In 8859-1 these chars are { µ ,Ä ,Ö, Ü, ß } and therefore actually allowed as object names.
+//      Change this if requested ! What's also allowed but deprecated is { ä, ö, ü }. Should be replaced
+//      by { Ä, Ö, Ü }. All other chars allowed for file names are allwoed also for object names.
+//      Lower case is automatically converted to upper case (except the umlauts).
+string Newascii127[]    =   { "U", "AE", "OE", "UE", "SS", "" }; // change to allowed character
+
+string HelpText[] = {
+  "The library export collects the devices or packages from a schematic or board and stores them back into one or several libraries."
+  "<p>"
+  "By default all contained libraries are exported with their original name into the drawing path. Thus you can edit symbols and/or packages in these libraries and use the UPDATE command to change all respective parts in schematic or board."
+  "<p>"
+  "If '<i>Merge into one library</i>' is checked, a single library with the name of the schematic or board is generated. Package, symbol and device names are then prefixed with the names of the original libraries."
+  "<p>"
+  "The export path can be adjusted by 'Browse' to select a directory. If one of the library files to be created already exists, you will be prompted if the existing file may be deleted."
+  "<p>"
+  "The command line syntax is:"
+  "<p>"
+  "exp-lbrs [--help] [--force-gui] [--original|--merge|--merge-prefix] [--always-number] [--output-path=/path/to/the/output/location/]<br />"
+  "exp-lbrs-replace2 [--help] [--force-gui] [--original|--merge|--merge-prefix] [--output-path=/path/to/the/output/location/]"
+  "<p>"
+  "where:"
+  "<p><table>"
+  "<tr><td>   --help</td><td>&nbsp;Display the help dialog for the tool.</td></tr>"
+  "<tr><td>   --force-gui</td><td>&nbsp;The GUI will show when the command is run regardless of any other parameters.</td></tr>"
+  "<tr><td>   --original</td><td>&nbsp;Export all the original library names to separate library files.</td></tr>"
+  "<tr><td>   --merge</td><td>&nbsp;Export to a single library file keeping the symbol/package/device names the same.</td></tr>"
+  "<tr><td>   --merge-prefix</td><td>&nbsp;Export to a single library prefixing the symbol/package/device names with the original library names.</td></tr>"
+  "<tr><td>   --always-number</td><td>&nbsp;Will force the export of libraries to always have a numeric postfix.</td></tr>"
+  "<tr><td>   --output-path</td><td>&nbsp;Specifies an optional output location to allow it to be changed from the default project directory.</td></tr>"
+  "<tr><td>   --used-packages</td><td>&nbsp;When enabled only packages which are used will be exported. All others will be ignored.</td></tr>"
+  "</table><p>"
+  "Example:"
+  "<p>"
+  "run exp-lbrs --merge-prefix --output-path=/Users/myUser/Documents/Testing/"
+  ,
+  "Der Bibliotheks-Export sammelt Devices und Packages eines Schaltplans oder Boards und speichert sie in eine oder mehrere Bibliotheken."
+  "<p>"
+  "Standardmässig werden alle enthaltenen Bibliotheken mit ihrem Orignialnamen in den Pfad der Zeichnungsdatei(en) exportiert. So können Sie Symbole und/oder Packages editieren und mit dem UPDATE-Befehl alle entsprechenden Bauteile in Schaltplan und Board aktualisieren."
+  "<p>"
+  "Wenn '<i>In eine Bibliothek integrieren</i>' gewählt ist, wird eine einzige Bibliothek mit Schaltplan- bzw. Boardnamen generiert. Package-, Symbol- und Devicenamen erhalten den Namen der Original-Bibliothek als Präfix."
+  "<p>"
+  "Der Export-Pfad kann mit 'Durchsuchen' eingestellt werden.Wenn eines der Bibliotheken bereits existiert, werden Sie gefragt, ob die bestehende Datei gelöscht werden darf."
+  "<p>"
+  "Es gibt folgende Befehlszeilen-Optionen:"
+  "<p>"
+  "exp-lbrs [--help] [--force-gui] [--original|--merge|--merge-prefix] [--always-number] [--output-path=/path/to/the/output/location/]<br />"
+  "exp-lbrs-replace2 [--help] [--force-gui] [--original|--merge|--merge-prefix] [--output-path=/path/to/the/output/location/]"
+  "<p>"
+  "Bedeutung:"
+  "<p><table>"
+  "<tr><td>   --help</td><td>&nbsp;Zeigt den Hilfe-Dialog an.</td></tr>"
+  "<tr><td>   --force-gui</td><td>&nbsp;Zeigt immer die Benutzeroberfläche an, unabhängig von weiteren Parametern.</td></tr>"
+  "<tr><td>   --original</td><td>&nbsp;Exportiert alle Original-Bibliotheksnamen in separate Bibliotheksdateien.</td></tr>"
+  "<tr><td>   --merge</td><td>&nbsp;Exportiert in eine einzige Bibliotheksdatei mit unveränderten Namen für Symbol/Package/Device.</td></tr>"
+  "<tr><td>   --merge-prefix</td><td>&nbsp;Exportiert in eine Bibliotheksdatei mit vorangestellten Original-Biblitheksnamen bei Symbol/Package/Device.</td></tr>"
+  "<tr><td>   --always-number</td><td>&nbsp;Fügt der Bibliothek beim Export eine numerische Namenserweiterung hinzu.</td></tr>"
+  "<tr><td>   --output-path</td><td>&nbsp;Gibt optional einen Ausgabepfad abweichend vom Standard-Projekt-Verzeichnis an.</td></tr>"
+  "<tr><td>   --used-packages</td><td>&nbsp;Mit dieser Option werden nur die verwendeten Packages exportiert. Alle anderen werden ignoriert.</td></tr>"
+  "</table><p>"
+  "Beispiel:"
+  "<p>"
+  "run exp-lbrs --merge-prefix --output-path=/Users/myUser/Documents/Testing/"
+};
+
+void DisplayHelp() {
+   dlgDialog(TR("Export EAGLE libraries - Help")) {
+      dlgHBoxLayout dlgSpacing(1024);
+      dlgTextView(HelpText[LangIdx]);
+      dlgHBoxLayout {
+         dlgStretch(1);
+         dlgPushButton("+" + TR("Back")) dlgReject();
+         dlgStretch(1);
+      }
+   };
+}
+
+string get_project_path() {
+  if (board)     board(B)     return(filedir(B.name));
+  if (schematic) schematic(S) return(filedir(S.name));
+  if (library)   library(L)   return(filedir(L.name));
+}
+
+string formatDirStr(string path) {
+   if (path){
+      char lastChar = path[strlen(path)-1];
+      if (lastChar != '/') {
+         path += '/';
+      }
+   }
+   return path;
+}
+
+int createDirIfNotExist(string path) {
+   string sysCmd = "";
+   string OS[];
+   strsplit(OS, OS_SIGNATURE, '_');
+   if (OS[0] == "Mac") {
+      sprintf(sysCmd, "mkdir -p '%s'", path);
+   } else if (OS[0] == "Linux") {
+      sprintf(sysCmd, "mkdir -p '%s'", path);
+   } else if (OS[0] == "Windows") {
+      string pathElements[];
+      string newPath = "";
+      int numElements = strsplit(pathElements, path, '/');
+      for (int i=0 ; i < numElements ; i++) {
+         newPath += pathElements[i];
+         newPath += "\\\\";
+      }
+      sprintf(sysCmd, "cmd.exe /c mkdir \"%s\"", newPath);
+   } else {
+      return -1;
+   }
+   system(sysCmd);
+   return 0;
+}
+
+string MakeHTML (string s, string color) {
+   string tmp = "";
+   sprintf(tmp, "<html><body bgcolor=\"%s\">%s</body></html>", color, s);
+   return tmp;
+}
+
+string replacenewline(string nl) {
+  string a[];
+  int n = strsplit(a, nl, '\n');
+  if (n > 0) {
+    nl = "";
+    for (int x = 0; x < n - 1; x++) {
+      nl += a[x] + "\\n";
+    }
+    nl += a[x];
+  }
+  return nl;
+}
+
+// Da der ganze String in ' eingeschlossen wird,
+// müssen die Apostrophen verdoppelt werden.
+string addApostroph(string name) {  // 2012-03-23
+  string t[];
+  int cnt = strsplit(t, name, '\''); // check Apostroph
+  if (cnt > 1) {
+    name = "";
+    for (int i = 0; i < cnt; i++) {
+      if (i == 0) {
+        if (t[i]) name += t[i];
+      }
+      else if (i) name += "''" + t[i];
+    }
+  }
+  return name;
+}
+
+string replaceascii127(string s, int n, string newascii) {
+  if (n == strlen(s)) return strsub(s, 0, n) + newascii;
+  else return strsub(s, 0, n) + newascii + strsub(s, n+1);
+}
+
+string check_ascii127(string s) {  // 2009-02-02
+  int n = 0;
+  int pos;
+  do {
+    pos = strchr(s, ascii127[n]);
+    if (pos > -1)
+      s = replaceascii127(s, pos, Newascii127[n]);
+    if (pos < 0) n++;  // 2012-02-08
+  } while (ascii127[n]);
+  return s;
+}
+
+// Remove this as soon as the "@-problem" is solved !
+string ReplaceAt(string s) {
+  for (int i = 0; i < strlen(s); i++)
+      if (s[i]=='@') s[i]='$';  // Creates problems when name is used in ADD and other commands
+  return s;
+}
+
+string ReplaceInvalidCharsForObjNames(string s) {
+  for (int i = 0; i < strlen(s); i++)
+      if (s[i]==' ') s[i]='-';  // No '_' to distinguish from prefix ending !
+
+  return ReplaceAt(s);
+}
+
+string LbrPrefix(string s) {
+  s = check_ascii127(s);
+  return ReplaceInvalidCharsForObjNames(s) + "_";
+}
+
+string LbrMakeExplicit(string s) {
+   int pos;
+   // check for implicit technology postfix and convert to explicit
+   pos = strchr(s, '*');
+   if (pos < 0) {
+      s += '*';
+   }
+   // check for implicit package variant postfix and convert to explicit
+   pos = strchr(s, '?');
+   if (pos < 0) {
+      s += '?';
+   }
+   return s;
+}
+
+string getURN(UL_LIBRARY LBR) {
+   string s = "";
+   if (LBR.id) {
+      s = LBR.id;
+   }
+   return s;
+}
+
+int exist_file(string FileName) {
+  string a[];
+  int n = fileglob(a, FileName);
+  if (n == 0) return 0;
+  else return 1;
+}
+
+// Helper function to convert an integer value to a string
+string ltostr (int value) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+   string strValue = "";
+   sprintf (strValue, "%d", value);
+   return strValue;
+}
+
+// Helper function to read/write arrays and return name strings
+string createName (string objectType, string name, string urn) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+
+   // Declare local variables
+   string names[] = {""};
+   string result = ReplaceAt(name); // Default to return if NOT managed
+   string urnList = "";
+   string urns[] = {""};
+   int    numUrns = 0;
+   string arrayString = "";
+   string arrayEntry = "";
+   int    entryNumber = 0;
+   int    arraySize = 0;
+   int    postfixVal = -1;
+
+   // Determine what we are dealing with and copy the global array to the local names[] array
+   if (objectType == "SYM") {
+      int i = 0;
+      while (symNames[i]) {
+         names[i] = symNames[i]; i++;
+      }
+   } else if (objectType == "PAC") {
+      int i = 0;
+      while (pacNames[i]) {
+         names[i] = pacNames[i]; i++;
+      }
+   } else if (objectType == "DEV") {
+      int i = 0;
+      while (devNames[i]) {
+         names[i] = devNames[i]; i++;
+      }
+   } else if (objectType == "LBR") {
+      int i = 0;
+      while (lbrNames[i]) {
+         names[i] = lbrNames[i]; i++;
+      }
+   } else {
+      // Something isn't right here, no matching objectType found
+      dlgMessageBox(TR(":ERROR: objectType mismatch"));
+      exit(-1); // Exit with an error
+   }
+
+   // Get the current data from the array
+   urnList = lookup (names, name, "URN", '\v');
+   if (urnList) {
+      numUrns = strsplit (urns, urnList, ';');
+   }
+
+   // If the library is managed deal with URN replacement
+   if (urn) {
+
+      // If an entry already exists, extract the current data else if no entry currently exists insert a new entry
+      if (urnList) {
+
+         // Find the array entry
+         int i = 0;
+         while (names[i]) {
+            string record[];
+            int x = strsplit (record, names[i], '\v');
+            string entryName = record[0];
+            if (entryName == name) {
+               entryNumber = i;
+               break; // We've got what we came for.
+            }
+            i++;
+         }
+
+         // Caulculate the updated data
+         for ( i = 0 ; i < numUrns ; i++ ) {
+            if (urns[i] == urn) {
+               postfixVal = i+initialLibNumber;
+               break; // If the URN is already in the list then we do nothing
+            }
+         }
+         if (postfixVal == -1) {
+            urns[numUrns] = urn;
+            postfixVal = numUrns+initialLibNumber;
+         }
+
+         urnList = strjoin (urns, ';');
+
+         // Create the new array entry
+         arrayEntry = name + '\v' + urnList + '\v';
+
+         // Update the array with the new urnList for the entry
+         names[entryNumber] = arrayEntry;
+
+      } else {
+
+         // Create a new urnList containing just the new URN
+         urnList = urn;
+
+         // Set the postfix value to 1
+         postfixVal = initialLibNumber;
+
+         // Create the new array entry
+         arrayEntry = name + '\v' + urnList + '\v';
+
+         // Add a new array entry for the library
+         arrayString = strjoin (names, '\n');
+         int pos = strrchr(arrayString, '\n');
+         if (pos >= 0) {
+            arrayString[pos] = '\0';
+         }
+         arrayString += arrayEntry;
+         arraySize = strsplit (names, arrayString, '\n');
+
+      }
+
+      // Create the name to return
+      if (postfixVal > 0) {
+         result += ":" + ltostr(postfixVal);
+      }
+
+   }
+
+   // Write back to the appropriate global array from the local names[] array
+   int i = 0;
+   while (names[i]) {
+      if (objectType == "SYM") {
+         symNames[i] = names[i]; i++;
+      } else if (objectType == "PAC") {
+         pacNames[i] = names[i]; i++;
+      } else if (objectType == "DEV") {
+         devNames[i] = names[i]; i++;
+      } else if (objectType == "LBR") {
+         lbrNames[i] = names[i]; i++;
+         // Overwrite the name to return from above if a library using @ rather than :
+         int pos = strrchr(result, ':');
+         if (pos >= 0) {
+            result[pos] = '@';
+         }
+      } else {
+         // Something isn't right here, no matching objectType found
+         dlgMessageBox(TR(":ERROR: objectType mismatch"));
+         exit(-1); // Exit with an error
+      }
+   }
+
+   // Uncomment to print out the entire array contents to a message box for debug
+   //dlgMessageBox(strjoin(names, '\n'));
+
+   return result;
+}
+
+void CreateLBRdescription(string project_name) {
+  // !!! Wird nicht vorherige Description überschrieben ?
+  sprintf(h, "DESCRIPTION 'Generated from <b>%s</b><p>\\n\\\nby %s';\n", filename(project_name), filename(argv[0]));
+  cmd += h;
+  return;
+}
+
+void CreateHeader(UL_LIBRARY LBR) {
+  if (project.board) {
+    project.board(B) {
+      B.layers(L) {
+        sprintf(h, "Layer %d %s;\n", L.number, L.name);
+        if (L.number > 1 && L.number < 16) cmd += "# "+h;  // !!!
+        else cmd += h;
+      }
+    }
+  }
+  if (project.schematic) {
+    project.schematic(SCH) {
+      SCH.layers(L) {
+        sprintf(h, "Layer %d %s;\n", L.number, L.name);
+        cmd += h;
+      }
+    }
+  }
+  sprintf(h, "Set Wire_bend 2;\nSet Select_factor 0;\nSet Undo_log off;\n"); cmd += h;
+  sprintf(h, "Grid mic 1;\n"); cmd += h;
+  sprintf(h, "Display All;\n"); cmd += h;
+  cmd  += "DESCRIPTION '" + addApostroph(replacenewline(LBR.description)) + "';\n";
+}
+
+void CreateTrailer(void) {
+  sprintf(h, "Set Undo_log On;\nSet Select_factor 0.02;\nGrid last;\n"); cmd += h;
+}
+
+void PrintValidLayer(int LNr) {
+  sprintf(h, "Layer %d;\n", LNr); cmd += h;
+}
+
+void DrawDimension(UL_DIMENSION D) { // 2011-12-06
+  sprintf(h, "CHANGE LAYER %d;\n", D.layer); cmd += h;
+  sprintf(h, "CHANGE SIZE %f;\n", u2mic(D.size)); cmd += h;
+  sprintf(h, "CHANGE RATIO %d;\n", D.ratio); cmd += h;
+  sprintf(h, "CHANGE DUNIT %s %s %d;\n", UnitName[D.unit], (D.visible==0) ? "off" : "on", D.precision); cmd += h;
+  sprintf(h, "CHANGE DLINE %f %f %f %f;\n", u2mic(D.width), u2mic(D.extwidth), u2mic(D.extlength), u2mic(D.extoffset)); cmd += h;
+  sprintf(h, "DIMENSION %s (C%f %f) (%f %f) (%f %f);\n",  // Warum das C ?
+              DimType[D.dtype],
+              u2mic(D.x1), u2mic(D.y1),
+              u2mic(D.x2), u2mic(D.y2),
+              u2mic(D.x3), u2mic(D.y3) );
+  cmd += h;
+  return;
+}
+
+void DrawFrame(UL_FRAME F) {
+  PrintValidLayer(F.layer);
+
+  string FBorder = "";
+  if (F.border & 1) FBorder += " BOTTOM";
+  if (F.border & 2) FBorder += " RIGHT";
+  if (F.border & 4) FBorder += " TOP";
+  if (F.border & 8) FBorder += " LEFT";
+
+  sprintf(h, "FRAME %d %d %s (%f %f) (%f %f);\n",
+            F.columns, F.rows,
+            FBorder,
+            u2mic(F.x1), u2mic(F.y1),
+            u2mic(F.x2), u2mic(F.y2) );
+            cmd += h;
+  return;
+}
+
+void DrawCircle(UL_CIRCLE C) {
+  PrintValidLayer(C.layer);
+  sprintf(h, "Circle %f (%f %f) (%f %f);\n",
+            u2mic(C.width),
+            u2mic(C.x), u2mic(C.y),
+            u2mic(C.x + C.radius), u2mic(C.y));
+            cmd += h;
+  return;
+}
+
+void DrawWire(UL_WIRE W) {
+  PrintValidLayer(W.layer);
+  if (W.arc) {    // 2008-09-11
+    sprintf(h, "WIRE %f %s (%f %f) %+f (%.f %.f);\n",
+              u2mic(W.width),
+              W.cap == CAP_ROUND ? "ROUND" : "FLAT",  // 2011-09-07
+              u2mic(W.x1), u2mic(W.y1),
+              W.curve,
+              u2mic(W.x2), u2mic(W.y2));
+    cmd += h;
+  }
+  else {
+    sprintf(h, "Wire %f (%f %f) (%f %f);\n",
+            u2mic(W.width), u2mic(W.x1), u2mic(W.y1), u2mic(W.x2), u2mic(W.y2));
+    cmd += h;
+  }
+}
+
+void DrawRectangle(UL_RECTANGLE R) {
+  PrintValidLayer(R.layer);
+  sprintf(h, "Rect R%.1f (%f %f) (%f %f);\n",
+           R.angle,
+           u2mic(R.x1), u2mic(R.y1),
+           u2mic(R.x2), u2mic(R.y2));
+           cmd += h;
+}
+
+void DrawContact(UL_CONTACT C) {
+  string ShapeString;
+  string ShapeFlag;
+  if (C.pad) {
+    switch(C.pad.shape[17]) {  //!!!
+      case PAD_SHAPE_SQUARE    : ShapeString = "Square";  break;
+      case PAD_SHAPE_ROUND     : ShapeString = "Round";   break;
+      case PAD_SHAPE_OCTAGON   : ShapeString = "Octagon"; break;
+      case PAD_SHAPE_LONG      : ShapeString = "Long";    break;
+      case PAD_SHAPE_OFFSET    : ShapeString = "Offset";  break;
+    }
+    if (!(C.pad.flags & PAD_FLAG_STOP) )     ShapeFlag  = "NOSTOP ";
+    if (!(C.pad.flags & PAD_FLAG_THERMALS) ) ShapeFlag += "NOTHERMALS ";
+    if ((C.pad.flags & PAD_FLAG_FIRST) )     ShapeFlag += "FIRST ";     // 22.11.2004 support@cadsoft
+    //
+    // PAD [diameter] [shape] [orientation] [flags] ['name'] *..
+    //
+     sprintf(h, "Change Drill %f;\n", u2mic(C.pad.drill)); cmd += h;
+     sprintf(h, "Pad %f %s R%.1f %s '%s' (%f %f);\n",
+               u2mic(C.pad.diameter[17]),
+               ShapeString,
+               C.pad.angle,
+               ShapeFlag,
+               addApostroph(C.pad.name),  // 2012-03-29
+               u2mic(C.pad.x), u2mic(C.pad.y));
+               cmd += h;
+  }
+  else if (C.smd) {
+    if (!(C.smd.flags & PAD_FLAG_STOP) )     ShapeFlag  = "NOSTOP ";
+    if (!(C.smd.flags & SMD_FLAG_THERMALS) ) ShapeFlag += "NOTHERMALS ";
+    if (!(C.smd.flags & SMD_FLAG_CREAM) )    ShapeFlag += "NOCREAM ";
+
+    PrintValidLayer(C.smd.layer);
+     sprintf(h, "CHANGE Roundness %d;\n", C.smd.roundness); cmd += h;
+    //
+    // SMD [x_width y_width] [-roundness] [orientation] [flags] ['name'] *..
+    //
+     sprintf(h, "SMD %f %f -%d R%.1f %s '%s' (%f %f);\n",
+             u2mic(C.smd.dx), u2mic(C.smd.dy),
+             C.smd.roundness,
+             C.smd.angle,
+             ShapeFlag,
+             addApostroph(C.smd.name),  // 2012-03-29
+             u2mic(C.smd.x), u2mic(C.smd.y));
+             cmd += h;
+  }
+}
+
+void DrawText(UL_TEXT T) {
+  PrintValidLayer(T.layer);
+  switch(T.font) {
+       case FONT_VECTOR       : sprintf(h, "CHANGE FONT VECTOR;\n");
+                                cmd += h;
+                                break;
+       case FONT_PROPORTIONAL : sprintf(h, "CHANGE FONT PROPORTIONAL;\n");
+                                cmd += h;
+                                break;
+       case FONT_FIXED        : sprintf(h, "CHANGE FONT FIXED;\n");
+                                cmd += h;
+                                break;
+  }
+
+  string Spin = "";
+  string Mirror = "";
+  if (T.spin) Spin = "S";
+  if (T.mirror) Mirror = "M";
+
+  sprintf(h, "Change Size %f;\n", u2mic(T.size));
+  cmd += h;
+  sprintf(h, "Change Ratio %d;\n", T.ratio);
+  cmd += h;
+  sprintf(h, "Change Align %s;\n", AlignName[T.align]);
+  cmd += h;
+  sprintf(h, "Change Linedistance %d;\n", T.linedistance);
+  cmd += h;
+
+  sprintf(h, "Text %s%sR%.1f '%s' (%f %f);\n",
+           Spin, Mirror, T.angle, addApostroph(replacenewline(T.value)), u2mic(T.x), u2mic(T.y) // AddApostroph ?
+         );
+  cmd += h;
+}
+
+void DrawHole(UL_HOLE H) {
+  sprintf(h, "Change Drill %f;\n", u2mic(H.drill)); cmd += h;
+  sprintf(h, "Hole (%f %f);\n", u2mic(H.x), u2mic(H.y)); cmd += h;
+}
+
+void DrawPolygon(UL_POLYGON PL) {
+  PrintValidLayer(PL.layer);
+  //sprintf(h, "Change Isolate %f;\n", u2mic(PL.isolate)); cmd += h; exist only in board
+  sprintf(h, "Change Spacing %f;\n", u2mic(PL.spacing)); cmd += h;
+  if (PL.pour == POLYGON_POUR_SOLID) {
+     sprintf(h, "Change Pour Solid;\n"); cmd += h;
+  }
+  else {
+     sprintf(h, "Change Pour Hatch;\n"); cmd += h;
+  }
+  sprintf(h, "Polygon %f ", u2mic(PL.width)); cmd += h;
+  PL.wires(W) {
+    sprintf(h, "(%f %f) ", u2mic(W.x1), u2mic(W.y1)); cmd += h; /*start coord.*/
+    break;
+  }
+  PL.wires(W) {
+    sprintf(h, " %+f (%f %f) ", W.curve, u2mic(W.x2), u2mic(W.y2)); cmd += h;
+  }
+  sprintf(h, ";\n"); cmd += h;
+}
+
+void DrawPin(UL_PIN P) {
+  string DIR = "", FUNC = "", LEN = "", VIS = "", ANGLE = "R0";
+  if (P.angle == 90)  (ANGLE  = "R90");
+  if (P.angle == 180) (ANGLE  = "R180");
+  if (P.angle == 270) (ANGLE  = "R270");
+
+  if (P.function == PIN_FUNCTION_FLAG_NONE)  (FUNC = "None");
+  if (P.function == PIN_FUNCTION_FLAG_DOT)   (FUNC  = "Dot");
+  if (P.function == PIN_FUNCTION_FLAG_CLK)   (FUNC  = "Clk");
+  if (P.function == (PIN_FUNCTION_FLAG_DOT | PIN_FUNCTION_FLAG_CLK))
+                                             (FUNC  = "DotClk");
+
+  if (P.visible == PIN_VISIBLE_FLAG_OFF)    (VIS  = "Off");
+  if (P.visible == PIN_VISIBLE_FLAG_PIN)    (VIS  = "Pin");
+  if (P.visible == PIN_VISIBLE_FLAG_PAD)    (VIS  = "Pad");
+  if (P.visible == (PIN_VISIBLE_FLAG_PIN | PIN_VISIBLE_FLAG_PAD))
+                                            (VIS  = "Both");
+
+  switch(P.direction) {
+    case PIN_DIRECTION_NC  : DIR = "NC";  break;
+    case PIN_DIRECTION_IN  : DIR = "In";  break;
+    case PIN_DIRECTION_OUT : DIR = "Out"; break;
+    case PIN_DIRECTION_IO  : DIR = "IO"; break;  // 2011-10-10
+    case PIN_DIRECTION_OC  : DIR = "OC";  break;
+    case PIN_DIRECTION_PWR : DIR = "Pwr"; break;
+    case PIN_DIRECTION_PAS : DIR = "Pas"; break;
+    case PIN_DIRECTION_HIZ : DIR = "Hiz"; break;
+    case PIN_DIRECTION_SUP : DIR = "Sup";
+  }
+
+  switch(P.length) {
+    case PIN_LENGTH_POINT  : LEN = "Point";  break;
+    case PIN_LENGTH_SHORT  : LEN = "Short";  break;
+    case PIN_LENGTH_MIDDLE : LEN = "Middle"; break;
+    case PIN_LENGTH_LONG   : LEN = "Long";
+  }
+
+  sprintf(h, "Pin '%s' %s %s %s %s %s %d (%f %f);\n",
+  addApostroph(P.name),  // 2012-02-08
+  DIR, FUNC, LEN, ANGLE, VIS, P.swaplevel, u2mic(P.x), u2mic(P.y));
+  cmd += h;
+}
+
+void DrawSymbol(UL_SYMBOL S) {
+  S.circles(C)    DrawCircle(C);
+  S.rectangles(R) DrawRectangle(R);
+  S.wires(W)      DrawWire(W);
+  S.pins(P)       DrawPin(P);
+  S.texts(T)      DrawText(T);
+  S.polygons(PL)  DrawPolygon(PL);
+  S.frames(F)     DrawFrame(F);
+  S.dimensions(D) DrawDimension(D);
+  cmd  += "DESCRIPTION '" + addApostroph(replacenewline(S.description)) + "';\n";
+}
+
+void DrawPackage(UL_PACKAGE P) {
+  sprintf(h, "GRID mic;\n"); cmd+=h; // 2011-04-11
+  P.circles(C)    DrawCircle(C);
+  P.wires(W)      DrawWire(W);
+  P.rectangles(R) DrawRectangle(R);
+  P.contacts(C)   DrawContact(C);
+  P.texts(T)      DrawText(T);
+  P.holes(H)      DrawHole(H);
+  P.polygons(PL)  DrawPolygon(PL);
+  P.frames(F)     DrawFrame(F);
+  P.dimensions(D) DrawDimension(D);
+  cmd  += "DESCRIPTION '" + addApostroph(replacenewline(P.description)) + "';\n";
+}
+
+//          ************************************************
+// see also *** export-schematic_mil-board_mm-script.ulp ***
+//          ************************************************
+
+void DrawDevice(UL_DEVICESET D, UL_LIBRARY LBR) {
+  cmd  += "DESCRIPTION '" + addApostroph(replacenewline(D.description)) + "';\n";
+  cmd  += "PREFIX '" + D.prefix + "';\n";
+  cmd  += "VALUE " + D.value + ";\n";
+  D.gates(G) {
+    string GateAddlevel;
+    switch (G.addlevel) {
+      case GATE_ADDLEVEL_NEXT    : GateAddlevel = "Next";    break;
+      case GATE_ADDLEVEL_MUST    : GateAddlevel = "Must";    break;
+      case GATE_ADDLEVEL_CAN     : GateAddlevel = "Can";     break;
+      case GATE_ADDLEVEL_REQUEST : GateAddlevel = "Request"; break;
+      case GATE_ADDLEVEL_ALWAYS  : GateAddlevel = "Always";
+    };
+    sprintf(h, "CHANGE Addlevel  %s;\n", GateAddlevel); cmd += h;
+    sprintf(h, "CHANGE Swaplevel %d;\n", G.swaplevel); cmd += h;
+
+    string symname = G.symbol.name; // No problem with @...
+    if (onelib) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                  // 2017-09-08 RP - Fixed library export with managed libraries
+       if (G.symbol.urn) {
+          string URN[];
+          strsplit(URN, G.symbol.urn, ':');
+          symname = createName("SYM", symname, URN[3]);
+       } else {
+          symname = createName("SYM", symname, "NOURN");
+       }
+       if (prefixLibName) { // Add the library prefix if needed
+         symname = LbrPrefix(LBR.name) + symname;
+       }
+    }
+
+    sprintf(h, "ADD '%s' '%s' (%f %f);\n", addApostroph(symname), addApostroph(G.name), u2mic(G.x), u2mic(G.y)); // 2012-02-07
+    cmd += h;
+  }
+
+  D.devices(DV) {
+    if (DV.package) {
+
+      string pacname = ReplaceAt(DV.package.name); // !!!
+      if (onelib) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                    // 2017-09-08 RP - Fixed library export with managed libraries
+         if (DV.package.urn) {
+            string URN[];
+            strsplit(URN, DV.package.urn, ':');
+            pacname = createName("PAC", pacname, URN[3]);
+         } else {
+	         pacname = createName("PAC", pacname, "NOURN");
+	      }
+         if (prefixLibName) { // Add the library prefix if needed
+           pacname = LbrPrefix(LBR.name) + pacname;
+         }
+      }
+
+      cmd += "PACKAGE '" + addApostroph(pacname) + "' " + DV.name + ";\n"; // addApostroph here problematic !
+
+    }
+    DV.gates(G) {
+      if (DV.package) {
+        G.symbol.pins(P) {
+          string cont = "";
+          P.contacts(C) {  // 2011-12-06
+            if (!cont) sprintf(h, "%s", addApostroph(C.name)); // 2012-03-29
+            else sprintf(h, " %s", addApostroph(C.name)); // 2012-003-29
+            cont += h;
+          }
+          if (cont) {
+            sprintf(h, "CONNECT %s '%s.%s' '%s';\n",  // //2012-03-23 problem with # in pin name
+                        Croute[P.route],
+                        addApostroph(G.name), // 2012-03-29
+                        addApostroph(P.name),                // 2012-03-29
+                        cont
+                   );
+            cmd += h;
+          }
+        }
+      }
+    }
+    string t[];
+    int n = strsplit(t, DV.technologies, ' ');
+    for (int i = 0; i < n; i++) {
+      sprintf(h,"TECHNOLOGY '%s';\n", addApostroph(t[i]));  // 2012-03-23
+      cmd += h;
+      DV.attributes(A, t[i]) {
+        string const = "";
+        if (A.constant) const = " CONSTANT";
+        sprintf(h,"ATTRIBUTE '%s' '%s' %s\n", A.name, addApostroph(A.value), const); // 2010-10-14
+        cmd += h;
+      }
+    }
+  }
+  return;
+}
+
+//----------------
+int is_new(void) { // n = nr of entries
+  int i;
+  if (n == 0) return 1;
+  for (i = 0; i < n; i++) {
+    if (x[n] == x[i]) {
+       return(0);
+    }
+  }
+  return 1;
+}
+
+// ---------
+void CreateOneLibHeader(UL_LIBRARY LBR, string project_name) {
+  if (exist_file(WorkPath+CurrentLbrName+".lbr")) {
+     sprintf(h, "REMOVE '%s';\n", WorkPath+CurrentLbrName+".lbr"); cmd += h; // delete existing lbr
+  }
+  sprintf(h, "OPEN '~dummy~.lbr';\nCLOSE;\nOPEN '%s.lbr';\n", WorkPath+CurrentLbrName);  // 2012-02-07 to close an opened library first
+  cmd += h;
+  CreateHeader(LBR);
+  CreateLBRdescription(project_name);
+}
+
+// ---------
+void OutputPackages(UL_LIBRARY LBR) {
+  LBR.packages(P) {
+
+    string pacname = ReplaceAt(P.name);
+    if (onelib) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                  // 2017-09-08 RP - Fixed library export with managed libraries
+       if (P.urn) {
+          string URN[];
+          strsplit(URN, P.urn, ':');
+          pacname = createName ("PAC", pacname, URN[3]);
+       } else {
+          pacname = createName ("PAC", pacname, "NOURN");
+       }
+       if (prefixLibName) { // Add the library prefix if needed
+          pacname = LbrPrefix(LBR.name) + pacname;
+       }
+    }
+
+    if (NoGUI == 0) {
+        sprintf(execStatus, TR("Exporting package %s..."), pacname);
+        execStatus = MakeHTML(execStatus, "#DFDFDF");
+        dlgRedisplay();
+    }
+
+    n++;
+    x[n] = LbrPrefix(LBR.name + ':' + LBR.id) + pacname; // Always put the library prefix for this check to avoid ambiguity.
+    if (is_new()) {
+      Status = "   PAC: " + P.name; if (NoGUI==0) dlgRedisplay();
+      sprintf(h, "\nEdit '%s.PAC';\n", addApostroph(pacname)); cmd += h;
+      DrawPackage(P);
+    }
+  }
+}
+
+void OutputSymbols(UL_LIBRARY LBR) {
+  LBR.symbols(S) {
+
+    string symname =  S.name;
+    if (onelib) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                  // 2017-09-08 RP - Fixed library export with managed libraries
+       if (S.urn) {
+          string URN[];
+          strsplit(URN, S.urn, ':');
+          symname = createName ("SYM", symname, URN[3]);
+       } else {
+          symname = createName ("SYM", symname, "NOURN");
+       }
+       if (prefixLibName) { // Add the library prefix if needed
+          symname = LbrPrefix(LBR.name) + symname;
+       }
+    }
+
+    if (NoGUI == 0) {
+        sprintf(execStatus, TR("Exporting symbol %s..."), symname);
+        execStatus = MakeHTML(execStatus, "#DFDFDF");
+        dlgRedisplay();
+    }
+
+    n++;
+    x[n] = LbrPrefix(LBR.name + ':' + LBR.id) + symname; // Always put the library prefix for this check to avoid ambiguity.
+    if (is_new()) {
+      Status = "   SYM: " + S.name; if (NoGUI==0) dlgRedisplay();
+      sprintf(h, "\nEdit '%s.SYM';\n", addApostroph(symname)); cmd += h;
+      DrawSymbol(S);
+    }
+  }
+}
+
+void OutputDevices(UL_LIBRARY LBR) {
+  LBR.devicesets(D) {
+
+    string dname = LbrMakeExplicit(D.name);
+    if (onelib) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                  // 2017-09-08 RP - Fixed library export with managed libraries
+       if (D.urn) {
+          string URN[];
+          strsplit(URN, D.urn, ':');
+          dname = createName ("DEV", dname, URN[3]);
+       } else {
+          dname = createName ("DEV", dname, "NOURN");
+       }
+       if (prefixLibName) { // Add the library prefix if needed
+          dname = LbrPrefix(LBR.name) + dname;
+       }
+    }
+
+    if (NoGUI == 0) {
+        sprintf(execStatus, TR("Exporting device %s..."), dname);
+        execStatus = MakeHTML(execStatus, "#DFDFDF");
+        dlgRedisplay();
+    }
+
+    n++;
+    x[n] = LbrPrefix(LBR.name + ':' + LBR.id) + dname; // Always put the library prefix for this check to avoid ambiguity.
+    if (is_new()) {
+      Status = "   DEV: " + D.name; if (NoGUI==0) dlgRedisplay();
+      NameIndex = 0;
+      sprintf(h, "\nEdit '%s.DEV';\n", addApostroph(dname)); cmd += h;
+      DrawDevice(D, LBR);
+      if (strchr(dname, ':') == -1) {
+         if (D.name != LbrMakeExplicit(D.name)) {
+            string dnamex = D.name;
+            if (prefixLibName) { // Add the library prefix if needed
+               dnamex = LbrPrefix(LBR.name) + dnamex;
+            }
+            sprintf(h, "\nRENAME %s %s;", dname, dnamex); cmd += h;
+         }
+      }
+    }
+  }
+}
+
+void CreateLbr(UL_LIBRARY LBR) {
+  if (exist_file(WorkPath+CurrentLbrName+".lbr")) {
+     sprintf(h, "REMOVE '%s.lbr';\n", WorkPath+CurrentLbrName);
+     cmd += h; // delete existing lbr
+  }
+  sprintf(h, "OPEN '~dummy~.lbr';\nCLOSE;\nOPEN '%s.lbr';\n", WorkPath+CurrentLbrName);  // 2012-02-07 to close a opened library first
+  cmd += h;
+  CreateHeader(LBR);
+}
+
+// This function checks the list of library names to exclude from the export.
+
+int IsExcludeLib(string libname, string liburn)
+{
+    int result = 1;
+    int i;
+    for(i=0; i < ListCount; i++)
+    {
+        if (exportViewed) {
+            switch (excludeManaged) {
+               case 0:
+                  if (LibName[i] == libname && LibURN[i] == liburn)
+                      result = LibState[i] ? 0 : 1;
+                  break;
+
+               case 1:
+                  if (LibName[i] == libname && LibURN[i] == liburn) {
+                     if (liburn) {
+                        result = LibState[i] ? 0 : 1;
+                     }
+                  }
+                  break;
+
+               case 2:
+                  if (LibName[i] == libname && LibURN[i] == liburn) {
+                     if (!liburn) {
+                        result = LibState[i] ? 0 : 1;
+                     }
+                  }
+                  break;
+
+               default: break;
+            }
+        } else {
+            if (LibName[i] == libname && LibURN[i] == liburn)
+                result = LibState[i] ? 0 : 1;
+        }
+    }
+    return result;
+}
+
+int IsInCurrentLib(UL_LIBRARY L, UL_PART P) {
+   int foundPart = 0;
+      if (L.name == P.device.library) {
+         if (L.id == P.device.libraryurn) {
+            foundPart++;
+         }
+      }
+   return foundPart;
+}
+
+void CreateMultiLibReplaceScript() {
+   if (schematic) {
+      schematic(SCH) {
+//         string strFileName = filesetext(SCH.name, "_ReplaceLibParts.scr");
+         string strFileName = WorkPath + filesetext(filename(SCH.name), "_ReplaceLibParts.scr");
+
+         output(strFileName, "wtD")
+         {
+            // Header Section
+
+             if (NoGUI == 0) {
+                 sprintf(execStatus, TR("Exporting replace script..."));
+                 execStatus = MakeHTML(execStatus, "#DFDFDF");
+                 dlgRedisplay();
+             }
+
+            printf("# '%s;\n\n", EAGLE_SIGNATURE);
+            printf("SET UNDO_LOG OFF;\n");
+            printf("# Take all libraries out of use\n");
+            printf("USE -*;\n");
+
+            // Main Body Section
+
+            SCH.sheets(S) {
+
+               printf("#\n# SHEET %d - MIGRATE PARTS\n#\n", S.number);
+               printf("EDIT .s%d\n", S.number);
+
+               // For each cheet we need to generate a library specific set of replace commands
+               SCH.libraries(LBR) {
+
+                  string libname;
+
+                  if (IsExcludeLib(LBR.name, LBR.id))
+                    continue; // If we aren't using this library skip the whole loop
+                  if (LBR.id) {
+                     string URN[];
+                     strsplit(URN, LBR.id, ':');
+                     libname = createName ("LBR", LBR.name, URN[3]);
+                  } else {
+                     libname = createName ("LBR", LBR.name, "NOURN");
+                  }
+
+                  // * * * THIS IS A PLACEHOLDER. IT IS CURRENTLY WRONG! * * *
+                  sprintf(libname, "%s", WorkPath + filesetext(filename(libname), ".lbr"));
+                  printf("# Migrate parts to '%s'\n", libname);
+                  printf("USE '%s';\n", libname);
+
+                  S.parts(P) {
+
+                     // Check we need to process the part for the current library, only process if we do
+                     if (IsInCurrentLib(LBR, P)) {
+
+                        if (P.name /*&& P.device.package &&*/)
+                        {
+                            string dname;
+                            if (prefixLibName)
+                                dname = LbrPrefix(ReplaceAt(strupr(P.device.library))) + ReplaceAt(P.device.name);
+                            else
+                                dname = ReplaceAt(strupr(P.device.name));
+
+                            if (P.deviceset.urn) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                               string URN[];
+                               strsplit(URN, P.deviceset.urn, ':');
+                               string tmp1[];
+                               int tmp = strsplit(tmp1, createName ("DEV", LbrMakeExplicit(P.deviceset.name), URN[3]), ':');
+                               tmp1[0] = dname;
+                               dname = strjoin(tmp1, ':');
+                            } else {
+                               string tmp1[];
+                               int tmp = strsplit(tmp1, createName ("DEV", LbrMakeExplicit(P.deviceset.name), "NOURN"), ':');
+                               tmp1[0] = dname;
+                               dname = strjoin(tmp1, ':');
+                            }
+
+                            printf("REPLACE %s %s;\n", P.name, dname);
+                        }
+
+                     }
+
+                  }
+
+                  printf("# Take '%s' out of use\n", libname);
+                  printf("USE '-%s';\n", libname);
+
+               }
+
+            }
+
+            // Footer Section
+
+            printf("EDIT .s1\n");
+            printf("SET UNDO_LOG ON;\n");
+            printf("# Put all libraries back into use\n");
+            printf("USE *;\n");
+
+            if (NoGUI == 0) {
+               sprintf(execStatus, TR(""));
+               execStatus = MakeHTML(execStatus, "#DFDFDF");
+               dlgRedisplay();
+            }
+
+         }
+      }
+   } else {
+      dlgMessageBox(TR(":ERROR: Replace script can only be created from the schematic"));
+   }
+}
+
+void CreateReplaceScript()
+{
+    if (schematic)
+    {
+        schematic(SCH)
+        {
+//            strFileName = filesetext(SCH.name, "_ReplaceLibParts.scr");
+            string strFileName = WorkPath + filesetext(filename(SCH.name), "_ReplaceLibParts.scr");
+
+            output(strFileName, "wtD")
+            {
+
+                if (NoGUI == 0) {
+                    sprintf(execStatus, TR("Exporting replace script..."));
+                    execStatus = MakeHTML(execStatus, "#DFDFDF");
+                    dlgRedisplay();
+                }
+
+                string libname;
+                sprintf(libname, "%s", WorkPath + filesetext(filename(SCH.name), ".lbr"));
+				    // CurrentLbrName won't always work, since the library created has the same name as
+				    // the schematic that may be a better alternative.
+
+                printf("# '%s;\n\n", EAGLE_SIGNATURE);
+                printf("SET UNDO_LOG OFF;\n");
+                printf("# Migrate parts to '%s'\n", libname);
+                printf("USE -*;\n");
+                printf("USE '%s';\n", libname);
+				    // Adding the apostrophes above corrected the import that way copying to eagle/lbr is unnecessary
+
+                SCH.sheets(S)
+                {
+                    printf("#\n# SHEET %d - MIGRATE PARTS\n#\n", S.number);
+                    printf("EDIT .s%d\n", S.number);
+
+                    S.parts(P)
+                    {
+                        if (P.name /*&& P.device.package &&*/)
+                        {
+
+                            // Comment out any lib's we want to exclude from replacing
+                            if (IsExcludeLib(P.device.library, P.device.libraryurn))
+                                continue; // If we aren't using this library skip the whole loop
+
+                            string dname;
+                            if (prefixLibName)
+                                dname = LbrPrefix(ReplaceAt(strupr(P.device.library))) + ReplaceAt(P.device.name);
+                            else
+                                dname = ReplaceAt(strupr(P.device.name));
+
+                            if (P.deviceset.urn) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+                               string URN[];
+                               strsplit(URN, P.deviceset.urn, ':');
+                               string tmp1[];
+                               int tmp = strsplit(tmp1, createName ("DEV", LbrMakeExplicit(P.deviceset.name), URN[3]), ':');
+                               tmp1[0] = dname;
+                               dname = strjoin(tmp1, ':');
+                            } else {
+                               string tmp1[];
+                               int tmp = strsplit(tmp1, createName ("DEV", LbrMakeExplicit(P.deviceset.name), "NOURN"), ':');
+                               tmp1[0] = dname;
+                               dname = strjoin(tmp1, ':');
+                            }
+
+                            printf("REPLACE %s %s;\n", P.name, dname);
+                        }
+                    }
+                }
+                printf("EDIT .s1\n");
+                printf("SET UNDO_LOG ON;\n");
+   				 printf("# Put all libraries back into use\n");
+   				 printf("USE *;\n");
+
+                if (NoGUI == 0) {
+                    sprintf(execStatus, TR(""));
+                    execStatus = MakeHTML(execStatus, "#DFDFDF");
+                    dlgRedisplay();
+                }
+
+            }
+        }
+    }
+}
+
+void make_lbr(void) {
+  int noLbrs = 1;
+  if (board) board(B) {
+    B.libraries(LBR) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      noLbrs = 0;
+      if (LBR.id) {
+         string URN[];
+         strsplit(URN, LBR.id, ':');
+         CurrentLbrName = createName ("LBR", LBR.name, URN[3]);
+      } else {
+         CurrentLbrName = createName ("LBR", LBR.name, "NOURN");
+      }
+
+      if (NoGUI == 0) {
+          sprintf(execStatus, TR("Exporting library %s..."), CurrentLbrName);
+          execStatus = MakeHTML(execStatus, "#DFDFDF");
+          dlgRedisplay();
+      }
+
+      CreateLbr(LBR);
+      LBR.packages(PAC) {
+        OutputPackages(LBR);
+        cmd += "WRITE;\n";
+        break;
+      };
+    }
+  }
+  if (schematic) schematic(SCH) {
+    SCH.libraries(LBR) { // 2017-09-20 RP - Updates to rename URNS when exporting designs containing managed libraries
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      noLbrs = 0;
+      if (LBR.id) {
+         string URN[];
+         strsplit(URN, LBR.id, ':');
+         CurrentLbrName = createName ("LBR", LBR.name, URN[3]);
+      } else {
+         CurrentLbrName = createName ("LBR", LBR.name, "NOURN");
+      }
+      if (NoGUI == 0) {
+          sprintf(execStatus, TR("Exporting library %s..."), CurrentLbrName);
+          execStatus = MakeHTML(execStatus, "#DFDFDF");
+          dlgRedisplay();
+      }
+
+      CreateLbr(LBR);
+      LBR.devices(DEV) {
+        OutputPackages(LBR);
+        n=0;
+        OutputSymbols(LBR);
+        n=0;
+        OutputDevices(LBR);
+        cmd += "WRITE;\n";
+        break;
+      };
+    }
+  }
+//  CreateTrailer();
+  if (!noLbrs) {
+     CreateTrailer();
+     if (genReplace)
+       CreateMultiLibReplaceScript();
+  }
+}
+
+//-------------------
+void make_one_lbr(void) {
+  int noLbrs = 1;
+  if (board) board(B) {
+    B.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id)) // 2017-12-03 RP: Changed B to LBR
+        continue;
+      CurrentLbrName = filesetext(EditName, "");
+      if (NoGUI == 0) {
+          sprintf(execStatus, TR("Exporting library %s..."), CurrentLbrName);
+          execStatus = MakeHTML(execStatus, "#DFDFDF");
+          dlgRedisplay();
+      }
+      CreateOneLibHeader(LBR, B.name);
+      noLbrs = 0;
+      break;
+    }
+    n = 0;
+    B.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id)) // 2017-12-03 RP: Changed B to LBR
+        continue;
+      OutputPackages(LBR);
+    }
+
+  }
+  if (schematic) schematic(SCH) {
+    SCH.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      CurrentLbrName = filesetext(EditName, "");
+
+      if (NoGUI == 0) {
+          sprintf(execStatus, TR("Exporting library %s..."), CurrentLbrName);
+          execStatus = MakeHTML(execStatus, "#DFDFDF");
+          dlgRedisplay();
+      }
+
+      CreateOneLibHeader(LBR, SCH.name);
+      noLbrs = 0;
+      break;
+    }
+    n = 0;
+    SCH.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      OutputPackages(LBR);
+    }
+    n = 0;
+    SCH.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      LBR.devices(DEV) {
+        OutputSymbols(LBR);
+      }
+    }
+    n = 0;
+    SCH.libraries(LBR) {
+      if (IsExcludeLib(LBR.name, LBR.id))
+        continue;
+      LBR.devices(DEV) {
+        OutputDevices(LBR);
+      }
+    }
+  }
+  if (!noLbrs) {
+     cmd += "WRITE;\n";
+     CreateTrailer();
+     if (genReplace)
+       CreateReplaceScript();
+  }
+  return;
+}
+
+// -----------
+void show_save_script_file(string cm) {
+  ScriptName = WorkPath+PureScriptName;
+  output(ScriptName, "wtD") printf("%s", cm);
+  return;
+}
+
+//------------ main ----------------------------------------
+
+if (library) {
+  dlgMessageBox(TR(":ERROR: Please start from schematic or board editor!"));
+  exit(1);
+}
+else {
+  if (board) board(B)         EditName = filename(B.name);  // name of loaded board/schematic w/o path
+  if (schematic) schematic(S) EditName = filename(S.name);
+}
+
+PureScriptName = filesetext(EditName, ".scr");               // name of generated script w/o path
+WorkPath = get_project_path();
+
+void CollectLibData()
+{
+    // We must zero out all the part names each time this function is called,
+    // otherwise the names still exist after each call and the lookup() call
+    // that checks for duplicates causes problems since it thinks everything
+    // is a duplicate on subsequent calls to this function.
+
+    int i;
+    for(i=0; i < ListCount; i++)
+    {
+        LibName[i] = "";
+        LibDesc[i] = "";
+        LibURN[i] = "";
+        LibState[i] = 0;
+        LibManaged[i] = 0;
+    }
+
+    ListCount = 0;
+
+    project.schematic(SCH)
+    {
+        SCH.libraries(LBR)
+        {
+            LibName[ListCount]    = LBR.name;
+            LibDesc[ListCount]    = LBR.description;
+            LibURN[ListCount]     = getURN(LBR);
+            LibState[ListCount]   = 1;
+            LibManaged[ListCount] = 0;
+            if (LBR.id) {
+               LibManaged[ListCount] = 1;
+            }
+            ++ListCount;
+        }
+    }
+}
+
+// 2017-09-22 RP, Command line parameter handler
+
+if (argv[1]) {
+
+   initialLibNumber = 0;
+   NoGUI = 0;
+   cmd = "";
+   int argi = 1;
+   int Merge = 0;
+
+   while (argv[argi]) {
+      string arg[];
+      int numElements = strsplit(arg, argv[argi], '=');
+
+      if (arg[0] == "--original") {
+         if (NoGUI == 0) NoGUI = 1;
+         onelib = 0;
+         prefixLibName = 0;
+         Merge = 0;
+
+      } else if (arg[0] == "--merge") {
+         if (NoGUI == 0) NoGUI = 1;
+         onelib = 1;
+         prefixLibName = 0;
+         Merge = 2;
+
+      } else if (arg[0] == "--merge-prefix") {
+         if (NoGUI == 0) NoGUI = 1;
+         onelib = 1;
+         prefixLibName = 1;
+         Merge = 1;
+
+      } else if (arg[0] == "--output-path") {
+         WorkPath = formatDirStr(arg[1]);
+
+      } else if (arg[0] == "--always-number") {
+         initialLibNumber = 1; // If we choose this option the numbering always starts from 1
+
+      } else if (arg[0] == "--all-packages") {
+         allPackages = arg[1]; // Yes - outputs all packages, No - strips unused packages, interactive - launches the package selection GUI.
+
+      } else if (arg[0] == "--force-gui") {
+         NoGUI = -1; // Set it non-zero so other parameters won't affect it
+
+      } else if (arg[0] == "--help") {
+         NoGUI = 1;
+         DisplayHelp();
+         exit(0);
+
+      } else {
+         dlgMessageBox(TR(":ERROR: Invalid command line option"));
+         exit(1);
+      }
+
+      argi++;
+   }
+
+   if (NoGUI == 1) {
+      switch (Merge) {
+         case 0: make_lbr(); break;
+         case 1: make_one_lbr(); break;
+         case 2: make_one_lbr(); break;
+         default: break;
+      }
+      show_save_script_file(cmd);
+      exit("SCRIPT '"+ScriptName+"';\n");
+   } else {
+      NoGUI = 0; // If we are forcing the GUI then set it to 0
+   }
+}
+
+// 2017-12-01 RP, New UI Added
+
+string checkMark = "✓"; // Unicode U+2713
+string emSpace = " ";   // Unicode U+2003
+string tickEntry = "  ✓";
+
+char test1 = '✓';
+
+int mode = 1;
+int lastMode = mode;
+int lastPrefix = prefixLibName;
+int lastGenReplace = genReplace;
+int allUsedParts = 0;
+int Selected = -1;
+int exportAll = 1;
+string scopeOptions[] = {TR("Both managed and unmanaged libraries"),TR("Managed libraries only"),TR("Unmanaged libraries only")};
+
+// Build the data array for the dialog box data
+
+void CreateData () {
+   CollectLibData();
+   numLibs = 0;
+   numExported = 0;
+   for (int i=0 ; i<ListCount ; i++) {
+            numLibs += 1;
+            numExported += 1;
+   }
+   Libraries[numLibs] = "";
+   exportAll = 1;
+
+   if (numExported == 0) {
+      sprintf(execStatus, TR("Nothing selected to export"));
+   } else if (numExported == 1) {
+      sprintf(execStatus, TR("Selected 1 library for export"));
+   } else {
+      sprintf(execStatus, TR("Selected %d libraries for export"), numExported);
+   }
+   execStatus = MakeHTML(execStatus, "#DFDFDF");
+
+}
+
+CreateData (); // Build initial dataset
+
+void buildViewData () {
+   int entryNum = 0;
+   int addEntry = 0;
+   for (int i=0 ; i < ListCount ; i++) {
+      if (excludeManaged == 2) {
+         if (!LibManaged[i]) {
+            addEntry++;
+         }
+      } else if (excludeManaged == 1) {
+         if (LibManaged[i]){
+            addEntry++;
+         }
+      } else {
+         addEntry++;
+      }
+      if (addEntry) {
+         string items[] = {"",LibName[i],LibDesc[i]};
+         if (LibState[i]) items[0] = tickEntry;
+         if (LibManaged[i]) items[2] = tickEntry;
+         Libraries[entryNum] = strjoin(items, '\t');
+         Libraries[entryNum+1] = "";
+         entryNum++;
+         addEntry = 0;
+      }
+   }
+}
+
+// Helper function to toggle the Export tick.
+
+void toggleTick (int itemNum) {
+   LibState[itemNum] = 1 - LibState[itemNum];
+   if (LibState[itemNum]) {
+      numExported++;
+   } else {
+      numExported--;
+   }
+
+   exportAll = 1;
+   if (numExported < numLibs) exportAll = 0;
+
+   if (numExported == 0) {
+      sprintf(execStatus, TR("Nothing selected to export"));
+   } else if (numExported == 1) {
+      sprintf(execStatus, TR("Selected 1 library for export"));
+   } else {
+      sprintf(execStatus, TR("Selected %d libraries for export"), numExported);
+   }
+   execStatus = MakeHTML(execStatus, "#DFDFDF");
+   dlgRedisplay();
+
+   buildViewData();
+}
+
+void toggleTickAll (int state) {
+   numExported = 0;
+   int toggleEntry = 0;
+   for (int i=0 ; i<numLibs ; i++ ) {
+      if (excludeManaged == 2) {
+         if (!LibManaged[i]) {
+            toggleEntry++;
+         }
+      } else if (excludeManaged == 1) {
+         if (LibManaged[i]){
+            toggleEntry++;
+         }
+      } else {
+         toggleEntry++;
+      }
+      if (toggleEntry) {
+         LibState[i] = state;
+         numExported += state;
+         toggleEntry = 0;
+      }
+   }
+
+   if (numExported == 0) {
+      sprintf(execStatus, TR("Nothing selected to export"));
+   } else if (numExported == 1) {
+      sprintf(execStatus, TR("Selected 1 library for export"));
+   } else {
+      sprintf(execStatus, TR("Selected %d libraries for export"), numExported);
+   }
+   execStatus = MakeHTML(execStatus, "#DFDFDF");
+   dlgRedisplay();
+
+   buildViewData();
+}
+
+void tickManaged () {
+   numExported = 0;
+   int toggleEntry = 0;
+   for (int i=0 ; i<numLibs ; i++ ) {
+      if (LibManaged[i]){
+         toggleEntry++;
+      }
+      if (toggleEntry) {
+         LibState[i] = 1;
+         numExported += 1;
+         toggleEntry = 0;
+      } else {
+         LibState[i] = 0;
+         toggleEntry = 0;
+      }
+   }
+
+   if (numExported == 0) {
+      sprintf(execStatus, TR("Nothing selected to export"));
+   } else if (numExported == 1) {
+      sprintf(execStatus, TR("Selected 1 library for export"));
+   } else {
+      sprintf(execStatus, TR("Selected %d libraries for export"), numExported);
+   }
+   execStatus = MakeHTML(execStatus, "#DFDFDF");
+   dlgRedisplay();
+
+   buildViewData();
+}
+
+void tickUnmanaged () {
+   numExported = 0;
+   int toggleEntry = 0;
+   for (int i=0 ; i<numLibs ; i++ ) {
+      if (!LibManaged[i]){
+         toggleEntry++;
+      }
+      if (toggleEntry) {
+         LibState[i] = 1;
+         numExported += 1;
+         toggleEntry = 0;
+      } else {
+         LibState[i] = 0;
+         toggleEntry = 0;
+      }
+   }
+
+   if (numExported == 0) {
+      sprintf(execStatus, TR("Nothing selected to export"));
+   } else if (numExported == 1) {
+      sprintf(execStatus, TR("Selected 1 library for export"));
+   } else {
+      sprintf(execStatus, TR("Selected %d libraries for export"), numExported);
+   }
+   execStatus = MakeHTML(execStatus, "#DFDFDF");
+   dlgRedisplay();
+
+   buildViewData();
+}
+
+string emSpaces(int n) {
+   string s = "";
+
+   for (int i=0 ; i<n ; i++) {
+      s += emSpace;
+   }
+
+   return s;
+}
+
+string maskStr(string s) {
+   return s;
+}
+
+if (NoGUI == 0) { // Only launch the GUI if there are no command line parameters
+
+   int Result = dlgDialog(TR("Export EAGLE libraries from drawing")) {
+      dlgVBoxLayout {
+         dlgHBoxLayout {
+            dlgSpacing(640);
+         }
+         dlgGroup("") {
+//            dlgHBoxLayout {
+//               dlgLabel(TR("Filter:"));
+//               dlgComboBox(scopeOptions, excludeManaged) {
+//                  buildViewData();
+//                  dlgRedisplay();
+//               }
+//	            dlgCheckBox(TR("Restrict export by view filter"), exportViewed);
+//               dlgStretch(1);
+//            }
+            dlgHBoxLayout {
+               int viewSort = 0;
+               buildViewData();
+               dlgListView(TR("Export\tSource Library\tManaged\tDescription")+emSpaces(21), Libraries, Selected, viewSort) {
+                  if (dlgSelectionChanged()) {
+                     toggleTick(Selected);
+                     Selected = -1;
+                     dlgRedisplay();
+                  }
+               }
+            }
+            dlgHBoxLayout {
+               dlgPushButton(TR("Select all")) {
+                  exportAll = 1;
+                  toggleTickAll(exportAll);
+                  dlgRedisplay();
+               }
+               dlgPushButton(TR("Select all managed")) {
+                  exportAll = 0;
+                  tickManaged();
+                  dlgRedisplay();
+               }
+               dlgPushButton(TR("Select all unmanaged")) {
+                  exportAll = 0;
+                  tickUnmanaged();
+                  dlgRedisplay();
+               }
+               dlgPushButton(TR("Select none")) {
+                  exportAll = 0;
+                  toggleTickAll(exportAll);
+                  dlgRedisplay();
+               }
+               dlgStretch(1);
+            }
+            dlgHBoxLayout {
+               dlgGroup(TR("Settings")) {
+                  dlgHBoxLayout {
+                     dlgVBoxLayout {
+                        dlgRadioButton(TR("Export multiple libraries"), mode) {
+                           onelib = 0;
+                           if (lastMode == 1) {
+                              lastPrefix = prefixLibName;
+                              prefixLibName = 0;
+                              lastMode = 0;
+                              dlgRedisplay();
+                           }
+                        }
+                        dlgRadioButton(TR("Export one library"), mode) {
+                           onelib = 1;
+                           prefixLibName = lastPrefix;
+                           lastMode = 1;
+                           dlgRedisplay();
+                        }
+                        dlgHBoxLayout {
+                           dlgLabel(emSpace);
+                           dlgCheckBox(TR("Prefix parts with library name"), prefixLibName) {
+                              if (mode == 0) {
+                                 prefixLibName = 0;
+                                 dlgRedisplay();
+                              }
+                           }
+                           dlgStretch(1);
+                        }
+                        // dlgCheckBox(TR("Only export package variants for parts used in design"), allUsedParts); // Currently disabled placeholder
+                        if (schematic) {
+                           dlgCheckBox(TR("Generate replace script"), genReplace);
+                        } else {
+                           genReplace = 0;
+                        }
+                     }
+                     dlgStretch(1);
+                  }
+               }
+            }
+            dlgHBoxLayout {
+               dlgLabel(TR("Path:"));
+               dlgStringEdit(WorkPath);
+               dlgPushButton(TR("&Browse...")) {
+                  string selectDir = dlgDirectory(TR("Select a directory"), WorkPath);
+                  if (selectDir) {
+                     WorkPath = formatDirStr(selectDir);
+                  }
+               }
+            }
+         }
+         execStatus = MakeHTML(execStatus, "#DFDFDF");
+         dlgLabel(execStatus, 1);
+         dlgHBoxLayout {
+            dlgPushButton(TR("Help...")) DisplayHelp();
+            dlgStretch(1);
+            dlgPushButton(TR("Cancel")) dlgReject();
+            dlgPushButton(TR("+OK"))  {
+               if (numExported) {
+                  sprintf(execStatus, TR("Exporting libraries..."));
+                  execStatus = MakeHTML(execStatus, "#DFDFDF");
+                  dlgRedisplay();
+
+                  WorkPath = formatDirStr(WorkPath); // 2017-12-10 RP, Ensure always has trailing '/' character
+                  createDirIfNotExist(WorkPath);
+                  cmd = "";
+                  if (onelib)
+                     make_one_lbr();
+                  else
+                     make_lbr();
+                  show_save_script_file(cmd);
+
+                  exit("SCRIPT '"+ScriptName+"';\n");
+               } else {
+                  dlgMessageBox(TR(":ERROR: No libraries are selected. Please select one or more libraries to export."));
+               }
+            }
+         }
+      }
+   };
+
+}

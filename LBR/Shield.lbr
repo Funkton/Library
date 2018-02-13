@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -686,9 +687,13 @@ Cover: SMS-255-C
 </connects>
 <technologies>
 <technology name="">
-<attribute name="MFPN" value="BMI-S-205-F" constant="no"/>
-<attribute name="PARTNO" value="BMI-S-205-F" constant="no"/>
-<attribute name="SIZE" value="" constant="no"/>
+<attribute name="DATASHEET" value="https://media.digikey.com/pdf/Data%20Sheets/Laird%20Technologies/BMI-S-205.pdf"/>
+<attribute name="DESC" value="BOARD SHIELD 1.0X1.5&quot; FRAME"/>
+<attribute name="MANF" value="Laird Tech"/>
+<attribute name="MFPN" value="BMI-S-205-F"/>
+<attribute name="PARTNO" value="31-100391-01"/>
+<attribute name="SIZE" value="1.0&quot; X 1.5&quot; X 0.23&quot;"/>
+<attribute name="STATUS" value="" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -732,7 +737,7 @@ Cover: SMS-255-C
 </device>
 </devices>
 </deviceset>
-<deviceset name="COVER" prefix="CV" uservalue="yes">
+<deviceset name="COVER" prefix="CV">
 <description>SHIELD COVER</description>
 <gates>
 <gate name="G$1" symbol="COVER" x="0" y="0"/>
@@ -745,6 +750,13 @@ Cover: SMS-255-C
 <attribute name="MANF" value="" constant="no"/>
 <attribute name="MFPN" value="" constant="no"/>
 <attribute name="PARTNO" value="" constant="no"/>
+<attribute name="_EXTERNAL_" value="" constant="no"/>
+</technology>
+<technology name="-BMI-S-205-C">
+<attribute name="DESC" value="BOARD SHIELD 1.0X1.5&quot; COVER"/>
+<attribute name="MANF" value="Laird Tech"/>
+<attribute name="MFPN" value="BMI-S-205-C"/>
+<attribute name="PARTNO" value="31-100391-00"/>
 <attribute name="_EXTERNAL_" value="" constant="no"/>
 </technology>
 <technology name="-SMS-254-C">
