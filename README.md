@@ -1,10 +1,10 @@
 # Library
 EAGLE Master Library Folder.
-Cameron Nicks / Phase IV Engineering master Eagle library folder.
+Cameron Nicks
 cameron.nicks+layout@gmail.com
 
-This library includes all of my personal libraries, scripts, and settings.
-Every component designed by me has been used/tested on an active production board, but nobody is perfect so use at your own risk.
+This library includes libraries, scripts, and settings.
+Use at your own risk.
 Any enhancements/fixes are welcome.
 
 Notes:

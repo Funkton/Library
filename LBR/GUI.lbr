@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.2.2">
+<eagle version="8.6.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.5" altunitdist="mm" altunit="mm"/>
@@ -111,13 +112,13 @@
 <layer number="253" name="0.1MMGRID" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <library>
-<description>Custom GUI and design assistance features.
+<description>Experiemental Custom GUI and design assistance features.
 &lt;br&gt;
 &lt;b&gt;GRID_0.1MM_DIAG&lt;/b&gt; : Package with diagnal alignment for 0.1mm grid on layer 253&lt;br&gt;
 &lt;b&gt;GRID_1MM_DIAG&lt;/b&gt; : Package with diagnal alignment for 1mm grid on layer 252&lt;br&gt;
 &lt;hr&gt;
 &lt;p&gt;
-&lt;i&gt;C. Nicks - Phase IV Engineering, 2017</description>
+&lt;i&gt;C. Nicks - 2018</description>
 <packages>
 <package name="GRID_0.1MM_DIAG">
 <description>GRID 0.1MM Diagnal: Layer 253
