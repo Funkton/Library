@@ -1,9 +1,3 @@
-# Phase IV Engineering, inc
-# Innovative Wireless Sensing
-# 2820 Wilderness Place, Suite C
-# Boulder, CO 80301
-#
-#
 # File: SHORTCUTS.SCR
 # Description: Master shortcuts script file.
 # Author: Cameron Nicks, PCB Designer
@@ -21,10 +15,6 @@
 	ASSIGN SA+F1 'grid FINE_IN';
 
 	ASSIGN CA+G 'Display';
-
-	# ASSIGN C+F12 'set Option.PadNames 1';
-	ASSIGN C+F12 'set Option.SignalNamesOnPads 1; set Option.SignalNamesOnTraces 1;'
-	ASSIGN CS+F12 'set Option.SignalNamesOnPads 0; set Option.SignalNamesOnTraces 0;'
 
 #----------------------------------#
 #---------- BOARD EDITOR ----------#
@@ -45,7 +35,7 @@ BRD:
 	ASSIGN C+G 		GROUP; #thumb+Middle
 	ASSIGN CA+G 	'Display'; #Alt+thumb+Middle
 	ASSIGN CS+G 	'CHANGE LAYER';#Shift+thumb+Middle
-	ASSIGN CSA+G 	'';#Alt+Shift+thumb+Middle
+	ASSIGN CSA+G 	'CHANGE';#Alt+Shift+thumb+Middle
 	
 		#buttons 6+3 = C+R
 	ASSIGN C+R		DELETE; #mouse Better than ripup with Cmd.Delete.WireJointsWithoutCtrl =1
@@ -60,8 +50,8 @@ BRD:
 	ASSIGN CSA+I 	'RUN SHOW-GROUP-PARTS'; #mouse
 	
 		#buttons 6+4 = C+L
-	ASSIGN C+L 		'SET WIRE_BEND 1; MITER -0; ROUTE';
-	ASSIGN CA+L 	'CHANGE LAYER; LINE';
+	ASSIGN C+L 		'SET WIRE_BEND 1; MITER -0; ROUTE'; # Cannot add "DISPLAY -19" to stop the unrouted from displaying.
+	ASSIGN CA+L 	'LINE; CHANGE LAYER';
 	ASSIGN CS+L 	'SET WIRE_BEND 1; SET OBSTACLE_MODE IGNORE; MITER -0; ratsnest; ROUTE'; #mouse, -0 changes to straight miter instead of round. Obstacle turned off until it routes on grid.
 	ASSIGN CSA+L	'';
 	
@@ -102,8 +92,9 @@ BRD:
 	ASSIGN C+8		'ROUTE 1.00mm';
 	
 	# ---------DIAGNAL GRID OVERLAY
-	ASSIGN A+1		'GRID OFF; RUN TOGGLE 252; #1.0MM Diagnal Grid
-	ASSIGN A+2		'GRID OFF; RUN TOGGLE 253'; # 0.1MM Diagnal Grid
+	ASSIGN A+1		'RUN TOGGLE 19
+	#ASSIGN A+1		'GRID OFF; RUN TOGGLE 252; #1.0MM Diagnal Grid
+	#ASSIGN A+2		'GRID OFF; RUN TOGGLE 253'; # 0.1MM Diagnal Grid
 	ASSIGN A+3		'ROUTE 0.25mm';
 	ASSIGN A+4		'ROUTE 0.30mm';
 	ASSIGN A+5		'ROUTE 0.40mm';
@@ -165,6 +156,10 @@ BRD:
 	#ASSIGN CA+F7 	'';
 	#ASSIGN CS+F7 	'';
 	#ASSIGN SA+F7 	'';
+	
+		# ASSIGN C+F12 'set Option.PadNames 1';
+	ASSIGN F12 'RUN CFGTOGGLE Option.SignalNamesOnTraces;'
+	ASSIGN C+F12 'RUN CFGTOGGLE Option.SignalNamesOnPads;'
 	
 
 #----------------------------------#

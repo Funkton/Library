@@ -1,5 +1,19 @@
 This is a wishlist of ULPs or system mods for Eagle.
 
+ULP Idea
+Right click context to switch layers to what object is on. Line, route, rectangle, polygon, 
+
+ULP Idea
+Make a right-click item for parts to update library that part is from. Helpful after making edits from the right-click "edit package" option.
+
+ULP Idea.
+Settings replacement menu. That could include the most used settings on one page (tabs?). Include view/tool settings and menu defualts lists.
+
+ULP Idea.
+Match endpoint ulp. Run, then select 1st endpoint with group, then second endpoint to match. Ulp would copy location of 1st endpoint to the 2nd.
+To solve these kind of problems.
+https://forums.autodesk.com/t5/eagle-forum/how-to-trim-amp-join-a-line-and-an-arc/m-p/7537307#M7753
+
 CORE:
 - Shortcut modifiers. Ability to modify shortcut options from menu (or other shortcuts)
 	
@@ -21,6 +35,7 @@ CORE:
 	-> Per project display aliases
 
 ULP:
+- Utility to compare against any argv. This has to be implemented somewhere that can by turned into an easy function call.
 
 - Copy group to next layer ulp.
 

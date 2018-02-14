@@ -1,0 +1,18 @@
+# Sets standard attributes for current deviceset
+# -----------------------------
+
+run attribute-deviceset ALT;
+run attribute-deviceset BOM;
+run attribute-deviceset DATASHEET constant;
+run attribute-deviceset DESC constant;
+run attribute-deviceset MANF constant;
+run attribute-deviceset MFPN constant;
+run attribute-deviceset PARTNO;
+run attribute-deviceset PRICE;
+run attribute-deviceset SIZE constant;
+run attribute-deviceset STATUS;
+run attribute-deviceset TYPE constant;
+
+
+run attribute-deviceset INFO;
+# ----------------------------- 

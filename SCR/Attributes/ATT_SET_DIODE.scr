@@ -1,0 +1,10 @@
+# Sets standard CAPACITOR attributes for current deviceset
+# -----------------------------
+SCRIPT ATT_SET_STANDARD;
+
+run attribute-deviceset VR constant; # Reverse voltage 
+run attribute-deviceset VF constant; # Forward voltage
+run attribute-deviceset TRR constant; # Reverse recovery time
+run attribute-deviceset IO constant; # Average rectified current
+
+# -----------------------------

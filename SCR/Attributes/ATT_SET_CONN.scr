@@ -1,0 +1,9 @@
+# Sets standard attributes for current deviceset
+# -----------------------------
+SCRIPT ATT_SET_STANDARD;
+
+run attribute-deviceset POS constant;
+run attribute-deviceset SIZE DELETE;
+run attribute-deviceset PITCH constant;
+
+# ----------------------------- 

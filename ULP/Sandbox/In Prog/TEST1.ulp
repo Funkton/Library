@@ -1,0 +1,90 @@
+/*
+Helper functions and testing ground. Mostly a place for me to figure out how things work.
+
+
+
+Cameron Nicks
+/*____________________________________________________________________________________*/
+
+/* if (board){
+	board(B){
+	string colors = "#Layer Colors\n";
+	string fills = "#Layer Fills\n";
+		//dlgMessageBox("Stop crashing please");
+		B.layers (L) {
+	string LayerStat = "";				//open the list of layers
+			// if (L.used){
+				sprintf (LayerStat,"SET COLOR_LAYER %u %u\n", L.number, L.color); //Set Used
+			// }
+			// if (L.used){
+				colors += LayerStat;
+			// }
+		}
+		dlgMessageBox(colors);
+	} 
+} */
+
+// Shows how to retreive current grid information.
+string getGrid (){
+	board(B) {
+	string s;
+	sprintf(s, "GRID Information:\nGridsize=%f, Multiple=%d, Unit=%d, UnitDist=%d\n\nNo way to get alt distance from ulp?", B.grid.distance, B.grid.multiple, B.grid.unit, B.grid.unitdist);
+	  
+		dlgMessageBox(s);
+	return s;
+	}
+}
+
+//getGrid();
+
+// get project path, if in board or schematic, otherwise library path
+string get_project_path() {
+string s = "", p = "";;
+  if (library)  { library(L)   s = L.name;}
+  if (board)    { board(B)     s = B.name;}
+  if (schematic){ schematic(S) s = S.name;}
+  char c = '/';
+  int pos = strrchr(s, c);
+  if (pos >= 0) {
+     p = strsub(s, 0, pos + 1);
+     }
+  return p;
+}
+//--
+
+
+/* Shows a message box with a simple text message */
+void msgBox(string msg){
+    dlgMessageBox(msg);
+}
+//
+
+/*
+// Show signal list. Rename signal ulp needs reworked.
+board(B) {
+  string tmp;
+  string msg;
+  B.signals(S) {
+	sprintf(tmp, "Signal: %s\n", S.name);
+	msg += tmp;
+	}
+	exit(dlgMessageBox(msg));
+  }
+*/
+
+//Let's try this again
+if (board){
+	board(B){
+	string cmd = "SET USED_LAYERS ";
+	string LayerStat = "";
+		//dlgMessageBox("Stop crashing please");
+		B.layers (L) {				//open the list of layers
+			if (L.used){
+				sprintf (LayerStat,"%s %u\n", L.name, L.used); //Set Used
+                                cmd += LayerStat;
+			}
+			
+		}
+		dlgMessageBox(cmd);
+	} 
+}

@@ -1,0 +1,668 @@
+// Testing colors handling
+
+
+string colorString(string s, string color)
+{
+	return "<html><b><center><font color="+color+">"+s+"</font></center></b></html>";
+}
+
+#usage "<b>Example: Dialogs</b>\n"
+       "<p>"
+       "<author>Author: support@cadsoft.de</author>"
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+// Revision 1 : Path for bitmap corrected   2005.12.21 support@cadsoft.de
+
+string cmd = "";
+int Value = 42;
+int Wert = 7;
+int Val = 0;
+string st = "";
+int Result = 0;
+string msg = "";
+
+string Colors[] = { "red"
+                    , "green", "blue", "pink"
+                    , "yellow", "cyan", "magenta"
+                    , "brown", "white", "black"
+                    , "gray", "orange"
+                    };
+										
+
+int Selected = 2; // initially selects "blue"
+
+string Text = "example text";
+
+// Table background -> set to palette color. Tr -> Color layer is set to, supports alpha
+string Table = "<table width=200 bgcolor=#000000><tr bgcolor=#000000><td bgcolor=#60FF0000></td><td bgcolor=#60FFFF00></td></tr></table>";
+Colors [1] = Table;
+
+int Lines = 0;
+
+// Checkboxes in Dialog
+int mirror = 0;
+int rotate = 1;
+int flip   = 0;
+int black  = 1;
+int swap   = 1;
+int solid  = 0;
+int scaled = 0;
+int align = 0;
+
+//use dlgRadioButton only in dlgGroup!
+
+Result = dlgDialog("EAGLE Version 4 / ULP Demonstration") {
+  dlgHBoxLayout {
+     dlgStretch(0);
+		 //dlgLabel(colorString("TESTING COLOR","orange"));
+		 dlgLabel(Table);
+     dlgGroup("Use RadioButton only in dlgGroup!") {
+        dlgStretch(0);
+        dlgGridLayout {
+           dlgCell(1, 1)  dlgRadioButton("&Top", align);
+           dlgCell(2, 0)  dlgRadioButton("&Left ", align);
+           dlgCell(2, 1)  dlgRadioButton("&Center", align);
+           dlgCell(2, 2)  dlgRadioButton("&Right ", align);
+           dlgCell(3, 1)  dlgRadioButton("&Bottom", align);
+           //                         30 pixels fixed distance
+           dlgCell(1, 6) { dlgSpacing(30); dlgCheckBox("R&otate", rotate); };
+           dlgCell(2, 6) { dlgSpacing(30); dlgCheckBox("&Mirror", mirror); };
+           dlgCell(3, 6) { dlgSpacing(30); dlgCheckBox("&Flip", flip); };
+           }
+        }
+     dlgStretch(0);
+     dlgVBoxLayout {
+        dlgHBoxLayout {
+           dlgSpacing(20);
+           dlgStretch(0);
+           dlgPushButton("+OK") dlgAccept();
+           dlgStretch(1);
+           }
+        dlgHBoxLayout {
+           dlgSpacing(20);
+           dlgStretch(0);
+           dlgPushButton("-ESC") dlgReject();
+           dlgStretch(1);
+           }
+        }
+     dlgStretch(1);
+     }
+   dlgStretch(1);
+  };
+if (Result == 0) exit (0);
+
+// a complex menu
+// default is VBoxLayout
+
+Text += "\nextend example text with Text+=...";
+align = 0;
+Result = dlgDialog("Version 4 - ULP test"){
+
+   string fbmp;
+   sprintf(fbmp, "<img src='%seagle.bmp'>", filedir(argv[0]) );  // make absolute path for bitmap file 2005.12.21 alf@cadsoft.de
+   dlgStretch(0);                             // no dynamic distance on top
+   dlgHBoxLayout {
+      dlgStretch(0);                          // no dynamic distance on left border
+      dlgLabel(fbmp);                         // display a BMP file
+      dlgStretch(0);                          // no dynamic distance to next object
+      dlgGroup("ULP-Test Edit") {             // start a group
+         dlgHBoxLayout dlgSpacing(600);       // make 600 pixel spacing
+         dlgHBoxLayout {                      // horizontal direction in horizontal direction
+            dlgVBoxLayout dlgSpacing(300);    // a vertical Box 300 pixels high
+            dlgTextEdit(Text);                // editor window 600 x 300 pixels
+            }
+         }
+      dlgStretch(1);                          // dynamic distance to the right border
+      }
+   dlgHBoxLayout {
+      dlgStretch(0);                          // no dynamic distance allowed
+      dlgGroup("ULP-Test Radio") {            // start a frame for a group
+         dlgHBoxLayout dlgSpacing(100);       // a horizontle box min. 100 pixels wide
+                            // Minimum is 80 pixels (by Windows/Microsoft)
+                            // is the displayed Text in Combobox larger than 80 pixels
+                            // then the Box width is automatically extended
+
+         dlgLabel("&Color");                  // the & character marks the ALT-Key
+         dlgComboBox(Colors, Selected);
+         dlgRadioButton("&Center", align);
+         dlgRadioButton("&Bottom", align);
+         }
+      dlgSpacing(20);
+      dlgStretch(0);
+      dlgVBoxLayout {
+         dlgStretch(1);
+         dlgCheckBox("&Mirror", mirror);
+         dlgStretch(0);
+         dlgCheckBox("&Rotate", rotate);
+         dlgStretch(1);
+         }
+      dlgSpacing(10);
+      dlgStretch(0);
+      dlgLabel("Enter a &Number between 0 and 99");
+      dlgSpacing(5);
+      dlgStretch(0);
+      dlgHBoxLayout {
+         dlgIntEdit(Value, 0, 99);
+         }
+      dlgSpacing(10);
+      dlgStretch(0);
+      dlgGroup("Reset") {
+         dlgStretch(0);
+         dlgLabel("change values, press reset and look");
+         dlgStretch(1);
+         dlgPushButton("Reset")  dlgReset();
+         dlgStretch(1);
+         }
+      dlgStretch(1);
+      }
+   dlgStretch(0);
+   dlgSpacing(10);
+   dlgHBoxLayout {
+      dlgStretch(0);
+      dlgSpacing(550);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(0);
+      dlgSpacing(25);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(1);
+      }
+   dlgStretch(1);
+   };
+if (Result == 0) exit (0);
+
+// Dialog window with Button
+
+align = 0;
+Text = "\n\nCELL example\ndefine cells\n";
+
+Result = dlgDialog(" EAGLE Version 4 / GRID/CELL Demonstration"){
+  dlgGridLayout {                           // Grid & Cell
+    dlgCell(0, 0) dlgLabel("Cell 0,0");
+    dlgCell(0, 1) dlgLabel("Cell 0,1");
+    dlgCell(0, 2) dlgLabel("Cell 0,2");
+    dlgCell(0, 3) dlgLabel("Cell 0,3");
+    dlgCell(0, 4) dlgLabel("Cell 0,4");
+    dlgCell(0, 5) dlgLabel("Cell 0,5");
+    dlgCell(0, 6) dlgLabel("Cell 0,6");
+    dlgCell(0, 7) dlgLabel("Cell 0,7");
+    dlgCell(0, 8) dlgLabel("Cell 0,8");
+    dlgCell(0, 9) dlgLabel("Cell 0,9");
+    dlgCell(0, 10) dlgLabel("Cell 0,10");
+    dlgCell(0, 11) dlgLabel("Cell 0,11");
+
+    dlgCell(1, 0) dlgLabel("Cell 1,0");
+    dlgCell(2, 0) dlgLabel("Cell 2,0");
+    dlgCell(3, 0) dlgLabel("Cell 3,0");
+    dlgCell(4, 0) dlgLabel("Cell 4,0");
+    dlgCell(5, 0) dlgLabel("Cell 5,0");
+    dlgCell(6, 0) dlgLabel("Cell 6,0");
+    dlgCell(7, 0) dlgLabel("Cell 7,0");
+    dlgCell(8, 0) dlgLabel("Cell 8,0");
+    dlgCell(9, 0) dlgLabel("Cell 9,0");
+    dlgCell(10, 0) dlgLabel("Cell 10,0");
+    dlgCell(11, 0) dlgLabel("Cell 11,0");
+
+    dlgCell(1, 2, 4, 6) dlgTextEdit(Text);
+    dlgCell(1, 8) dlgComboBox(Colors, Selected);
+    dlgCell(2, 8) dlgCheckBox("&Mirror", mirror);
+    dlgCell(3, 8) dlgCheckBox("&Rotate", rotate);
+
+    dlgCell(4, 8, 4, 8) dlgGroup("Gruop") {
+      dlgGridLayout {
+         dlgCell(6, 8)  dlgRadioButton("&Top", align);
+         dlgCell(7, 8)  dlgRadioButton("&Center", align);
+         dlgCell(8, 8)  dlgRadioButton("&Bottom", align);
+         }
+      }
+
+    dlgCell(6, 4) dlgPushButton("+OK") dlgAccept();
+    dlgCell(7, 4) dlgPushButton("-CANCEL\n\nStop ULP\nand\nExit") dlgReject();
+    dlgCell(7, 2) dlgPushButton("Reset")  dlgReset();
+    dlgCell(1, 1) dlgLabel("<img src='"+  filedir(argv[0])+"eagle.bmp'>"); // this is a absolute path 2005.12.21 alf@cadsoft.de
+    dlgCell(1, 8) dlgLabel("<img src=eagle.bmp>");    // this is a relativ path 2005.12.21 alf@cadfsoft.de
+    dlgCell(9, 1) dlgLabel("<img src=eagle.bmp>");
+    dlgCell(9, 8) dlgLabel("<img src=eagle.bmp>");
+
+    }
+  dlgLabel("a small example for Grid & Cell");
+ };
+if (Result == 0) exit (0);
+
+Result = dlgDialog("Checkbox Demonstration"){
+  dlgGroup("Orientation and Print") {
+    dlgCheckBox("&Mirror", mirror);
+    dlgCheckBox("&Rotate", rotate);
+    dlgCheckBox("&Flip", flip);
+    dlgCheckBox("&Black", black);
+    dlgCheckBox("&Solid", solid);
+    dlgCheckBox("S&caled", scaled);
+    }
+  dlgVBoxLayout {
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(0);
+      }
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(0);
+      }
+    }
+  };
+if (Result == 0) exit (0);
+
+
+// Comboboxes
+Result = dlgDialog("Combobox"){
+  dlgComboBox(Colors, Selected);
+  dlgVBoxLayout {
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(0);
+      }
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(0);
+      }
+    }
+  };
+if (Result == 0) exit (0);
+
+// GridLayout - define cell by cell content
+
+Result = dlgDialog("Grid Layout"){
+  dlgGridLayout {
+    dlgCell(0, 0) dlgLabel("Row 0/Col 0");
+    dlgCell(1, 0) dlgLabel("Row 1/Col 0");
+    dlgCell(0, 4) dlgLabel("Row 0/Col 4");
+    dlgCell(5, 5) dlgLabel("Row 5/Col 5");
+    dlgCell(10, 20) dlgPushButton("+OK") dlgAccept();
+    dlgCell(10, 24) dlgPushButton("-Cancel") dlgReject();
+    }
+  };
+if (Result == 0) exit (0);
+
+// input a Integer-Value
+Result = dlgDialog("IntEdit"){
+  dlgHBoxLayout {
+    dlgLabel("Enter a &Number between 0 and 99");
+    dlgIntEdit(Value, 0, 99);
+    }
+  dlgVBoxLayout {
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(0);
+      }
+    dlgHBoxLayout {
+      dlgStretch(1);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(0);
+      }
+    }
+  };
+if (Result == 0) exit (0);
+
+// List box selection field
+Result = dlgDialog("List Box") {
+   dlgListBox(Colors, Selected)
+   dlgAccept();
+   };
+dlgMessageBox("selected Color " + Colors[Selected]);
+if (Result == 0) exit (0);
+
+
+//Multi column list view selection field
+string Colours[] = { "red\tThe color RED", "green\tThe color GREEN", "blue\tThe color BLUE" };
+
+Selected = 1;
+Result = dlgDialog("ListView") {
+  dlgListView("Name\tDescription", Colours, Selected) dlgAccept();
+  dlgPushButton("+OK") dlgAccept();
+  };
+dlgMessageBox("last selected\n" + Colours[Selected]);
+if (Result == 0) exit (0);
+
+
+// Predefined Button OK
+Result = dlgDialog("Hello") {
+  dlgLabel("Hello world");
+  dlgPushButton("+OK") dlgAccept();
+              // look at the '+' character
+  };
+
+// Radio Button
+// can be used only in a dglGroup
+align = 0;
+
+Result = dlgDialog("RadioButton") {
+    dlgGroup("Alignment") {
+      dlgRadioButton("&Top", align);
+      dlgRadioButton("&Center", align);
+      dlgRadioButton("&Bottom", align);
+      dlgPushButton("+OK") dlgAccept();
+      dlgPushButton("-Cancel") dlgReject();
+      }
+    };
+if (Result == 0) exit (0);
+
+// Input a real value
+
+real rValue = 33.333;
+Result = dlgDialog("RealEdit"){
+  dlgHBoxLayout {
+    dlgLabel("Enter a &Number between 0.0 and 99.0");
+    dlgRealEdit(rValue, 0.0, 99.0);
+    dlgVBoxLayout {
+      dlgHBoxLayout {
+        dlgStretch(1);
+        dlgPushButton("+OK") dlgAccept();
+        dlgStretch(0);
+        }
+      dlgHBoxLayout {
+        dlgStretch(1);
+        dlgPushButton("-Cancel") dlgReject();
+        dlgStretch(0);
+        }
+      }
+    }
+  };
+if (Result == 0) exit (0);
+
+sprintf(st, "%f", rValue);
+dlgMessageBox("last real value = " + st);
+
+// Define additional space in a box layout context
+// space is given in pixels
+Result = dlgDialog("Spacing V-Box"){
+   dlgVBoxLayout {
+     dlgLabel("Label V1");
+     dlgSpacing(70);
+     dlgLabel("Label V2");
+    }
+  };
+if (Result == 0) exit (0);
+
+Result = dlgDialog("Spacing HBox"){
+   dlgHBoxLayout {
+     dlgLabel("Label H1");
+     dlgSpacing(100);
+     dlgLabel("Label H2");
+    }
+  };
+if (Result == 0) exit (0);
+
+// Select two values
+Result = dlgDialog("Spinbox - select value for X and Y") {
+  dlgVBoxLayout {
+    dlgLabel("select &X");    // character & mark selected by ALT+Key
+    dlgSpinBox(Value, 0, 99);
+    dlgLabel("select &Y");
+    dlgSpinBox(Wert, -99, 99);
+    dlgPushButton("+OK") dlgAccept();
+                // + is the Default-Button [ENTER]
+    dlgPushButton("-throw away") dlgReject();
+                // - is the Cancel-Button [ESC]
+    };
+  };
+if (Result == 0) exit (0);
+
+dlgMessageBox("ATTENTION:\ndrag the next menu border line!", "OK");
+
+// Define an empty stretchable space in a box layout context
+Result = dlgDialog("Stretch horizontal") {
+    dlgHBoxLayout {
+      dlgStretch(0);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(5);
+      dlgPushButton("Key B");
+      dlgStretch(15);
+      dlgPushButton("Key C");
+      dlgStretch(40);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(5);
+   }
+ };
+
+if (Result == 0) exit (0);
+
+dlgMessageBox(" ATTENTION:\ndrag the next menu border line!", "OK");
+
+Result = dlgDialog("Stretch vertical") {
+    dlgVBoxLayout {
+      dlgStretch(0);
+      dlgPushButton("+OK") dlgAccept();
+      dlgStretch(5);
+      dlgPushButton("Key 2");
+      dlgStretch(15);
+      dlgPushButton("Key 3");
+      dlgStretch(40);
+      dlgPushButton("-Cancel") dlgReject();
+      dlgStretch(0);
+      }
+ };
+if (Result == 0) exit (0);
+
+// Defines a string entry field
+// define fixed length by dlgSpacing
+
+string Name = "Linus Torvalds";
+Result = dlgDialog("dlgStringEdit") {
+  dlgHBoxLayout dlgSpacing(400);
+  dlgStretch(0);
+  dlgLabel("Enter &Name");
+  dlgStretch(0);
+  dlgStringEdit(Name);
+  dlgVBoxLayout {
+     dlgStretch(0);
+     dlgHBoxLayout {
+        dlgStretch(1);
+        dlgPushButton("+OK") dlgAccept();
+        dlgStretch(0);
+        }
+     dlgHBoxLayout {
+        dlgStretch(1);
+        dlgPushButton("-Cancel") dlgReject();
+        dlgStretch(0);
+        }
+     dlgStretch(10);
+     };
+  dlgStretch(1);
+  };
+if (Result == 0) exit (0);
+dlgMessageBox("the last selected \n" + Name);
+
+// Define a tab page
+align = 0;
+int p_align = 0;
+
+Result = dlgDialog("Container for tab pages") {
+  //Define a container for tab pages
+  dlgTabWidget {
+    dlgTabPage("&Video") {
+      dlgHBoxLayout {
+         dlgLabel("<img src=eagle.bmp>");
+         }
+      dlgHBoxLayout {
+        dlgLabel("Video mode");
+        dlgGroup("Gruppe") {
+          dlgRadioButton("&Black and White", align);
+          dlgRadioButton("&White and Black", align);
+          }
+        }
+      }
+    dlgTabPage("&Printer") {
+      dlgLabel("Printer setup");
+      dlgGroup("Gruppe") {
+        dlgRadioButton("&Top", p_align);
+        dlgRadioButton("&Center", p_align);
+        dlgRadioButton("&Bottom", p_align);
+        }
+      }
+    dlgTabPage("&Memory") {
+      dlgLabel("Memory setup");
+      dlgCheckBox("R&otate", rotate);
+      dlgCheckBox("Mi&rror", mirror);
+      dlgCheckBox("&Flip", flip);
+      dlgCheckBox("&Swap", swap);
+      }
+    dlgTabPage("&Export") {
+      dlgLabel("select a file name for WRITE");
+      dlgHBoxLayout {
+        dlgStretch(0);
+        dlgPushButton("&File") {
+          string fileName;
+          fileName = dlgFileOpen("select a File", "*.*", "*.BRD\n*.SCH\n*.SCH\n*.ULP");
+          };
+        dlgStretch(1);
+        }
+      }
+    dlgTabPage("&Input") {
+      dlgLabel("select a file for read");
+      dlgHBoxLayout {
+        dlgStretch(0);
+        dlgPushButton("&File") {
+          string fileName;
+          fileName = dlgFileOpen("select a File", "*.*", "");
+          };
+        dlgStretch(1);
+        }
+      }
+    dlgTabPage("&Help") {
+      dlgLabel("<img src=eagle.bmp>");
+      dlgLabel("Copyright (c) 1988-2000 CadSoft Computer GmbH");
+      }
+    }
+  dlgHBoxLayout {
+    dlgStretch(0);
+    dlgPushButton("+OK") dlgAccept();
+    dlgStretch(0);
+    dlgLabel(" <--------> ");
+    dlgStretch(0);
+    dlgPushButton("-Cancel") dlgReject();
+    dlgStretch(1);
+    }
+  };
+if (Result == 0) exit (0);
+
+string sresult;
+sprintf(sresult, "%d", Value);
+cmd  = "selected X = " + sresult + ".\n";
+sprintf(sresult, "%d", Wert);
+cmd += "selected Y = " + sresult + ".\n";
+
+Result = dlgDialog("Editor Window") {
+  dlgTextEdit(cmd);
+  dlgHBoxLayout {
+    dlgPushButton("+OK") dlgAccept();
+    dlgPushButton("-Cancel") dlgReject();
+    }
+  };
+if (Result == 0) exit (0);
+
+dlgMessageBox(cmd);
+
+//Define a multiline text viewer field
+Text = "This is some text.\nLine 2\nLine 3";
+string Text2 = "This is the 2nd text.\nLine 2\nLine 3";
+Text2 += "\n...\n...\n...\n...\nScroll-\nbars\non?\n";
+Text2 += "OK\nEnd.";
+
+Result = dlgDialog("List Window") {
+  dlgVBoxLayout {
+    dlgLabel("&View the text");
+    dlgTextView(Text);
+
+    dlgLabel("Vie&w the text");
+    dlgTextView(Text2);
+    }
+  dlgHBoxLayout {
+    dlgStretch(1);
+    dlgPushButton("+OK") dlgAccept();
+    }
+  };
+if (Result == 0) exit (0);
+
+// Button
+int haveButton = 1;
+Result = dlgDialog("Test") {
+  dlgLabel("Start");
+  if (haveButton)
+     dlgPushButton("Here") dlgAccept();
+  };
+if (Result == 0) exit (0);
+
+Result = dlgDialog("'3 Boxes close by ESC") {
+    dlgHBoxLayout {
+       dlgLabel("Box 1");
+       dlgLabel("Box 2");
+       dlgLabel("Box 3");
+       dlgPushButton("+OK") dlgAccept();
+       }
+  };
+if (Result == 0) exit (0);
+
+Result = dlgDialog("selected Color") {
+  dlgVBoxLayout {
+    dlgLabel("selected Color");
+    dlgLabel(Colors[Selected]);
+    }
+  };
+if (Result == 0) exit (0);
+
+// Redisplays the dialog after changing values
+string Status[] = { "Idle", "1st run", "2nd run", "3rd run", "Finished" } ;
+int stat = 0;
+string labstr = Status[0];
+
+Result = dlgDialog("Test") {
+               dlgLabel(labstr);
+               dlgPushButton("+OK")    dlgAccept(42);
+               dlgPushButton("Cancel") dlgReject(-3);
+               dlgPushButton("Run") {
+               if (stat < 4) stat++;
+               labstr = Status[stat];
+               dlgRedisplay();
+                // some program action here...
+               }
+               dlgPushButton("Reset") {
+                  dlgReset();
+                  stat = 0;
+                  labstr = Status[stat];
+                  dlgRedisplay();
+                  }
+               };
+if (Result == 0) exit (0);
+
+sprintf(cmd, "%d",  Result);
+dlgMessageBox(cmd);
+
+int Number = 99;
+string dlgStr = "Empty";
+real rVal = 9.99;
+
+Result = dlgDialog("Reset Int & Real to 0") {
+               dlgIntEdit(Number);
+               dlgRealEdit(rVal);
+               dlgStringEdit(dlgStr);
+               dlgPushButton("+OK")    dlgAccept(42);
+               dlgPushButton("Cancel") dlgReject();
+               dlgPushButton("Reset")  dlgReset();
+               };
+if (Result == 0) exit (0);
+
+// File handling
+int n = 0;
+char b[];
+
+string fileName = dlgFileOpen("select File", "*.*", "*.BRD\n*.SCH\n*.SCH\n*.ULP");
+
+  int nBytes = fileread(b, fileName);
+  for (int x = 0; x < nBytes; x++) {
+    cmd += b[x];
+    }
+dlgMessageBox(fileName +"\nread", "OK");

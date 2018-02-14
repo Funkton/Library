@@ -44,9 +44,11 @@
 	- Complete re-write of rectangle section. Origin alignment settings, and previously used values populate the fields.
 	
 	ToDo:
+		- PAD: Add drill settings to PAD option.
+			- PAD: Fix orientation and axis (Backwards)
 		DONE - Add option to rectangle that draws from centered origin. C.Nicks
 		- Add line style options to line and rectangle
-		- Add Box option (like rectangel) but with each side length definable.
+		- Add Box option (like rectangle) but with each side length definable.
 		- Rebuild dialog into tab pages (full lib tools)
 		Partial- Save and restore previously used settings. Rectangle 
 		- Add ability to select multiple layers. (Top and bottom selections)

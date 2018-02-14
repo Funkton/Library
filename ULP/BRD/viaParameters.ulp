@@ -1,0 +1,275 @@
+#usage "<b>Creates a list of all vias from top to bottom layers with additional"
+       " data e.g. resistance, estimated ampacity etc.</b>"
+       "<p>"
+       "Version: 1.0.0"
+       "<p>"
+       "<author>Author: kk99</author>"
+
+#require 6.0000
+
+string data[]; // array witch via parameters
+int dataCount; // size of array with via parameters
+
+real
+u2GridConvert(int n, int gridUnit)
+{
+    real value = 0.0;
+    switch (gridUnit) {
+        case GRID_UNIT_MIC:
+            value = u2mic(n);
+            break;
+        case GRID_UNIT_MM:
+            value = u2mm(n);
+            break;
+        case GRID_UNIT_MIL:
+            value = u2mil(n);
+            break;
+        case GRID_UNIT_INCH:
+            value = u2inch(n);
+            break;
+        default:
+            break;
+    }
+
+    return value;
+}
+
+int
+grid2uConvert(real n, int gridUnit)
+{
+    real value = 0.0;
+    switch (gridUnit) {
+        case GRID_UNIT_MIC:
+            value = mic2u(n);
+            break;
+        case GRID_UNIT_MM:
+            value = mm2u(n);
+            break;
+        case GRID_UNIT_MIL:
+            value = mil2u(n);
+            break;
+        case GRID_UNIT_INCH:
+            value = inch2u(n);
+            break;
+        default:
+            break;
+    }
+
+    return value;
+}
+
+string
+u2Text(int gridUnit)
+{
+    string value = "";
+    switch (gridUnit) {
+        case GRID_UNIT_MIC:
+            value = "mic";
+            break;
+        case GRID_UNIT_MM:
+            value = "mm";
+            break;
+        case GRID_UNIT_MIL:
+            value = "mil";
+            break;
+        case GRID_UNIT_INCH:
+            value = "inch";
+            break;
+        default:
+            break;
+    }
+
+    return value;
+}
+
+int
+getBoardThickness(void)
+{
+    string msg;
+    int gridUnit = GRID_UNIT_MM;
+    real minBoardThicnkess = 0.1;
+    real maxBoardThicnkess = 10.0;
+    real boardThickness = 0.0;
+
+    board(B) {
+        gridUnit = B.grid.unit;
+    }
+    string gridUnitText = u2Text(gridUnit);
+    minBoardThicnkess = u2GridConvert(40640, gridUnit);
+    maxBoardThicnkess = u2GridConvert(2438400, gridUnit);
+
+    int result = dlgDialog("Via parameters") {
+        sprintf(msg, "Please enter board thickness from range: %.1f [%s] - %.1f [%s].", minBoardThicnkess, gridUnitText, maxBoardThicnkess, gridUnitText);
+        dlgLabel(msg);
+        dlgRealEdit(boardThickness, minBoardThicnkess, maxBoardThicnkess);
+        dlgHBoxLayout {
+            dlgStretch(1);
+            dlgPushButton("+OK") dlgAccept();
+            dlgPushButton("-Cancel") dlgReject();
+        }
+    };
+
+    if (result == 0) {
+        exit(0);
+    }
+
+    return grid2uConvert(boardThickness, gridUnit);
+}
+
+real
+getViaArea(real diameter, real drill, int viaShape)
+{
+    real area = 0.0;
+    switch (viaShape) {
+        case VIA_SHAPE_SQUARE:
+            area = (0.5 * pow(diameter, 2.0)) - (PI * pow(drill / 2.0, 2.0));
+            break;
+        case VIA_SHAPE_ROUND:
+            area = PI * (pow(diameter / 2.0, 2.0) - pow(drill / 2.0, 2.0));
+            break;
+        case VIA_SHAPE_OCTAGON:
+            area = ((pow(diameter, 2.0) * (1 + sqrt(2))) / (2 + sqrt(2))) - (PI * pow(drill / 2.0, 2.0));
+            break;
+        default:
+            break;
+    }
+
+    return area;
+}
+
+real
+getViaResistance(real boardThickness, real area)
+{
+    real value = 0.0;
+    real ro = (1.9E-6 * 1E3) / 2.54; // plated copper
+
+    if (area > 0.0) {
+        value = (ro * boardThickness) / area;
+    }
+
+    return value;
+}
+
+// calculation according to IPC-2221 for external layers
+real
+getViaEstimatedAmpacity(real area)
+{
+    real value = 0.0;
+    real deltaT = 10.0; // temperature rise equal 10 degrees of celcius
+    real k = 0.048;
+    real b = 0.44;
+    real c = 0.725;
+
+    value = k * pow(deltaT, b) * pow(area, c);
+
+    return value;
+}
+
+real
+getViaThermalResistance(real boardThickness, real area)
+{
+    real value = 0.0;
+    real rth = 98.0; // mil * K / W
+
+    if (area > 0.0) {
+        value = (rth * boardThickness) / area;
+    }
+
+    return value;
+}
+
+string
+viaShapeText(int viaShape)
+{
+    string value = "";
+    switch (viaShape) {
+        case VIA_SHAPE_SQUARE:
+            value = "square";
+            break;
+        case VIA_SHAPE_ROUND:
+            value = "round";
+            break;
+        case VIA_SHAPE_OCTAGON:
+            value = "octagon";
+            break;
+        default:
+            break;
+    }
+
+    return value;
+}
+
+void
+getData(int boardThickness)
+{
+    board(B) {
+        int gridUnit = B.grid.unit;
+        dataCount = 0;
+        sprintf(data[dataCount], "Signal\tShape\tDrill [%s]\tDiameter [%s]\tR [mOhm]\tEstimated ampacity [A]\tRth [C/W]", u2Text(gridUnit), u2Text(gridUnit));
+        dataCount++;
+        B.signals(S) {
+            S.vias(V) {
+                if ((V.start != LAYER_TOP && V.end != LAYER_BOTTOM) ||
+                    (V.shape[V.start] != V.shape[V.end])) {
+                    continue;
+                }
+                real area = getViaArea(u2mil(V.diameter[V.start]), u2mil(V.drill), V.shape[V.start]);
+                real r = getViaResistance(u2mil(boardThickness), area);
+                real amp = getViaEstimatedAmpacity(area);
+                real rth = getViaThermalResistance(u2mil(boardThickness), area);
+                sprintf(data[dataCount], "%s\t%s\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f", S.name, viaShapeText(V.shape[V.start]),
+                        u2GridConvert(V.drill, gridUnit), u2GridConvert(V.diameter[V.start], gridUnit), r * 1000, amp, rth);
+                dataCount++;
+            }
+        }
+    }
+}
+
+void
+displayData(void)
+{
+    int select = 0;
+    int result = dlgDialog("Via parameters") {
+        dlgListView("", data, select);
+        dlgHBoxLayout {
+            dlgStretch(1);
+            dlgPushButton("+&Save") {
+                board(B) {
+                    string fileName = dlgFileSave("Save list", filesetext(B.name, ".txt"));
+                    if (fileName) {
+                        output (fileName, "wt") {
+                            for (int i = 0; i < dataCount; i++) {
+                                printf("%s\n", data[i]);
+                            }
+                        }
+                    }
+                }
+            }
+            dlgPushButton("-Close") dlgReject();
+        }
+    };
+
+    if (!result == 0) {
+        exit(0);
+    }
+}
+
+int
+main(void)
+{
+    if (!board) {
+        dlgMessageBox(":Run this ULP script in Board view !");
+        return -1;
+    }
+
+    int boardThickness = getBoardThickness();
+    if (boardThickness == 0) {
+        dlgMessageBox("!Invalid value of board thickness.");
+        return -1;
+    }
+
+    getData(boardThickness);
+    displayData();
+
+    return 0;
+}

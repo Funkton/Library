@@ -1,0 +1,1587 @@
+#usage "en: <qt><nobr>Command draw<p><u>Options</u>:<p>"
+       "<b>+</b> distance/radius <br>"
+       "<b>A</b>ngle start [A<b>n</b>gle step] [<b>E</b>nd angle] <br>"
+       "[<b>L</b>ayer] <br>"
+       "[<b>W</b>ire & width] <br>"
+       "[<b>X</b>coordinate] [<b>Y</b>coordinate] **<br>"
+       "[P<b>o</b>lygon] <br>"
+       "[<b>P</b>ad || <b>S</b>md || <b>V</b>ia] <br>"
+       "[W<b>i</b>dth Leng<b>t</b>h] SMD_dx SMD_dy <br>"
+       "[<b>-</b>Name] signal/pad/smd <br>"
+       "[<b>D</b>iameter] for Pad/Via, if used <br>"
+       "[D<b>r</b>ill] for Pad/Via/Hole, if used <br>"
+       "[<b>°</b>] define angle (in degrees) for step <br>"
+       "[<b>/</b>] define number of steps within start and end angle <br>"
+       "[<b>G</b>roup] rotate and paste <br>"
+       "[rotate <b>m</b>atch] <br>"
+       "[<b>MOVE</b>] elements on place by order <br>start with name (<i>only in Board</i>) <br>"
+       "[<b>C</b>ircle] emulate/draw a cricle with wire or polygon <br>"
+       "[full ellipse <b>0</b>] <br>"
+       "[Ellipse <b>f</b>actor] height = radius * f <br>"
+       "[1/<b>4</b> ellipse] 90 degree, 1st quadrant <br>"
+       "<br>"
+       "** If <b>MARK</b> is set in PAC/BRD/SCH editor, coordinates are relativ. <br>"
+       "Parameters can be used in any order; not case sensitive."
+       "<p>"
+       "<author>Author: alf@cadsoft.de </author></nobr></qt>",
+
+       "de: <qt><nobr>Command draw<p><u>Optionen</u>:<p>"
+       "<b>+</b> Distance/Radius <br>"
+       "St<b>a</b>rtwinkel [Wi<b>n</b>kelschritt oder A<b>n</b>zahl (# .)] [<b>E</b>ndwinkel] <br>"
+       "[<b>L</b>ayer] <br>"
+       "[<b>W</b>re width] setzt die Breite (width) und den Befehl WIRE. <br>"
+       "<i>Für Polygon muß <b>W</b> vor <b>O</b> angegeben werden.</i><br>"
+       "[<b>X</b>-Koordinate] [<b>Y</b>-Koordinate] **<br>"
+       "[P<b>o</b>lygon] <br>"
+       "[<b>P</b>ad || <b>S</b>md || <b>V</b>ia] <br>"
+       "[W<b>i</b>dth Leng<b>t</b>h] SMD_dx SMD_dy <br>"
+       "[<b>-</b>Name] Signal/Pad/Smd <br>"
+       "[<b>D</b>iameter] für Pad/Via, wenn benutzt <br>"
+       "[D<b>r</b>ill] für Pad/Via/Hole, wenn benutzt <br>"
+       "[<b>°</b>] Winkelschritt in Grad <br>"
+       "[<b>/</b>] berechnet den Winkel (End - Start / Anzahl <br>"
+       "[<b>G</b>roup] Pasted die Gruppe rotiert.<br>"
+       "Die Gruppe kann vor dem Start des ULP definiert werden,<br>"
+       "oder das ULP selektiert alle sichtbaren Objekte als Gruppe.<br>"
+       "[Rotate <b>m</b>atch] dreht die Bauteile/Pad/Smd im selben Winkel <br>in dem sie angeordnet werden<br>"
+       "[<b>MOVE</b>] plaziert Elemente aufsteigend beginnend mit dem <br>angegebenen Namen (<i>nur im Board nutzbar</i> ) <br>"
+       "[<b>C</b>ircle] zeichnet einen Kreis oder Ellipse als Wire oder Polygon <br>je nach Option (W/O) <br>"
+       "[full ellipse <b>0</b>] zeichnet eine volle Ellipse <br>"
+       "[Ellipse <b>f</b>aktor] der Wert mit dem die Länge multipliziert wird <br>(Raduis * f) ergibt die Länge in y <br>"
+       "[1/<b>4</b> ellipse] zeichnet nur den ersten Qudranten <br>einer Ellipse oder Kreises <br>"
+       "<br>"
+       "** Ist <b>MARK</b> im benutzten PAC/BRD/SCH Editor gesezt, <br>werden die Koordinaten relativ zur Marke benutzt.<br>"
+       "Die Parameter können in beliebiger Reihenfolge angegeben <br>und groß oder klein geschrieben werden."
+       "<p>"
+       "<author>Author: alf@cadsoft.de </author></nobr></qt>"
+
+string Help = "<nobr>" +
+       "RUN cmd-draw w0.4 -gnd x1.3 y2.56 +17.45 a115 n75 e180 # lTop <br>" +
+       "RUN cmd-draw w0.4 -gnd x1.3 y2.56 +17.45 a115 n75 e180 . lTop <br>" +
+       "RUN cmd-draw w0.4 -gnd x1.3 y2.56 +17.45 a115 ltop <br>" +
+       "RUN cmd-draw a0 e150.0 x30 y4 w0.2 n9 # o +2.27 -gnd l1 <br>" +
+       "RUN cmd-draw a0 e50.0 x30 y4 w0.2 n9 o 0 f1.7 +2.27 -gnd l1 <br>" +
+       "RUN cmd-draw w0.4 +1.5 -gnd a2 y2.56 l16 <br>" +
+       "RUN cmd-draw +2.0 e270.0 n9.0 w0.2 x-2.54 y5.08 <br>" +
+       "RUN cmd-draw x1 y3.33 l1 w.2 +4.77 # n5 <br>" +
+       "RUN cmd-draw s -1 +9 n7 # <br>" +
+       "RUN cmd-draw r1.2 +19.9 n7 # <br>" +
+       "RUN cmd-draw r1.2 +9.5 n7 . <br>" +
+       "RUN cmd-draw +2.20 n9.0 w0.2 x-2.54 y-5.08 w.01 l1 O 0 f1.75 <br>" +
+       "RUN cmd-draw +2.20 n9.0 w0.2 x-2.54 y-5.08 w.01 l1 O 4 f1.75 <br>" +
+       "RUN cmd-draw s -1 +9 a22.5 m <br>" +
+       "RUN cmd-draw s i1.55 t2.7 -A +2.20 n20.0 x-2.54 y-5.08 l1 f1.75 m <br>" +
+       "RUN cmd-draw r.8 d1.4 v -A +4.20 n20.0 x-2.54 y-5.08 l1 f1.75 <br>" +
+       "RUN cmd-draw g n33.333 # A0.0 e359.9 <br>" +
+       "RUN cmd-draw G n33.333 . A0.0 e359.9 <br>" +
+       "RUN cmd-draw +10 MOVE -R1 M a33 L16 N7 E322 .<br>"+
+       "<p>" +
+       "</nobr>";
+
+// THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
+
+#require 6.0400;
+
+string Help_Move = "<qt>MOVE, PAD, SMD can be used clockwise, too. " +
+                   "In this case <b>Angle step</b> has to be negative. Is <b>Angle start</b> less than " +
+                   "<b>Angle end</b> for negative <b>Angle step</b>, 360° will be added to <b>Angle start</b>." +
+                   "Thus you are allowed to arrange elements clockwise.</qt>";
+
+string Mark_Info = "<nobr>If <font color=\"blue\"><b>MARK</b></font> is set coordinates are <b>relativ</b>.</nobr>";
+
+
+if (language() == "de") {
+  Help_Move = "MOVE, PAD, SMD können auch rechtsdrehend benutzt werden. " +
+              "Dazu muß <b>Angle step</b> negativ sein.<br>" +
+              "Ist <b>Angle start</b> bei <i>negativen</i> <b>Angle step</b> " +
+              "kleiner als <b>Angle end</b> wird auf <b>Angle start</b> 360° aufaddiert.<br>" +
+              "Damit ist es möglich die Elemente rechtsdrehen anzuordnen.";
+
+  Mark_Info = "<nobr>Ist <font color=\"blue\"><b>MARK</b></font> gesetzt, dann sind die Koordinaten relativ zu der Marke.</nobr>";
+}
+
+string Label_Move = " ";
+
+int test = 1;
+
+string Version = " Version 2.01 ";  // 2006-08-10 alf@cadsoft.de
+                                    // 2008-04-10 changed GROUP ... (>x y); alf@cadsoft.de
+                                    // 2008-05-06 SMD generierung mit Name berichtigt
+                                    // 2010-06-09 Generierung des PAD-Namen berichtigt.
+                                    // 2010-10-15 Startwinkel auf 720 erhöht, um Bauteile
+                                    //            im Uhrzeigersinn mit größerem Endwinkel
+                                    //            als 0.0 zu platzieren.
+                                    //            Beispiel Start 620.0° End 260.1°
+                                    //            Hier muß der Startwinkel 260+360 = 620° sein.
+                                    //            Neue Option: Winkeloffset
+                                    // 2011-10-21 Option Group akzeptiert jetzt auch Radius = 0.
+                                    //            die Gruppe wird jetzt gedreht gapastetd.
+                                    //            Checkbox use selected, es wird die vor dem Start des ULP
+                                    //            definirte Gruppe benutzt, oder das ULP definiert alle
+                                    //            sichtbaren Objekte als Gruppe.
+                                    // 2012-04-12 min max Wert absolut und nicht mehr in Eagle-Internen Einheiten
+                                    //            wegen der höheren Auflösung von V6
+                                    // 2013-03-26 Auflösung und max. Werte an V6 und feinere Auflösung angepasst.
+                                    // 2013-08-05 Shape von VIA ausgeben, HOLE berichtigt.
+                                    // 2013-12-12 In #usage Zeilenumbruch <br> eingefügt.
+
+enum { DrawWIRE,             // ** do not change this list  **
+       DrawPOLYGON,
+       DrawMOVE,             // to place Elements in Board
+       DrawGROUP,            // Group CUT paste, select all in group ** see also >> dlgGroup("Option") <<
+       DrawHOLE,
+       DrawPAD,
+       DrawSMD
+     };
+
+int    DrawType = DrawWIRE;
+string cmd_Draw_Info = "<img src=cmd-draw-move-match-none.bmp>";
+string Draw_Info     = " ";
+string Name_used;
+string require = " <font color=\"red\">required</font> ";
+string Not_Used = " <font color=\"darkgreen\">not used</font> ";
+string Can_Used = " <font color=\"blue\">can be used</font> ";
+if (library) Name_used  = Not_Used;
+else         Name_used  = Can_Used;
+
+
+string Para    = "";
+string SigName = "";
+string width   = "";
+string layer   = "";
+string Angle_step_used = Not_Used;
+string Angle_end_used  = Not_Used;
+
+real   x1, y1, x2;
+real   StartAngle     = 0.0;         // start the rotated draw on degree
+real   AngleStep      = 0.0;         // angle step in degree to next element or steps at 90° for Ellipse
+real   EangleOffset   = 0.0;         // the rotation off the element self + offset
+real   EndAngle       = 360.0;       // end the rotated draw on degree
+enum   { None, Degreestep, Calcstep };
+int    AngleStepTyp   = None;        // flag to calculate the anglestep from count (anglestep)
+int    RotateMatch    = 0;           // rotate element with same angle with rotate
+int    UseMarkedGroup = 0;
+
+enum { NONE, CIRCLE, FULL_ELLIPSE, ELLIPSE_4 };
+int    Placeform      = NONE;
+real   EllipsFactor   = 1.0;         // ratio x to y radius
+real   M_EllipsFactor = 1.0;         // copy for menue
+
+//int    polygon      = 0;           // draw ellipse as polygon
+//int    smd          = 0;           // place a smd on endpoint
+real   SMD_dx         = 0;           // SMD length
+real   SMD_dy         = 0;           // SMD width
+string PadVia         = "";          // draw Pad or Via as used in editor
+string PAD_diameter   = "";          // pad diameter
+string Shapes[];
+int    ShapeSelect    = PAD_SHAPE_OFFSET+1;
+
+string Drill_Hole     = "";          // drill diameter
+
+int grid = 1;
+string GridUnit[] = { "MIC", "MM", "MIL", "INCH" };
+int    gridunit;
+real   minx, maxx, miny, maxy;
+
+string Length_Distance_Radius = "&+ radius ";
+
+
+int PressOk = 0;
+
+string s;
+string h;
+string Help_Err = " ";
+
+string Name1st, NameExt; // use as variable Label in Menu
+
+// ### functions ###
+void Set_MinMax_Unit(int Grid) {  // 2012-04-12
+  switch(Grid) {
+    case GRID_UNIT_MIC  : {  // Micron
+                            minx = -1990000;
+                            maxx =  1990000;
+                            miny = -1990000;
+                            maxy =  1990000;
+                            break;
+                          }
+    case GRID_UNIT_MM   : {  // Millimeter
+                            minx = -1990;
+                            maxx =  1990;
+                            miny = -1990;
+                            maxy =  1990;
+                            break;
+                          }
+    case GRID_UNIT_MIL  : {  // Mil
+                            minx = -78340;
+                            maxx =  78340;
+                            miny = -78340;
+                            maxy =  78340;
+                            break;
+                          }
+    case GRID_UNIT_INCH : {  // Inch
+                            minx = -78.34;
+                            maxx =  78.34;
+                            miny = -78.34;
+                            maxy =  78.34;
+                            break;
+                          }
+  }
+  return;
+}
+
+
+real u2u(int val) {
+  switch (gridunit) {
+    case GRID_UNIT_MIC  : return u2mic(val);
+    case GRID_UNIT_MM   : return u2mm(val);
+    case GRID_UNIT_MIL  : return u2mil(val);
+    case GRID_UNIT_INCH : return u2inch(val);
+  }
+}
+
+
+void info(void) {
+  dlgDialog("cmd-draw HELP") {
+    dlgHBoxLayout {
+      dlgLabel(usage);
+      dlgVBoxLayout {
+        if (language() == "de")  dlgLabel("<u>Beispiele</u>:");
+        else dlgLabel("<u>Examples</u>:");
+        dlgLabel(Help);
+        dlgStretch(1);
+        dlgHBoxLayout {
+          dlgStretch(1);
+          dlgPushButton("+Ok") dlgAccept();
+          dlgStretch(1);
+        }
+      }
+    }
+  };
+  return;
+}
+
+
+// *** analysis User Error ***
+int error(void) {
+  int err = 0;
+  if (DrawType == DrawGROUP) {
+    if (!AngleStep || !AngleStep || !EndAngle) { Help_Err = "Angle start or Angle step or Angle end = 0"; return -1; }
+    if (!AngleStepTyp) {
+      if (AngleStepTyp && AngleStep == 0) {
+        Help_Err = "Missing parameter: Angle step";
+        return -1;
+      }
+      Help_Err = "Select Angle step type :\n° degree step\ncalc. steps.";
+      return -1;
+    }
+    return 0;
+  }
+  if (strtod(width) >= x2) { Help_Err = "Width > Radius";  err = -1; }
+  if (!x2) { Help_Err = "Radius = 0"; err = -1; }
+    if (DrawType == DrawSMD) {
+    if (layer == "1" || layer == "16") ;
+    else { err = -1; Help_Err = "Layer for SMD ?"; }
+  }
+  if (DrawType == DrawMOVE) {
+    if (!SigName) { Help_Err = "1.st Element name ?"; err = -1; }
+  }
+  if (AngleStepTyp && AngleStep == 0) {
+    err = -1; Help_Err = "Missing parameter: Angle step";
+  }
+  return err;
+}
+
+
+// *** set info for Menu *** Pictures and Texts ***
+void set_Draw_Info(void) {
+  Label_Move = " ";
+  if (DrawType == DrawWIRE) {
+    switch (AngleStepTyp) {
+      case None       :
+                        Angle_step_used = Not_Used;
+                        Angle_end_used  = Not_Used;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-wire-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-wire-none.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-wire-ellipse.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-wire-ellipse.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Degreestep :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-wire-degstep-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-wire-circle-degstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-wire-step-ellipse.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-wire-step-ellipse4.bmp>";
+                                              break;
+                        }
+                        break;
+      case Calcstep   :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-wire-calcstep-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-wire-circle-calcstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-wire-calc-ellipse.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-wire-clac-ellipse4.bmp>";
+                                              break;
+                        }
+                        break;
+    }
+  }
+
+  else if(DrawType == DrawPOLYGON) {
+    Angle_step_used = require;
+    Angle_end_used  = require;
+    switch (AngleStepTyp) {
+      case None       : switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-polygon-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-polygon-none.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse-none.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse4-none.bmp>";
+                                              break;
+                        }
+                        break;
+      case Degreestep : switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-polygon-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-polygon-circle-degstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse-degstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse4-degstep.bmp>";
+                                              break;
+                        }
+                        break;
+      case Calcstep   : switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-polygon-none-calcstep.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-polygon-circle-calcstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse-calcstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-polygon-ellipse4-calcstep.bmp>";
+                                              break;
+                        }
+                        break;
+    }
+  }
+
+  else if(DrawType == DrawMOVE) {
+    if (library || schematic) {
+      dlgMessageBox("! MOVE\nYou can use this function ponly in a Board.", "OK");
+    }
+    else {
+      Label_Move = Help_Move;
+      switch (AngleStepTyp) {
+        case None       :
+                          Angle_step_used = Not_Used;
+                          Angle_end_used  = Not_Used;
+                          switch (Placeform) {
+                            case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-none.bmp>";
+                                                break;
+                            case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-none.bmp>";
+                                                break;
+                            case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-ellipse-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-ellipse-none.bmp>";
+                                                break;
+                            case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-ellipse-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-ellipse-none.bmp>";
+                                                break;
+                          }
+                          break;
+
+        case Degreestep :
+                          Angle_step_used = require;
+                          Angle_end_used  = require;
+                          switch (Placeform) {
+                            case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-none.bmp>";
+                                                break;
+                            case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-circle-no_match-degstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-circle-match-degstep.bmp>";
+                                                break;
+                            case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-ellipse-no_match-degstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-ellipse-match-degstep.bmp>";
+                                                break;
+                            case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-ellipse4-no_match-degstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-ellipse4-match-degstep.bmp>";
+                                                break;
+                          }
+                          break;
+
+        case Calcstep   :
+                          Angle_step_used = require;
+                          Angle_end_used  = require;
+                          switch (Placeform) {
+                            case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-no_match-none.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-match-none.bmp>";
+                                                break;
+                            case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-circle-no_match-calcstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-circle-match-calcstep.bmp>";
+                                                break;
+                            case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-ellipse-no_match-calcstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-ellipse-match-calcstep.bmp>";
+                                                break;
+                            case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-move-ellipse4-no_match-calcstep.bmp>";
+                                                else cmd_Draw_Info = "<img src=cmd-draw-move-ellipse4-match-calcstep.bmp>";
+                                                break;
+                          }
+                          break;
+      }
+    }
+  }
+
+  else if(DrawType == DrawGROUP) {
+    Angle_step_used = require;
+    Angle_end_used  = require;
+    cmd_Draw_Info = "<img src=cmd-draw-group.bmp>";
+  }
+
+  else if(DrawType == DrawPAD) {
+    Label_Move = Help_Move;
+    switch (AngleStepTyp) {
+      case None       :
+                        Angle_step_used = Not_Used;
+                        Angle_end_used  = Not_Used;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-pad-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-pad-none.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-pad-none.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-pad-none.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Degreestep :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-pad-none-degstep.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-pad-none-degstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-pad-ellipse-degstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-pad-ellipse4-degstep.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Calcstep   :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-pad-none-calcstep.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-pad-none-calcstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-pad-ellipse-calcstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-pad-ellipse4-calcstep.bmp>";
+                                              break;
+                        }
+                        break;
+    }
+  }
+
+  else if(DrawType == DrawSMD) {
+    Label_Move = Help_Move;
+    switch (AngleStepTyp) {
+      case None       :
+                        Angle_step_used = Not_Used;
+                        Angle_end_used  = Not_Used;
+                        switch (Placeform) {
+                          case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-none.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-none.bmp>";
+                                              break;
+                          case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-none.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-none.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-none.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-none.bmp>";
+                                              break;
+                          case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-none.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-none.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Degreestep :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-degsetp.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-degstep.bmp>";
+                                              break;
+                          case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-cricle-no_match-degstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-circle-match-degstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse-no_match-degstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse-match-degstap.bmp>";
+                                              break;
+                          case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse4-no_match-degstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse4-match-degstep.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Calcstep   :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-no_match-none.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-match-none.bmp>";
+                                              break;
+                          case CIRCLE       : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-circle-no_match-calcstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-circle-match-calcstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse-no_match-calcstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse-match-calcstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : if (!RotateMatch) cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse4-no_match-calcstep.bmp>";
+                                              else cmd_Draw_Info = "<img src=cmd-draw-smd-ellipse4-match-calcstep.bmp>";
+                                              break;
+                        }
+    }
+  }
+
+  else if(DrawType == DrawHOLE) {
+    switch (AngleStepTyp) {
+      case None       :
+                        Angle_step_used = Not_Used;
+                        Angle_end_used  = Not_Used;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-hole-none.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-hole-none.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-hole-none.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-hole-none.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Degreestep :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-hole-none-degstep.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-hole-none-degstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-hole-ellipse-degstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-hole-ellipse4-degstep.bmp>";
+                                              break;
+                        }
+                        break;
+
+      case Calcstep   :
+                        Angle_step_used = require;
+                        Angle_end_used  = require;
+                        switch (Placeform) {
+                          case NONE         : cmd_Draw_Info = "<img src=cmd-draw-hole-none-calcstep.bmp>";
+                                              break;
+                          case CIRCLE       : cmd_Draw_Info = "<img src=cmd-draw-hole-none-calcstep.bmp>";
+                                              break;
+                          case FULL_ELLIPSE : cmd_Draw_Info = "<img src=cmd-draw-hole-ellipse-calcstep.bmp>";
+                                              break;
+                          case ELLIPSE_4    : cmd_Draw_Info = "<img src=cmd-draw-hole-ellipse4-calcstep.bmp>";
+                                              break;
+                        }
+                        break;
+    }
+  }
+
+  if (DrawType == DrawGROUP) {
+    Angle_step_used = require;
+    Angle_end_used  = require;
+    cmd_Draw_Info = "<img src=cmd-draw-group.bmp>";
+    RotateMatch = 1;
+  }
+  else if (DrawType != DrawMOVE && PadVia == "VIA") {
+    RotateMatch = 0;
+  }
+  return;
+}
+
+
+
+// ****** main menu ******
+int menue(void) {
+  int RESULT;
+  if (Placeform == NONE) {
+    if (DrawType == DrawGROUP) Length_Distance_Radius = " not used "; // 2012-04-12
+    else Length_Distance_Radius = "&+ radius ";
+  }
+
+  Name1st = " ";
+  NameExt = " ";
+  if (board && DrawType == DrawMOVE) {
+    Name1st = " &- 1st. Element ";
+    NameExt = " name";
+  }
+  if (board && DrawType == DrawWIRE) {
+    Name1st = " &- Signal ";
+    NameExt = " name";
+  }
+  if (board && DrawType == DrawPOLYGON) {
+    Name1st = " &- Signal ";
+    NameExt = " name";
+  }
+  if (library && DrawType == DrawPOLYGON) {
+    Name1st = " ";
+    NameExt = " ";
+  }
+  if (package && DrawType == DrawPAD) {
+    Name1st = " &- 1st. Pad ";
+    NameExt = " name";
+  }
+  if (board && DrawType == DrawPAD) {
+    Name1st = " &- Signal ";
+    NameExt = " name";
+  }
+  if (package && DrawType == DrawSMD) {
+    Name1st = " &- 1st. Smd ";
+    NameExt = " name";
+  }
+  if (package && DrawType == DrawMOVE || package && DrawType == DrawWIRE) {
+    Name1st = " ";
+    NameExt = " ";
+  }
+  if ( schematic) {
+    Name1st = " &- Net name ";
+    NameExt = " ";
+  }
+
+  RESULT = dlgDialog("Command Draw") {
+      dlgVBoxLayout {
+        dlgHBoxLayout {
+          dlgSpacing (8);
+          dlgLabel (Draw_Info, 1);
+        }
+        dlgHBoxLayout {
+          dlgGroup("Option") {
+            set_Draw_Info();
+            dlgGridLayout {
+
+              dlgCell(  1, 1) dlgHBoxLayout dlgSpacing(10);
+              dlgCell(  1, 4) dlgHBoxLayout dlgSpacing(10);
+
+              if (DrawType == DrawWIRE || DrawType == DrawPOLYGON) {
+                dlgCell(  5, 2) dlgLabel( "&Width ");
+                dlgCell(  5, 3) dlgStringEdit( width);
+              }
+              if (DrawType == DrawWIRE || DrawType == DrawPOLYGON || DrawType == DrawSMD || DrawType == DrawMOVE) {
+                dlgCell(  5, 5) dlgLabel(" &Layer");
+                dlgCell(  5, 6) dlgStringEdit(layer);
+              }
+
+              dlgCell(  5, 8) dlgLabel(Name1st, 1);
+              if ( Name1st != " ") {
+                dlgCell(  5, 9) dlgStringEdit(SigName);     // Signal-, Element-, Net-Name
+              }
+              dlgCell(  5, 10) dlgLabel(NameExt ,1);
+
+              dlgCell(  7, 2) dlgLabel( "&X center coord. ");
+              dlgCell(  7, 3) dlgRealEdit( x1, minx, maxx);
+              dlgCell(  7, 5) dlgLabel( "&Y center coord. ");
+              dlgCell(  7, 6) dlgRealEdit( y1, miny, maxy);
+              dlgCell(  7, 8) dlgHBoxLayout { dlgLabel( Length_Distance_Radius, 1); dlgStretch(1); }
+              dlgCell(  7, 9) dlgHBoxLayout { dlgRealEdit( x2, 0, maxx); dlgStretch(1); }
+
+              dlgCell(  8, 2) dlgLabel("Angle st&art ° ");
+              dlgCell(  8, 3) dlgRealEdit( StartAngle, 0.0, 720.0); // 2010-10-15
+              dlgCell(  8, 5) dlgLabel("A&ngle step ");
+              dlgCell(  8, 6) dlgRealEdit( AngleStep, -360.0, 360.0);
+              dlgCell(  8, 7) dlgSpacing(12);
+              dlgCell(  8, 8) dlgLabel(" Angle &end ° ");
+              dlgCell(  8, 9) dlgRealEdit( EndAngle, 0.0, 720.0);
+              dlgCell(  8,10) dlgSpacing(50);
+
+              dlgCell(  9, 0) dlgVBoxLayout dlgSpacing(12);
+              dlgCell(  9, 3) if(DrawType == DrawGROUP) {  // 2011-10-21
+                                dlgCheckBox("Use selected group", UseMarkedGroup);
+                              }
+              dlgCell(  9, 6) dlgLabel(Angle_step_used, 1);
+              dlgCell(  9, 9) dlgLabel(Angle_end_used, 1);
+
+
+              dlgCell(  5, 0) dlgRadioButton("Wire &1 ", DrawType) {
+                Draw_Info = " ";
+                if (library) Name_used  = Not_Used;
+                else         Name_used  = " ";
+                //Length_Distance_Radius = "&+ radius ";
+                dlgReject();
+                dlgAccept();
+              }
+              dlgCell(  6, 0) dlgRadioButton("P&olygon ", DrawType) {
+                Draw_Info = " ";
+                if (library) Name_used  = Not_Used;
+                else         Name_used  = " ";
+                //Length_Distance_Radius = "&+ radius ";
+                dlgAccept();
+              }
+              dlgCell(  6, 9) dlgLabel(Name_used, 1);
+
+              dlgCell(  7, 0) dlgRadioButton("&Move ", DrawType) {  // 2006.07.06 alf@cadsoft.de
+                Draw_Info = "MOVE Elements by Name";
+                Name_used  = require;
+                //Length_Distance_Radius = "&+ radius ";
+                dlgAccept();
+              }
+
+              dlgCell(  8, 0) dlgRadioButton("&Group *", DrawType) {
+                Draw_Info = "GROUP CUT all elements displayed and PASTE (rotated).";
+                Name_used  = " ";
+                Length_Distance_Radius = "&+ distance ";
+                RotateMatch = 1;
+                dlgAccept();
+              }
+
+              if (board || package) {
+                dlgCell( 12, 0) dlgRadioButton("&Hole ", DrawType) {
+                  Draw_Info = " ";
+                  Name_used  = " ";
+                  Length_Distance_Radius = "%+ distance ";
+                  dlgAccept();
+                }
+                if (DrawType == DrawPAD || DrawType == DrawHOLE) {
+                  if (DrawType == DrawHOLE) {
+                    dlgCell( 12, 2) dlgLabel( " Hole d&rill ");
+                  }
+                  if (DrawType == DrawPAD) {
+                    if (package) {
+                      dlgCell( 12, 2) dlgLabel( " Pad d&rill ");
+                    }
+                    if (board) {
+                      dlgCell( 12, 2) dlgLabel( " Via d&rill ");
+                    }
+                  }
+                  dlgCell( 12, 3) dlgStringEdit( Drill_Hole);
+                }
+              }
+
+              if (package) {
+                PadVia = "PAD";
+                Shapes[PAD_SHAPE_SQUARE]  = "Square";
+                Shapes[PAD_SHAPE_ROUND]   = "Round";
+                Shapes[PAD_SHAPE_OCTAGON] = "Octagon";
+                Shapes[PAD_SHAPE_LONG]    = "Long";
+                Shapes[PAD_SHAPE_OFFSET]  = "Offset";
+                Shapes[PAD_SHAPE_OFFSET+1] = " ";  // last must be empty
+
+                dlgCell( 13, 0) dlgRadioButton("&Pad ", DrawType) {
+                  Draw_Info = " ";
+                  Name_used  = " can be used";
+                  Length_Distance_Radius = "&+ distance ";
+                  dlgAccept();
+                }
+                if (DrawType == DrawPAD) {
+                  dlgCell( 13, 2) dlgLabel( " PAD &Diameter ");
+                  dlgCell( 13, 3) dlgStringEdit( PAD_diameter);
+                  dlgCell( 13, 5) dlgLabel( " Schape ");
+                  dlgCell( 13, 6) dlgComboBox(Shapes, ShapeSelect);
+                }
+                dlgCell( 14, 0) dlgRadioButton("&Smd ", DrawType) {
+                  Draw_Info = " ";
+                  Name_used  = " ";
+                  Length_Distance_Radius = "&+ distance ";
+                  dlgAccept();
+                }
+                if (DrawType == DrawSMD) {
+                  dlgCell( 14, 2) dlgLabel( " &Wide dx ");
+                  dlgCell( 14, 3) dlgRealEdit( SMD_dx);
+                  dlgCell( 14, 5) dlgLabel( " Heigh&t dy ");
+                  dlgCell( 14, 6) dlgRealEdit( SMD_dy);
+                }
+              }
+
+              if (board) {
+                PadVia = "VIA";
+                Shapes[PAD_SHAPE_SQUARE]  = "Square";
+                Shapes[PAD_SHAPE_ROUND]   = "Round";
+                Shapes[PAD_SHAPE_OCTAGON] = "Octagon";
+                Shapes[PAD_SHAPE_OCTAGON+1] = " ";
+                ShapeSelect = PAD_SHAPE_OCTAGON+1;
+
+                dlgCell( 13, 0) dlgRadioButton("&Via ", DrawType) {  // ** Via in Board / Pad in Package  **
+                  Draw_Info = " ";
+                  Name_used  = " can be used";
+                  Length_Distance_Radius = "&+ distance ";
+                  RotateMatch = 0;
+                  dlgAccept();
+                }
+                if (DrawType == DrawPAD) {
+                  dlgCell( 13, 2) dlgLabel( " VIA &Diameter ");
+                  dlgCell( 13, 3) dlgStringEdit( PAD_diameter);
+                  dlgCell( 13, 5) dlgLabel( " Schape ");
+                  dlgCell( 13, 6) dlgComboBox(Shapes, ShapeSelect);
+                }
+              }
+            }
+          }
+          dlgStretch(1);
+        }
+        dlgSpacing(8);
+        dlgHBoxLayout {
+          dlgLabel(cmd_Draw_Info, 1);   // picture for info
+          dlgGroup("Angle step type") {
+            dlgRadioButton("Not used ", AngleStepTyp)  set_Draw_Info();
+            dlgRadioButton("&° degree step ", AngleStepTyp)  set_Draw_Info();
+            dlgRadioButton("&/ calc. steps ", AngleStepTyp)  set_Draw_Info();
+            dlgLabel(" ");
+            if (DrawType == DrawMOVE || DrawType == DrawSMD ) {
+              dlgCheckBox("Rotate &item to match ", RotateMatch) {
+                set_Draw_Info();
+              }
+              dlgHBoxLayout {
+                dlgLabel( " I&tem ");
+                dlgRealEdit(EangleOffset, 0.0, 359.9);
+                dlgLabel( " rotate offset");
+              }
+            }
+          }
+          dlgGroup("Form") {
+            dlgHBoxLayout {
+              //set_Draw_Info();
+              dlgRadioButton("Not &Used", Placeform) {
+                set_Draw_Info();
+                if (EllipsFactor != 1.0) {
+                  M_EllipsFactor = EllipsFactor;
+                  EllipsFactor = 1;
+                }
+              }
+              dlgRadioButton("&Circle", Placeform) {
+                set_Draw_Info();
+                if (EllipsFactor != 1.0) {
+                  M_EllipsFactor = EllipsFactor;
+                  EllipsFactor = 1;
+                }
+              }
+              dlgRadioButton("Full ellipse &0", Placeform) {
+                set_Draw_Info();
+                if (EllipsFactor != 1.0) {
+                  M_EllipsFactor = EllipsFactor;
+                }
+                else EllipsFactor = M_EllipsFactor;
+              }
+              dlgRadioButton("1/&4 ellipse", Placeform) {
+                set_Draw_Info();
+                if (EllipsFactor != 1.0) {
+                  M_EllipsFactor = EllipsFactor;
+                }
+                else EllipsFactor = M_EllipsFactor;
+              }
+              dlgStretch(1);
+            }
+            dlgSpacing(8);
+            dlgHBoxLayout {
+              dlgLabel( " Ellipse &factor y = x*f ");
+              dlgRealEdit( EllipsFactor, +0.01, +100.0);
+            }
+          }
+          dlgStretch(1);
+        }
+      }
+
+      dlgHBoxLayout {
+        dlgLabel("<font color=\"blue\"><b>Grid " + GridUnit[grid] + "</b></font>");
+        dlgSpacing(12);
+        dlgLabel(Mark_Info);
+        dlgStretch(1);
+      }
+      dlgLabel(Label_Move, 1);
+      dlgHBoxLayout {
+        dlgLabel("<nobr><font color=\"red\">" + Help_Err + "</font><nobr>", 1);
+        dlgStretch(1);
+      }
+      dlgHBoxLayout {
+        dlgPushButton("+OK") {
+          dlgAccept();
+          PressOk = 1;
+        }
+        dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+        dlgStretch(1);
+        dlgLabel(Version);
+        dlgPushButton("Help") info();
+      }
+  };
+  return RESULT;
+}
+
+
+string getPrefix(string s) {
+  int l = strlen(s);
+  string prfx;
+  for (int n = 0; n <= l; n++) {
+    if (s[n] < '0' || s[n] > '9');
+    else {
+      prfx = strsub(s, 0, n);
+      break;
+    }
+  }
+  return prfx;
+}
+
+
+int getNumber(string s) {
+  int l = strlen(s);
+  for (int n = 0; n <= l; n++) {
+    if (s[n] < '0' || s[n] > '9');
+    else return strtol(strsub(s, n));
+  }
+  return 0;
+}
+
+
+// if Element in Project
+int exist(string e) {
+  board(B) {
+    B.elements(E) {
+      if (E.name == e) return 1;
+    }
+  }
+  return 0;
+}
+
+
+// ** draw wire Ellipse **
+string wireEllipse(void) {
+  string e;
+  real rad;
+  string xystart;
+  int    start = 1;
+  for (real winkel = StartAngle; winkel <= EndAngle; winkel += AngleStep) {
+    rad = PI / 180 * winkel;
+    sprintf(h, "(R%.9f %.9f)\n",
+                    x1 + (cos(rad) * x2),
+                    y1 + (sin(rad) * x2 * EllipsFactor) );
+    e += h;
+    if (start) {
+      xystart = h;
+      start = 0;
+    }
+  }
+  if (DrawType == DrawPOLYGON && AngleStepTyp != None) {
+    e += xystart;
+  }
+  return e;
+}
+
+
+// *** generate Script to draw WIRE ***
+void drawWire(void) {
+  if (board && SigName) SigName = "'"+SigName+"'";
+  if (library) SigName = "";
+
+  real rad = PI / 180 * StartAngle;
+  real a;
+
+  if (AngleStepTyp) {
+    switch(Placeform) {
+      case NONE         :
+                          for (a = StartAngle; a <= EndAngle; a += AngleStep) {
+                            rad = PI / 180 * a;
+                            sprintf(h, "WIRE %s %s (R%.9f %.9f) (R%.9f %.9f);\n",
+                                        width, SigName,
+                                        x1, y1,
+                                        x1 + (cos(rad) * x2),
+                                        y1 + (sin(rad) * x2 * EllipsFactor) );
+                            s += h;
+                          }
+                          break;
+      case CIRCLE       :
+                          sprintf(h, "WIRE %s %s ", width, SigName);
+                          s += h;
+                          for (a = StartAngle; a <= EndAngle; a += AngleStep) {
+                            rad = PI / 180 * a;
+                            sprintf(h, " (R%.9f %.9f) ", x1 + (cos(rad) * x2), y1 + (sin(rad) * x2 * EllipsFactor) );
+                            s += h;
+                          }
+                          s += ";\n";
+                          break;
+      case FULL_ELLIPSE :
+                          sprintf(h, "WIRE %s %s ", width, SigName);
+                          s += h;
+                          s += wireEllipse() + ";\n";
+                          break;
+      case ELLIPSE_4    :
+                          sprintf(h, "WIRE %s %s ", width, SigName);
+                          s += h;
+                          s += wireEllipse() + ";\n";
+                          break;
+    }
+  }
+  else {
+    sprintf(h, "WIRE %s %s (R%.9f %.9f) (R%.9f %.9f);\n",
+                     width, SigName,
+                     x1, y1,
+                     x1 + (cos(rad) * x2),
+                     y1 + (sin(rad) * x2 * EllipsFactor) );
+    s += h;
+  }
+  return;
+}
+
+
+// ** draw Polygon ***
+void drawPolygon(void) {
+  if (board && SigName) SigName = "'"+SigName+"'";
+  if (library) SigName = "";
+
+  if((Placeform == FULL_ELLIPSE || Placeform == ELLIPSE_4) && EllipsFactor == 1.0) {
+    dlgMessageBox("!Da fehlt der Ellipsfaktor", "OK");
+    exit(-2);
+  }
+  string ecmd;
+
+  if (AngleStepTyp) {
+    switch(Placeform) {
+      case NONE         :
+                          sprintf(ecmd, "POLYGON %s %s ", width, SigName );
+                          s += ecmd;
+                          s += wireEllipse();
+                          break;
+      case CIRCLE       :
+                          sprintf(ecmd, "POLYG %s %s ", width, SigName );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ";\n";
+                          break;
+      case FULL_ELLIPSE :
+                          sprintf(ecmd, "Polygo %s %s ", width, SigName );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ";\n";
+                          break;
+      case ELLIPSE_4    :
+                          sprintf(ecmd, "Polygon %s %s ", width, SigName );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ";\n";
+                          break;
+    }
+  }
+  else {
+    switch(Placeform) {
+      case NONE         :
+                          sprintf(ecmd, "POLy %s %s ", width, SigName );
+                          s += ecmd;
+                          sprintf(ecmd, " (R%.9f %.9f)\n", x1, y1 );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ecmd +";\n";
+                          break;
+      case CIRCLE       :
+                          sprintf(ecmd, "POLY %s %s ", width, SigName );
+                          s += ecmd;
+                          sprintf(ecmd, " (R%.9f %.9f)\n", x1, y1 );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ecmd;
+                          s += ";\n";
+                          break;
+      case FULL_ELLIPSE :
+                          sprintf(ecmd, "POlY %s %s ", width, SigName );
+                          s += ecmd;
+                          sprintf(ecmd, " (R%.9f %.9f)\n", x1, y1 );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ecmd;
+                          s += ";\n";
+                          break;
+      case ELLIPSE_4    :
+                          sprintf(ecmd, "pOLYGON %s %s ", width, SigName );
+                          s += ecmd;
+                          sprintf(ecmd, " (R%.9f %.9f)\n", x1, y1 );
+                          s += ecmd;
+                          s += wireEllipse();
+                          s += ecmd;
+                          s += ";\n";
+                          break;
+    }
+  }
+  return ;
+}
+
+
+// *** generate Script to MOVE packages ***
+void drawMove(void) {
+  real rad = PI / 180 * StartAngle;
+  string Prefix = getPrefix(SigName);
+  int    NameCount = getNumber(SigName);
+  string m = "";
+  if (layer == "16") {
+    m = "M";   // to mirror the Element
+  }
+
+  if (AngleStepTyp) {
+    if (AngleStep < 0) {
+      if (StartAngle < EndAngle) StartAngle+= 360;
+      for (real a = StartAngle; a > EndAngle; a += AngleStep) {
+        string eName;
+        sprintf(eName, "%s%d", Prefix, NameCount);
+        if (exist(eName)) {
+          rad = PI / 180 * a;
+          sprintf(h, "MOVE '%s' (R%.9f %.9f);\n",
+                      eName,
+                      x1 + (cos(rad) * x2),
+                      y1 + (sin(rad) * x2 * EllipsFactor)
+                 );
+          s += h;
+          real ang = 0;
+          if (RotateMatch) {
+            if (m) ang = 180.0 - a;
+            else ang = a;
+          }
+          sprintf(h, "ROTATE =%sR%.2f '%s';\n", m, ang+EangleOffset, eName);
+          s += h;
+          NameCount++;
+        }
+        else break;
+      }
+    }
+    else {
+      for (real a = StartAngle; a < EndAngle; a += AngleStep) {
+        string eName;
+        sprintf(eName, "%s%d", Prefix, NameCount);
+        if (exist(eName)) {
+          rad = PI / 180 * a;
+          sprintf(h, "MOVE '%s' (R%.9f %.9f);\n", eName,
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor) );
+          s += h;
+          real ang = 0;
+          if (RotateMatch) {
+            if (m) ang = 180.0 - a;
+            else ang = a;
+          }
+          sprintf(h, "ROTATE =%sR%.2f '%s';\n", m, ang, eName);
+          s += h;
+          NameCount++;
+        }
+        else break;
+      }
+    }
+  }
+  else {
+    if (exist(SigName)) {
+      sprintf(h, "MOVE '%s' (R%.9f %.9f);\n", SigName,
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor) );
+      s += h;
+      real ang = StartAngle;
+      if (RotateMatch) {
+        if (m) ang = 180.0 - StartAngle;
+        else ang = StartAngle;
+      }
+      else ang = 0;
+      sprintf(h, "ROTATE =%sR%.2f '%s';\n", m, ang, SigName);
+      s += h;
+    }
+  }
+  return;
+}
+
+
+// *** generate Script to place SMDs ***
+void drawSmd(void) {
+  if (SigName) SigName = "'"+SigName+"'";
+  if (SMD_dx && SMD_dy) {
+    sprintf(h, "CHANGE SMD %.9f %.9f;\n", SMD_dx, SMD_dy);
+    s += h;
+  }
+  real rad = PI / 180 * StartAngle;
+  if (AngleStep) {
+    if (AngleStep < 0) {
+      if (StartAngle > EndAngle) StartAngle+= 360;
+      for (real a = StartAngle; a > EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+          string rm = "";
+          if (RotateMatch) sprintf(rm, "R%.2f", a);
+          sprintf(h, "SMD %s %s (R%.9f %.9f);\n",         // 2008-05-06
+                     rm,
+                     SigName,
+                     x1 + (cos(rad) * x2),
+                     y1 + (sin(rad) * x2 * EllipsFactor)
+                 );
+          s += h;
+        }
+        else {
+          sprintf(h, "SMD (R%.9f %.9f);\n",
+                     x1 + (cos(rad) * x2),
+                     y1 + (sin(rad) * x2 * EllipsFactor)
+                 );
+          s += h;
+        }
+        if (SigName) SigName = "";         // 2008-05-06
+      }
+    }
+    else {
+      for (real a = StartAngle; a < EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+          string rm;
+          if (RotateMatch) sprintf(rm, "R%.2f", a);
+          sprintf(h, "SMD %s %s (R%.9f %.9f);\n",          // 2008-05-06
+                     rm,
+                     SigName,
+                     x1 + (cos(rad) * x2),
+                     y1 + (sin(rad) * x2 * EllipsFactor)
+                 );
+          s += h;
+          if (SigName) SigName = "";         // 2008-05-06
+        }
+        else {
+          sprintf(h, "SMD (R%.9f %.9f);\n",
+                     x1 + (cos(rad) * x2),
+                     y1 + (sin(rad) * x2 * EllipsFactor)
+                 );
+          s += h;
+        }
+      }
+    }
+  }
+  else {
+    if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+      string rm;
+      if (RotateMatch) sprintf(rm, "R%.2f", StartAngle);
+
+      sprintf(h, "SMD %s %s (R%.9f %.9f);\n",         // 2008-05-06
+                  rm,
+                  SigName,
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor)
+             );
+      s+= h;
+      if (SigName) SigName = "";         // 2008-05-06
+    }
+    else {
+      sprintf(h, "SMD (R%.9f %.9f);\n",
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor)
+             );
+      s+= h;
+    }
+  }
+  return ;
+}
+
+
+// *** generate Script to place PADs ***
+void drawPad(void) {
+  if (SigName) SigName = "'"+SigName+"'";
+  real rad = PI / 180 * StartAngle;
+  if (PadVia == "PAD" || PadVia == "VIA") { // 2013-08-05 change shape auch bei Via
+    if (ShapeSelect < PAD_SHAPE_OFFSET+1)
+    s += "CHANGE SHAPE " + Shapes[ShapeSelect] + ";\n";
+  }
+  string Rotate_option = "";
+  if (AngleStep) {
+    string h;
+    if (AngleStep < 0) {
+      if (StartAngle < EndAngle) StartAngle+= 360;
+      for (real a = StartAngle; a > EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        if (PadVia == "PAD") sprintf(Rotate_option, "R%.2f", a);
+        if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+          sprintf(h, "%s %s %s (R%.9f %.9f);\n", PadVia, Rotate_option, SigName,  // 2010-06-09 alf
+                    x1 + (cos(rad) * x2),
+                    y1 + (sin(rad) * x2 * EllipsFactor) );
+          }
+        else {
+          sprintf(h, "%s %s (R%.9f %.9f);\n", PadVia, SigName,
+                    x1 + (cos(rad) * x2),
+                    y1 + (sin(rad) * x2 * EllipsFactor) );
+          }
+        s += h;
+        SigName = "";
+      }
+    }
+    else {
+      for (real a = StartAngle; a < EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        if (PadVia == "PAD") sprintf(Rotate_option, "R%.2f", a);
+        if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+          sprintf(h, "%s %s %s (R%.9f %.9f);\n",  // 2010-06-09
+                      PadVia,
+                      Rotate_option,
+                      SigName,
+                      x1 + (cos(rad) * x2),
+                      y1 + (sin(rad) * x2 * EllipsFactor) );
+          }
+        else {
+          sprintf(h, "%s '%s' (R%.9f %.9f);\n",
+                      PadVia,
+                      SigName,
+                      x1 + (cos(rad) * x2),
+                      y1 + (sin(rad) * x2 * EllipsFactor) );
+          }
+        s += h;
+        SigName = "";
+      }
+    }
+  }
+  else {
+    if (PadVia == "PAD") sprintf(Rotate_option, "R%.2f", StartAngle);
+        if (EAGLE_VERSION >= 4 && EAGLE_RELEASE >= 10 || EAGLE_VERSION >= 5) {
+      sprintf(h, "%s %s %s (R%.9f %.9f);\n",  // 2010-06-09
+                  PadVia,
+                  Rotate_option,
+                  SigName,
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor) );
+      s+= h;
+    }
+    else {
+      sprintf(h, "%s '%s' (R%.9f %.9f);\n", // Via
+                  PadVia,
+                  SigName,
+                  x1 + (cos(rad) * x2),
+                  y1 + (sin(rad) * x2 * EllipsFactor) );
+      s += h;
+    }
+  }
+  return ;
+}
+
+// *** generate Script to place HOLEs ***
+void drawHole(void) {
+  real rad = PI / 180 * StartAngle;
+
+  sprintf(h, "HOLE %s ", Drill_Hole);
+  s += h;
+  if (Placeform == ELLIPSE_4) {
+    s += wireEllipse() + ";\n";;
+  }
+  else if (AngleStep) {
+    if (AngleStep < 0) {
+      if (StartAngle < EndAngle) StartAngle+= 360;
+      for (real a = StartAngle; a > EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        sprintf(h, " (R%.9f %.9f)\n", x1 + (cos(rad) * x2), y1 + (sin(rad) * x2 * EllipsFactor) ); // 2013-08-05 kein Semikolon
+        s += h;
+      }
+      s += ";\n";
+    }
+    else {
+      for (real a = StartAngle; a < EndAngle; a += AngleStep) {
+        rad = PI / 180 * a;
+        sprintf(h, " (R%.9f %.9f)\n", x1 + (cos(rad) * x2), y1 + (sin(rad) * x2 * EllipsFactor) ); // 2013-08-05 kein Semikolon
+        s += h;
+      }
+      s += ";\n";
+    }
+  }
+  else {
+    sprintf(h, "HOLE %s (R%.9f %.9f);\n", Drill_Hole,
+                x1 + (cos(rad) * x2),
+                y1 + (sin(rad) * x2 * EllipsFactor) );
+    s += h;
+  }
+  return ;
+}
+
+
+void drawGroup(void) {
+  real groupdistance, m;
+  if (board) board(B) {
+    gridunit = (B.grid.unit);
+    m = abs(B.area.x2);
+    if (groupdistance < m) groupdistance = m;
+    m = abs(B.area.x1);
+    if (groupdistance < m) groupdistance = m;
+    m = abs(B.area.y2);
+    if (groupdistance < m) groupdistance = m;
+    m = abs(B.area.y1);
+    if (groupdistance < m) groupdistance = m;
+  }
+  if (library) library(L) {
+    gridunit = (L.grid.unit);
+    if (package) package(P) {
+      m = abs(P.area.x2);
+      if (groupdistance < m) groupdistance = m;
+      m = abs(P.area.x1);
+      if (groupdistance < m) groupdistance = m;
+      m = abs(P.area.y2);
+      if (groupdistance < m) groupdistance = m;
+      m = abs(P.area.y1);
+      if (groupdistance < m) groupdistance = m;
+    }
+  }
+  groupdistance = maxx;  // maximum
+  if (!UseMarkedGroup) {  // 2011-10-21
+    sprintf(s, "GROUP (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (%.9f %.9f) (>%.9f %.9f);\n",
+              -groupdistance, -groupdistance,
+               groupdistance, -groupdistance,
+               groupdistance,  groupdistance,
+              -groupdistance,  groupdistance,
+              -groupdistance, -groupdistance
+           );
+  }
+  sprintf(h, "CUT (R0 0);\n");
+  s += h;
+  for (real a = StartAngle; a <= EndAngle-AngleStep; a += AngleStep) {
+    sprintf(h, "PASTE R%.2f (R0 0);\n", a);  // 2011-10-21
+    s += h;
+  }
+  return;
+}
+
+void unknown(string m) {
+  if (dlgMessageBox("unknown parameter\n" + m, "OK", "Cancel" ) != 0) exit(-1);
+  return;
+}
+
+
+// ******* Main ***************************************************************
+int n = 1;
+if (argc > 1) {
+  do {
+    Para = strupr(argv[n]);
+    // *** Order of parameters can changed here ***
+    // *** Eagle-Parser cut character ' from argument ***
+    if      (Para[0] == '+' )  { Para[0] = ' ';  x2           = strtod(Para); }
+    else if (Para[0] == 'A' )  { Para[0] = ' ';  StartAngle   = strtod(Para); }
+    else if (Para[0] == 'N' )  { Para[0] = ' ';  AngleStep    = strtod(Para); }
+    else if (Para[0] == 'E' )  { Para[0] = ' ';  EndAngle     = strtod(Para); }
+    else if (Para[0] == 'L' )  { layer   = strsub(Para, 1); }
+    else if (Para[0] == 'W' )  { Para[0] = ' ';  width        = Para; DrawType = DrawWIRE; }
+    else if (Para[0] == 'X' )  { Para[0] = ' ';  x1           = strtod(Para); }
+    else if (Para[0] == 'Y' )  { Para[0] = ' ';  y1           = strtod(Para); }
+    else if (Para[0] == 'O' )  {                 DrawType     = DrawPOLYGON;  }
+    else if (Para[0] == 'P' )  {                 PadVia       = "PAD"; DrawType = DrawPAD;  }
+    else if (Para[0] == 'V' )  {                 PadVia       = "VIA"; DrawType = DrawPAD;  }
+    else if (Para[0] == 'S' )  {                 DrawType     = DrawSMD;      }
+    else if (Para[0] == 'I' )  { Para[0] = ' ';  SMD_dx       = strtod(Para); }
+    else if (Para[0] == 'T' )  { Para[0] = ' ';  SMD_dy       = strtod(Para); }
+    else if (Para[0] == '-' )  { SigName = strsub(Para, 1); }
+    else if (Para[0] == 'D' )  { Para[0] = ' ';  PAD_diameter = Para;         }  // Pad/Via diameter
+    else if (Para[0] == 'R' )  { Para[0] = ' ';  Drill_Hole   = Para;  DrawType = DrawHOLE; }
+    else if (Para[0] == 0xb0)  {                 AngleStepTyp = Degreestep;   }  // °
+    else if (Para[0] == '/' )  {                 AngleStepTyp = Calcstep;     }
+    else if (Para[0] == 'G' )  {                 DrawType     = DrawGROUP;    }
+    else if (strstr(Para, "MOVE") == 0) {        DrawType     = DrawMOVE;     }  // ** do not change order with next line **
+    else if (Para[0] == 'M' )  {                 RotateMatch  = 1;            }  // ** do not change order with prior line **
+    else if (Para[0] == 'C' )  {                 Placeform    = CIRCLE;       }
+    else if (Para[0] == '0' )  { Para[0] = ' ';  Placeform    = FULL_ELLIPSE; }
+    else if (Para[0] == 'F' )  { Para[0] = ' ';  EllipsFactor = strtod(Para); }
+    else if (Para[0] == '4' )  {                 Placeform    = ELLIPSE_4;    }
+    else unknown(Para);
+    n++;
+  } while (argv[n]);
+}
+else {
+  if (board) {
+    board(B) grid = B.grid.unit;
+  }
+  if (schematic) { schematic(S) grid = S.grid.unit; }
+  if (library)   {
+    if (package || symbol) {
+      library(L)   grid = L.grid.unit;
+    }
+    else {
+      dlgMessageBox("!Start this ULP in a Package or Symbol Editor", "OK");
+      exit(0);
+    }
+  }
+  Set_MinMax_Unit(grid);
+
+  int Result;
+  do {
+    Result = menue();
+    if(PressOk) {
+      if (error()) {
+      string h;
+      sprintf(h, "error = %d", error());
+        dlgMessageBox(h + " \n" + Help_Err, "OK");
+        PressOk = 0;
+      }
+    }
+  } while(!PressOk);
+}
+
+SigName = strupr(SigName);
+
+sprintf(s, "SET Wire_Bend 2;\n");   // *** Script header ***
+if (layer)        s += "CHANGE LAYER " + layer + ";\n";
+if (PAD_diameter) s += "CHANGE DIAMETER " + PAD_diameter + ";\n";
+if (Drill_Hole)   s += "CHANGE DRILL " + Drill_Hole + ";\n";
+//if (SigName &&  DrawType == DrawSMD || DrawType == DrawSMD) s += "SMD " + SigName + ";\n"; // 2008.05.05
+
+if (Placeform == ELLIPSE_4) {
+  if (EndAngle > 90.0) EndAngle = 90.0;
+  if (StartAngle > EndAngle) StartAngle = 0.0;
+}
+
+switch(AngleStepTyp) {
+    case None         : if (DrawType != DrawPOLYGON) {
+                         AngleStep = 360;
+                        }
+                        break;
+    case Degreestep   : if (!AngleStep) AngleStepTyp = None;
+                        break;
+    case Calcstep     : AngleStep = (EndAngle - StartAngle) / AngleStep;
+                        break;
+}
+
+switch(DrawType) {
+  case DrawWIRE    :  drawWire();
+                      break;
+  case DrawPOLYGON :  drawPolygon();
+                      break;
+  case DrawMOVE    :  drawMove();
+                      break;
+  case DrawGROUP   :  drawGroup();
+                      break;
+  case DrawHOLE    :  drawHole();
+                      break;
+  case DrawPAD     :  drawPad();
+                      break;
+  case DrawSMD     :  drawSmd();
+                      break;
+}
+
+
+if (test) dlgDialog("Test") {
+    dlgHBoxLayout dlgSpacing(500);
+    dlgHBoxLayout {
+      dlgVBoxLayout dlgSpacing(500);
+      dlgTextView(s);
+    }
+    dlgHBoxLayout {
+      dlgPushButton("OK") dlgAccept();
+      dlgPushButton("ESC") { dlgReject(); exit(-1); }
+      dlgStretch(1);
+      dlgLabel(Version);
+    }
+  };
+
+exit (s);
+
+

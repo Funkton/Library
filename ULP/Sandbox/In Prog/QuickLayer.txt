@@ -1,0 +1,8 @@
+Quick settings ULP tool launcher.
+A ulp to run before launching any drawing tool to change layers or other settings.
+
+Some tools change the display when activating due to the active set layer being hidden. The display last command cannot undo this change. To ensure consistent diplay a ulp dialog will be used to change the layer.
+
+Have an option to be able to select any layer or only visible. only visible would always keep the diplay settings intact when switching tools (default).
+
+More advanced launcher could be designed to have default layers for certain tools. (DIMENSION set to 47 Measures).

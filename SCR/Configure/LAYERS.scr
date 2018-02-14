@@ -1,4 +1,5 @@
-#Exported from: C:/LAYOUT/Projects/LEAP/LEAP SENSOR PLATFORM/45-100312-00 Rev 1.0/Board/Design Files/LEAP RF MODULE.brd
+# Custom layers to setup.
+# These need some work
 LAYER 50 Mechanical;
 LAYER 100 PanelOutline;
 LAYER 101 Stencil;

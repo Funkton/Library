@@ -1,5 +1,4 @@
-
-#Exported from: C:/LAYOUT/Projects/LEAP/LEAP SENSOR PLATFORM/45-100312-00 Rev 1.0/Board/Design Files/LEAP RF MODULE.brd
+#TODO: Build these into LAYERS.scr
 SET COLOR_LAYER 1 36;
 SET COLOR_LAYER 2 18;
 SET COLOR_LAYER 3 4;

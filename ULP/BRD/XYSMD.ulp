@@ -15,6 +15,8 @@
 //											Added removal based on Value= DNP
 //											Added variant information to file
 //
+// Rev 1.3 CN 12/01/17  Added Type listing
+//
 ////////////////////////////////////////////////////////////
 //
 // KNOWN BUGS:
@@ -47,10 +49,10 @@
     "<p>"
 
 // Define strings
-string Version = "Rev 1.2";
+string Version = "Rev 1.3";
 string Boardname;
-string Company = "Phase IV Engineering\n2820 Wilderness Place Suite C\nBoulder CO 80301\n303-443-6611 ext.123";
-string Contact = "Cameron Nicks (cnicks@phaseivengr.com)";
+string Company = "";
+string Contact = "";
 string Copyright = "Information contained within this file is confidential. Any reproduction in part or whole is strictly prohibited without written permission or as required by non-disclosure agreement.";
 
 string CurrentVariant = variant();
@@ -78,6 +80,7 @@ if (board) board(B)
 		
 		printf("Board:,%s \n", Boardname);
 		printf("Variant:,%s%s \n\n", BomNum, CurrentVariant);
+		printf ("Type: Surface Mount Components\n");
 //		printf("%s;\n\n", EAGLE_SIGNATURE);
 
 		
@@ -202,23 +205,23 @@ if (board) board(B)
                     name[index] = '_';
                 }
 				
-				index = 0;
+							index = 0;
 				
-				while ((index = strchr (partno,' ',index)) >= 0)
+							while ((index = strchr (partno,' ',index)) >= 0)
                 {
                     partno[index] = '_';
                 }
 
-                if (strlen (value) == 0) value = "none";
-                if (strlen (name) == 0) value = "none";
-                if (strlen (partno) == 0) value = "none";
+                //if (strlen (value) == 0) value = "none";
+                //if (strlen (name) == 0) value = "none";
+                //if (strlen (partno) == 0) value = "none";
 
-				if (!bomDNP)
-				{
+							if (!bomDNP)
+								{
 	                printf("%s,%5.4f,%5.4f,%3.0f,%s,%s,%s\n",
 	                    E.name, x, y,
 	                    E.angle, value, name, partno);
-				}
+								}
             }
         }
 
@@ -346,9 +349,9 @@ if (board) board(B)
                     partno[index] = '_';
                 }
 
-                if (strlen (value) == 0) value = "none";
-                if (strlen (name) == 0) value = "none";
-                if (strlen (partno) == 0) value = "none";
+                //if (strlen (value) == 0) value = "none";
+                //if (strlen (name) == 0) value = "none";
+                //if (strlen (partno) == 0) value = "none";
 
 				if (!bomDNP)
 				{

@@ -1,0 +1,196 @@
+/*
+Duplicate Scrubber (Find duplicates and scrub them out)
+*/
+
+//TODO: In order to find duplicate wires and vias, must save all info into arrays, then run a lookup to check for uniqueness.
+
+//-- WireInfo Function --//
+// Exports list of all wires
+string WireInfo (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the signals loop
+		B.signals(S) {
+			//SignalList[n] = S.name;
+			//sprintf(c, "SIGNAL: %s\n", S.name); //List Signals
+			
+			//Wires loop
+			S.wires(W) {
+				sprintf(c, "WIRE: signal(%s), layer(%d), width(%d), start(%f %f), end(%f %f), curve(%f)\n", S.name, W.layer, W.width, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2), W.curve); //List Wires
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup filesave dialog
+		dlgDialog("Export Signal List") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_wires.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End WireInfo Function --//
+
+//-- DuplicateWire Function --//
+// Exports list of all duplicate wires
+string DuplicateWire (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the signals loop
+		B.signals(S) {
+			//SignalList[n] = S.name;
+			//sprintf(c, "SIGNAL: %s\n", S.name); //List Signals
+			
+			//Wires loop
+			S.wires(W) {
+				sprintf(c, "WIRE: signal(%s), layer(%d), width(%d), start(%f %f), end(%f %f), curve(%f)\n", S.name, W.layer, W.width, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2), W.curve); //List Wires
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup filesave dialog
+		dlgDialog("Export Signal List") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_duplicate_wires.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End DuplicateWire Function --//
+
+//-- ViaInfo Function --//
+// Exports list of all wires
+string ViaInfo (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the signals loop
+		B.signals(S) {
+			//Vias loop
+			S.vias(V) {
+				sprintf(c, "VIA: signal(%s), diameter(%d), drill(%d), scope(%d-%d), loc(%d,  %d)\n", S.name, V.diameter[18], V.drill, V.start, V.end, V.x, V.y); //List Wires
+				cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup filesave dialog
+		dlgDialog("Export Signal List") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_vias.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End ViaInfo Function --//
+
+//-- DuplicateVia Function --//
+// Exports list of all wires
+string DuplicateVia (void) {
+	string c, cmd;
+	cmd = "#Exported from: ";
+	
+	if (board) board(B) {
+	string file;
+	sprintf(file, "%s\n", B.name);
+	cmd += file;
+	
+		//-- run through the signals loop
+		B.signals(S) {
+			//Vias loop
+			S.vias(V) {
+			
+					sprintf(c, "DUPLICATE VIAS: signal(%s), diameter(%d), drill(%d), scope(%d-%d), loc(%d,  %d)\n", S.name, V.diameter[18], V.drill, V.start, V.end, V.x, V.y); //List Wires
+					cmd += c;
+			}
+		}
+		//--
+		//-- save dialog. todo: setup filesave dialog
+		dlgDialog("Export Signal List") {
+			dlgTextEdit(cmd);
+		  dlgHBoxLayout {
+			dlgPushButton("Save") {
+				string fname  = filesetext(B.name, "_vias.scr");
+				output(fname, "wtD"){
+					printf (cmd);
+					dlgAccept();
+				}
+			}
+			dlgPushButton("-Cancel") { dlgReject(); exit(0); }
+		  }
+		};
+		//--
+	return (cmd);
+	}
+	else {
+		dlgMessageBox("Run from board", "OK");
+		exit (0);
+	}
+}
+//-- End DuplicateVia Function --//
+
+//-- Function calls
+//if (argv[1] == "-wireinfo"){	WireInfo();}
+
+if (argv[1] == "-wireinfo"){	WireInfo();}
+if (argv[1] == "-duplicatewires"){	DuplicateWire();}
+if (argv[1] == "-viainfo"){	ViaInfo();}
+if (argv[1] == "-duplicatevias"){	DuplicateVia();}

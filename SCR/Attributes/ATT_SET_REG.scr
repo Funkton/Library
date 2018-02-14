@@ -1,0 +1,14 @@
+# Sets standard REGULATOR attributes for current deviceset
+# -----------------------------
+SCRIPT ATT_SET_STANDARD;
+
+run attribute-deviceset RATE constant;
+run attribute-deviceset TC constant;
+run attribute-deviceset TOL constant;
+run attribute-deviceset TEMP constant;
+run attribute-deviceset TOPOLOGY constant;
+run attribute-deviceset VDROP constant;
+run attribute-deviceset VIN constant;
+run attribute-deviceset VOUT constant;
+
+# -----------------------------

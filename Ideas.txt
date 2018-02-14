@@ -42,8 +42,8 @@
 		DISPLAY name 
 		Expands the alias with the given name and executes the DISPLAY command with the resulting set of parameters. The name may be abbreviated and there may be other parameters before and after the alias (even other aliases).
 		Display alias parameters can even contain other alias names!!!! \
-		Only 10 maximum, but you can subtract presets as well. -_copper removes the ones saved in copper.
+		You can subtract presets as well. -_copper removes the ones saved in copper.
 		
 - VIA: Typing number into command currently sets diameter. It should change drill.
 
-- Enable using Name fieled in info to rename Signal. Currently errors 'already exists'
+- Enable using Name field in info to rename Signal. Currently errors 'already exists'

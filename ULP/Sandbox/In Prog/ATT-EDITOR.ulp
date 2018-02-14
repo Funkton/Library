@@ -1,0 +1,182 @@
+/*string Colors[] = { "red\tThe color RED", "green\tThe color GREEN", "blue\tThe color BLUE" };
+int Selected = 0; // initially selects "red"
+string MyColor;
+dlgDialog("Test"){
+dlgLabel(MyColor, 1);
+dlgListView("Name\tDescription", Colors, Selected) {
+  if (dlgSelectionChanged())
+     MyColor = Colors[Selected];
+  else
+     dlgMessageBox("You have chosen " + Colors[Selected]);
+  }
+};
+*/
+
+
+
+//ATTRIBUTE ARRAY
+//string existingAtt [];
+
+string attList[];
+string attValues[];
+string combinedList[];
+numeric string partsList[];
+string cmd;
+//string attList; // Attributes list
+int cnt; //counter to use outside of function
+int debug = 1;
+	
+void getParts(){
+	// Beginning Schematic
+	if (schematic){
+		schematic(S){
+			int i;
+			S.parts(P){
+				if (P.device.library != "Supply"){ //ignore libraries
+					partsList[i] = P.name;
+					i++;
+				}
+			}
+			string tmp;
+			sprintf(tmp, "%d", i);
+			//dlgMessageBox ("There are " + tmp + " parts");
+		}
+	}
+	if (board){
+		board(B){
+			int i;
+			B.elements(E){
+				if (E.package.library != "Frames" && E.package.library != "Logo") { // Ignore parts from these libraries
+					partsList[i] = E.name;
+					i++;
+				}
+			}
+			
+			string tmp;
+			sprintf(tmp, "%d", i);
+			//dlgMessageBox ("There are " + tmp + " parts");
+		}
+	}
+}
+
+// getAtt function: retreive attributes for selected part
+void getAtt(string s){
+	int i = 0;
+	string attListView[];
+	string attInfo;
+	
+	if (schematic){
+		schematic(S){
+			S.parts(P){
+				P.instances(I){
+					if (P.name == s) {
+						P.attributes(A) {
+							//sprintf(attInfo, "%\t%s")
+							attListView[i] = A.name + "\t" + A.value;
+							combinedList[i] = attListView[i];
+							i++;
+						}
+					}
+					combinedList[i] = "\0"; //terminate the array to clear off old ones
+				}
+			}
+		}
+	}
+	if (board){
+		board(B){
+			B.elements(E){
+					if (E.name == s) {
+						E.attributes(A) {
+							if (A.name != "NAME"){
+							attListView[i] = A.name + "\t" + A.value;
+							combinedList[i] = attListView[i];
+							i++;
+							}
+						}
+					}
+					combinedList[i] = "\0"; //terminate the array to clear off old ones
+			}
+		}
+	}
+	
+}
+// End getAtt function
+
+// locatePart function. Return edit command to switch to the sheet the part is located on (sch only)
+	string locatePart (string lookupPart) {
+		string sheetNum;
+		project.schematic(S){
+			S.parts(P){
+				P.instances(I) {
+					if (P.name == lookupPart) {
+						if (debug) {
+							string tmp;
+							sprintf(tmp, "%s is on sheet: %d", lookupPart, I.sheet);
+							dlgMessageBox (tmp);
+						}
+					sprintf (sheetNum, "EDIT .s%d; ", I.sheet);
+					return sheetNum;
+					}
+				}
+			}
+		}
+	}
+	// End locatePart function
+
+int Selected = 0;
+
+// Get the part names
+getParts();
+getAtt(partsList[Selected]);
+
+// editAtt function: returns command to edit the attributes of selected part
+string editAtt (string s){
+string Result;
+
+	// If there is a schematic available, switch to sheet with destination part. Editing attributes from brd vs sch act a bit differently
+	if (project.schematic){
+		cmd += locatePart(s);
+	}
+
+	sprintf(Result, "ATTRIBUTE %s", s);
+	
+	cmd += Result;
+		if (debug) {
+			dlgMessageBox (cmd);
+		}
+	return cmd;
+}
+
+// Attribute Dialog
+//int Result = 
+dlgDialog("Attributes List") {
+string partName;
+	
+	dlgGridLayout {
+
+
+dlgCell(0, 0, 0, 1) dlgLabel("Select Part to View Attributes");
+
+dlgCell(1, 0, 1, 1)	dlgListBox(partsList, Selected) {
+			if (dlgSelectionChanged()){
+				partName = partsList[Selected];
+				getAtt(partsList[Selected]);
+			}
+		};
+dlgCell(2, 0) dlgPushButton("-Close") dlgReject();
+		
+	dlgCell(0, 2)	dlgLabel("Selected Part:");
+	dlgCell(0, 3)	dlgLabel(partName, 1);
+	dlgCell(0, 4)	dlgSpacing(200);
+		
+	dlgCell(1, 2, 1, 4)	dlgListView("Attribute\tValue", combinedList, Selected);
+	dlgCell(2, 2)	dlgPushButton("+Edit") exit(editAtt(partsList[Selected]));
+		
+			
+
+  //dlgPushButton("+OK") getAtt(partsList[Selected]);
+  }
+};
+	//getAtt(partsList[Selected]);
+//dlgMessageBox("last selected\n" + attList[Selected]);
+//if (Result == 0) exit (0);

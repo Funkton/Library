@@ -1,0 +1,62 @@
+#usage "en: <b>Draws the calculated contours of a polygon as WIRE.</b><p>"
+       "RUN cmd-draw-polygon-contours-as-wire SIGNALNAME [FILLING] [Layernumber]<p>"
+       "FILLING also draws the filling as wire.<br>"
+       "Layernumber the new layer of copy.<br>"
+       "<author>support@cadsoft.de</author>"
+       ,
+       "de: <b>Zeichnet die berechneten Konturen eines Polygons als WIRE.</b><p>"
+       "RUN cmd-draw-polygon-contours-as-wire SIGNALNAME [FILLING] [Layernumer]<br>"
+       "FILLING zeichnet auch die Füllung als WIRE.<p>"
+       "Layernumber ist der Layer in dem die Kopie erzeugt werden soll.<br>"
+       "<author>support@cadsoft.de</author>"
+
+string Version = "1.0.0";  // 2011-09-07 alf@cadsoft.de
+string f;
+string tempextension = "~.scr";
+int    Ratsnest = 0;
+
+int    Newlayer = strtol(argv[3]);
+
+if (!argv[1]) {
+  if (language() == "de") dlgMessageBox(usage + "<p>Geben Sie einen <b>SIGNALNAMEN</b> an.", "OK");
+  else dlgMessageBox(usage + "<p>Missing <b>SIGNALNAME</b>.", "OK");
+  exit(-1);
+}
+
+if (board) {
+  board(B) {
+    f = filesetext(B.name, tempextension);
+    output(f, "wtD") {
+      printf("GRID MM;\nSET WIRE_BEND 2;\n");
+      B.signals(S) {
+        if (S.name == strupr(argv[1]) ) {
+          S.polygons(P) {
+            if (P.layer == 1 || P.layer == 16) {
+              printf("CHANGE LAYER %d;\nCHANGE WIDTH %.4f;\n", P.layer, u2mm(P.width) );
+              if (P.thermals) printf("CHANGE THERMAL ON;\n");
+              else printf("CHANGE THERMAL OFF;\n");
+              P.fillings(W) {
+                Ratsnest = 1;
+                break;
+              }
+              if (!Ratsnest) {
+                if (language() == "de") dlgMessageBox("!Starten Sie zuerst RATSNEST um die Füllung der Polygone zu berechnen.", "OK");
+                else dlgMessageBox("!Start first RATSNEST to calculate polygons.", "OK");
+                exit("RATSNEST");
+              }
+              P.contours(W) {
+                if (Newlayer) printf("Layer %d;\nWIRE (%.4f %.4f) (%.4f %.4f);\n", Newlayer, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2) );
+                else printf("WIRE '%s' (%.4f %.4f) (%.4f %.4f);\n", S.name, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2) );
+              }
+              if (argv[2] == "FILLING") P.fillings(W) {
+                if (Newlayer) printf("Layer %d;\nWIRE (%.4f %.4f) (%.4f %.4f);\n", Newlayer, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2) );
+                else printf("WIRE '%s' (%.4f %.4f) (%.4f %.4f);\n", S.name, u2mm(W.x1), u2mm(W.y1), u2mm(W.x2), u2mm(W.y2) );
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  exit("SCRIPT '" + f + "'");
+}

@@ -24,6 +24,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 Version:
+1.0 02/09/18
+	- Fixed copy mode grid rounding issue.
+	- Added debug mode flag
+		
 0.9 06/30/17
 	- Added copy mode. Makes a copy of group displaced by move amounts. CN
 		Bug: If copy then undo, must regroup again. Distances don't get updated for some reason.
@@ -39,10 +43,14 @@ Version:
 
 	
 BUGS:
-	- EAGLE for some reason rounds mouse movement to grid. Group has been snapping to the grid, must set finest to get around this. ie: If grid is set to 1mm, moving by 2.54 rounds to 2.5. WTF?
-	This issue is not persistent and sometimes works, sometimes doesn't. Makes it hard to troubleshoot.
+
 	
 To-Do Feature List:
+[ ] - Add absolute for objects (single, multi?). Force all x or y coordinates to a certain value. 
+[ ] - Add reference location (used for relative)
+[ ] - Add relative move from mark and move to absolute point.
+[ ] - Add copy amount for step and repeat
+[ ] - Add independent last used values support for each editor.
 [ ] -	Undo argument (inverts previously used values, --u argument)
 [ ] - 	Add apply button to make move and recall ulp.
 [ ] -	Filter out any objects that are locked. That way copying a group with lock parts will not throw a backannotation error.
@@ -61,6 +69,8 @@ This could also be used combined with previosly used value and repeat mode to ma
 
 */
 
+int debug = 0;
+
 #usage 	"en: Move group by x,y displacement. Define a group, enter values, enter.<p>"
 		"Moves the group by the amounts entered. Unit is optional.\n"
 		"Make copy checkbox makes a copy at the sistances entered.\n"
@@ -78,9 +88,7 @@ string yVal = cfgget("moveby.value.y", "0");
 
 string copy = cfgget("moveby.mode.copy" "0");
 
-
-
-string VERSION = "0.9 (30-Jun-2017)";
+string VERSION = "1.0 (09-Feb-2018)";
 
 if (argv[1] == "--install") {
    exit("edit .brd; set context element 'Move By...' 'run MOVEBY';"); //'run MOVEBY --context' // TO-DO: Add schematic context: BUG Reported: https://goo.gl/vA6Mfq
@@ -100,62 +108,57 @@ if (argv[1] == "--install") {
    int mode = strtol(cfgget("moveby.mode.copy"));
    
 
-int Result = dlgDialog("Move By Displacement") {
-  dlgHBoxLayout {
-    dlgStretch(1);
-    dlgLabel("Move Group By...");
-    dlgStretch(1);
-    }
-  dlgHBoxLayout {
-  dlgLabel("X:");
-  dlgStringEdit(xVal);
-  dlgLabel("Y:");
-  dlgStringEdit(yVal);
-  }
-  dlgHBoxLayout {
-  dlgCheckBox("&Make Copy", mode);
-  }
+	int Result = dlgDialog("Move By Displacement") {
+		dlgHBoxLayout {
+			dlgStretch(1);
+			dlgLabel("Move Group By...");
+			dlgStretch(1);
+		}
+		dlgHBoxLayout {
+			dlgLabel("X:");
+			dlgStringEdit(xVal);
+			dlgLabel("Y:");
+			dlgStringEdit(yVal);
+		}
+		dlgHBoxLayout {
+			dlgCheckBox("&Make Copy", mode);
+		}
   dlgHBoxLayout {
    // dlgStretch(1);
     dlgPushButton("+OK")    dlgAccept();
     dlgPushButton("-Cancel") dlgReject(); // Without the -, escape key acted like ok
-    }
-};
-if (Result == 0) exit (0);
-if (Result) {
-
-// Save last used values to eaglerc.usr
-// This doesn't actually save to the file until eagle closes, but it does hold the changes in memory.
-string cfg = "";
-
-cfgset("moveby.value.x", xVal);
-cfgset("moveby.value.y", yVal);
-
-//int settings need to be converted to string to store with cfgset
-sprintf(cfg, "%d", mode);
-cfgset("moveby.mode.copy", cfg); 
-
-
-//Output Commands
-if (mode == 0){
-	sprintf(cmd, "MOVE (>0 0) (%s %s);\n", xVal, yVal);
-	//dlgMessageBox(cmd);
-	exit(cmd);
-}
-else {
-	real x = strtod(xVal);
-	x = -x;
-	real y = strtod(yVal);
-	y = -y;
-	sprintf(cmd, "COPY (>%f %f);", x, y); //Copy offset values need to be inverted. I don't get why, seems backwards to me.
+  }
+	};
 	
-		//dlgMessageBox(cmd);
-	exit(cmd);
-}
+	if (Result == 0) exit (0);
+	
+	if (Result) {
+		// Save last used values to eaglerc.usr
+		string cfg = "";
+		string amt = "";
+
+		cfgset("moveby.value.x", xVal);
+		cfgset("moveby.value.y", yVal);
+
+		//int settings need to be converted to string to store with cfgset
+		sprintf(cfg, "%d", mode);
+		cfgset("moveby.mode.copy", cfg); 
 
 
-}
-
+		//Output Commands
+		if (mode == 0){
+			cmd += "MOVE";
+		} else if (mode == 1) {
+			cmd += "COPY";			
+			}
+		sprintf(amt, " (>0 0) (%s %s);\n", xVal, yVal);
+		
+		cmd += amt;
+		if (debug) {dlgMessageBox(cmd);}//Debug
+		
+		// Output command to editor
+		exit(cmd);
+	}
 
 // else {exit(0)}
 }

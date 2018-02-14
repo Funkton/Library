@@ -1,0 +1,10 @@
+# Sets standard attributes for current deviceset
+# -----------------------------
+SCRIPT ATT_SET_STANDARD;
+
+run attribute-deviceset VEND1;
+run attribute-deviceset VEND1#;
+run attribute-deviceset VEND2;
+run attribute-deviceset VEND2#;
+
+# ----------------------------- 

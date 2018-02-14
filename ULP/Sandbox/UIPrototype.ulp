@@ -1,0 +1,150 @@
+
+// Helper function to convert an integer value to a string
+string dtostr (int value) {
+   string strValue = "";
+   sprintf (strValue, "%d", value);
+   return strValue;
+}
+
+string TR(string s) {
+   return s;
+}
+
+string get_project_path() {
+  if (board)     board(B)     return(filedir(B.name));
+  if (schematic) schematic(S) return(filedir(S.name));
+  if (library)   library(L)   return(filedir(L.name));
+}
+
+string checkMark = "✓"; // Unicode U+2713
+string emSpace = " ";   // Unicode U+2003
+string tickEntry = "  ✓";
+
+string myPath = get_project_path();
+int mode = 1;
+int lastMode = mode;
+int prefix = 1;
+int lastPrefix = prefix;
+int allParts = 1;
+int genReplace = 0;
+int Selected = -1;
+int exportAll = 1;
+
+// Build the data array for the dialog box data
+
+int    exportLib[]  = {1,1,1,1,1,1,1,1,1,1};
+string libNames[]   = {"CAP","LP_Silkscreen","Project7264","Jumper","led","microcrystal","murata","pinhead","rcl","texas"};
+int    libManaged[] = {0,1,0,0,1,0,0,0,0,0};
+int    numLibs      = 10;
+int    numExported  = 10;
+string Libraries[]  = {""};
+
+void buildViewData () {
+   for (int i=0 ; i < numLibs ; i++) {
+      string items[] = {"",libNames[i],""};
+      if (exportLib[i]) items[0] = tickEntry;
+      if (libManaged[i]) items[2] = tickEntry;
+      Libraries[i] = strjoin(items, '\t');
+   }
+}
+
+// Helper function to toggle the Export tick.
+
+void toggleTick (int itemNum) {
+   exportLib[itemNum] = 1 - exportLib[itemNum];
+   if (exportLib[itemNum]) {
+      numExported++;
+   } else {
+      numExported--;
+   }
+
+   exportAll = 1;
+   if (numExported < numLibs) exportAll = 0;
+
+   buildViewData();
+}
+
+void toggleTickAll (int state) {
+   numExported = 0;
+   for (int i=0 ; i<numLibs ; i++ ) {
+      exportLib[i] = state;
+      numExported += state;
+   }
+
+   buildViewData();
+}
+
+// Implement the dialog box
+
+int Result = dlgDialog(TR("Export Libraries")) {
+   dlgVBoxLayout {
+      dlgHBoxLayout {
+         dlgSpacing(640);
+      }
+      dlgGroup("") {
+         dlgHBoxLayout {
+            int viewSort = 0;
+            buildViewData();
+            dlgListView("Export\tSource Library\tManaged\tDescription", Libraries, Selected, viewSort) {
+               if (dlgSelectionChanged()) {
+                  toggleTick(Selected);
+                  Selected = -1;
+                  dlgRedisplay();
+               }
+            }
+         }
+         dlgHBoxLayout {
+            dlgCheckBox("Export all", exportAll) {
+               toggleTickAll(exportAll);
+               dlgRedisplay();
+            }
+         }
+         dlgHBoxLayout {
+            dlgGroup("Settings") {
+               dlgHBoxLayout {
+                  dlgVBoxLayout {
+                     dlgRadioButton("Export multiple libraries", mode) {
+                        if (lastMode == 1) {
+                           lastPrefix = prefix;
+                           prefix = 0;
+                           lastMode = 0;
+                           dlgRedisplay();
+                        }
+                     }
+                     dlgRadioButton("Export one library", mode) {
+                        prefix = lastPrefix;
+                        lastMode = 1;
+                        dlgRedisplay();
+                     }
+                     dlgHBoxLayout {
+                        dlgLabel(" ");
+                        dlgCheckBox("Prefix parts with library name", prefix) {
+                           if (mode == 0) {
+                              prefix = 0;
+                              dlgRedisplay();
+                           }
+                        }
+                     }
+                     dlgCheckBox("Only export parts used in design", allParts);
+                     dlgCheckBox("Generate replace script", genReplace);
+                  }
+                  dlgStretch(1);
+               }
+            }
+         }
+         dlgHBoxLayout {
+            dlgLabel("Path:");
+            dlgStringEdit(myPath);
+            dlgPushButton("Browse...") {
+               myPath = dlgDirectory("Select a directory", myPath);
+            }
+         }
+      }
+      dlgHBoxLayout {
+         dlgPushButton("Help...");
+         dlgStretch(1);
+         dlgPushButton("Cancel") dlgReject();
+         dlgPushButton("+OK") dlgAccept();
+      }
+   }
+};

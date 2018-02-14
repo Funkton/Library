@@ -1,0 +1,11 @@
+# Sets standard CAPACITOR attributes for current deviceset
+# -----------------------------
+SCRIPT ATT_SET_STANDARD;
+
+run attribute-deviceset FEAT constant;
+run attribute-deviceset RATE constant;
+run attribute-deviceset TC constant;
+run attribute-deviceset TOL constant;
+run attribute-deviceset VALUE constant;
+
+# -----------------------------
