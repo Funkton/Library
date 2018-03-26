@@ -1,4 +1,4 @@
-#usage "<b>MLUtils v1.0 </b><br>"
+#usage "<b>MLUtils v1.1 </b><br>"
 "This ULP adds some useful functions to Eagle's context menus.<br>"
 
 "<table><th><td><b>In schematics editor:</b></td></th>"
@@ -30,13 +30,16 @@
 "<br>"
 "<author>Author: Morten Leikvoll Nov 2016</author>"
 
-//v1.0
+//v1.0 - Original
+
+//v1.1 - Edited CAMERON NICKS	
+// 		- Added net name to dialog
 
 #require 6.0000
 
 string colorString(string s, string color)
 {
-	return "<html><b><center><font color="+color+">"+s+"</font></center></b></html>";
+	return "<html><h3><b><center><font color="+color+">"+s+"</font></center></b></h3></html>";
 }
 
 //http://geomalgorithms.com/a03-_inclusion.html
@@ -100,9 +103,9 @@ if(argc>=1)
 						"SET CONTEXT wire 'Net:Navigate' 'run MLUtils.ulp';"
 						"SET CONTEXT instance 'Symbol:Locate part in board' 'run MLUtils.ulp instance';"
 						"SET CONTEXT instance 'Symbol:Show connected signals in board' 'run MLUtils.ulp showconnected';"
-						"EDIT .brd;"
+				"EDIT .brd;"
 						"SET CONTEXT element 'Part:Locate in sch' 'run MLUtils.ulp element';"
-						"SET CONTEXT wire 'Polygon:Move' 'run MLUtils.ulp movepolygon';"
+//						"SET CONTEXT wire 'Polygon:Move' 'run MLUtils.ulp movepolygon';"
 						"SET CONTEXT wire 'Polygon:Ripup' 'run MLUtils.ulp ripuppolygon';"
 						"SET CONTEXT wire 'Polygon:viacount' 'run MLUtils.ulp viacount';"
 						"SET CONTEXT wire '-' ';';"
@@ -112,13 +115,13 @@ if(argc>=1)
 						"SET CONTEXT wire 'Segment:Group upto' 'run MLUtils.ulp groupsignal narrow';"
 						"SET CONTEXT wire '---' ';';"
 						"SET CONTEXT wire 'Layers:Display affected' 'run MLUtils.ulp display';"
-						"SET CONTEXT wire 'Layers:Hide' 'run MLUtils.ulp hidelayer';"
+						"SET CONTEXT wire 'Layers:Hide' 'run MLUtils.ulp hidelayer';" // Extend this to other types of objects, polygons lines, text -CN
 						"SET CONTEXT via 'Layers:Display affected' 'run MLUtils.ulp display';"
 //todo						"SET CONTEXT wire 'Airwire:Finnish' 'run MLUtils.ulp doairwire';"
 //todo						"SET CONTEXT wire 'Segment:Rename' 'run MLUtils.ulp renamesegment';"
 //todo						"SET CONTEXT all 'Help' 'run MLUtils.ulp showhelp';"
 
-//todo						"OPEN .lbr";
+//todo			"OPEN .lbr";
 //todo						"SET CONTEXT wire 'Polygon:Move' 'run MLUtils.ulp movepolygon';"
 						""
 						;
@@ -533,6 +536,7 @@ if(i)
 {
 	dlgDialog("Connected pins")
 	{
+		dlgLabel(colorString(found,"green"));
 		dlgListView("Name\tPin\tPincount\tLocation\tDirection",list,sel,sortcol)
 		{
 			sprintf(cmd,"edit .s%d;grid mil;window (%f %f) (%f %f);grid last;show @ %s",s[sel],u2mil(x[sel]),u2mil(y[sel]),u2mil(x2[sel]),u2mil(y2[sel]),p[sel]);
