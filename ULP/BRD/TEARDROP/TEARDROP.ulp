@@ -1,4 +1,4 @@
-#usage "<b>Teardrops - v1.13 (29/12/13)</b>\n"
+#usage "<b>Teardrops - v1.15 (May 8, 2018)</b>\n"
        "<p>"
        "This ULP allows creation of teardrop-shaped connections from a board's vias/pads to their attached wire segments.  "
        "Making these connections teardrop shaped enhances manufacturability and reduces board failure by ensuring "
@@ -8,7 +8,8 @@
        "<author>Original Author: Tad Artis (E3Eagle_removethis@E3Switch.com)<br>"
        "Modifications: Bob Starr (rtzaudio@comcast.net)<br>"
        "Modification: layer selectable (alf@cadsoft.de)<br>"
-	     "Modification: curved teardrops. Andres Restrepo S. (ars662001@yahoo.com)<br>"
+	   "Modification: curved teardrops. Andres Restrepo S. (ars662001@yahoo.com)<br>"
+	   "Modification: Signal ignore. Cameron Nicks (cameron.nicks+design@gmail.com)"
        "</author>"
 
 // THIS PROGRAM IS PROVIDED AS IS AND WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED
@@ -51,12 +52,10 @@ string HelpText = usage +
 #require 5.1000
 
 string ULPname = "Teardrop Generator v";
-string Release = "1.13";
-string ReleaseDate = "Dec 29, 2013";  // ars662001@yahoo.com
+string Release = "1.15";
+string ReleaseDate = "May 8, 2018"; 
 
-// C. Nicks
-// Changed to ignore airwires.
-
+int debug = 0;
 
 string HistoryText2 =
   "<p>"
@@ -64,6 +63,8 @@ string HistoryText2 =
   "<p>"
   "Version History"
   "<ul>"
+  "<li>v1.15 - Added signal ignore field. Fixed bend error in undo script generation (curve instead of radius).</li><p>" // C. Nicks cameron.nicks+design@gmail.com
+  "<li>v1.14 - Fixed airwire override.</li><p>" // C. Nicks cameron.nicks+design@gmail.com
   "<li>v1.13 - Correct glitch when wires intersect via/pad TD perimeter. Change td perimeter definition.</li><p>"  //ars662001@yahoo.com
   "<li>v1.12 - Correct glitch when wirestubs (length=0) are found</li><p>"  //ars662001@yahoo.com
   "<li>v1.11 - Add option to avoid to do teadrops when airwires are present</li><p>"  //ars662001@yahoo.com
@@ -97,6 +98,9 @@ real    User_Min_Wire        = 0.005; // [mil]   minimal wire length to represen
 real    uiw_internal;
 
 string FileIniD=filedir(argv[0]) + "teardrop.ini";
+
+string ignoreSignal[]; // For use as signals to ignore.
+string ignoreNames; // For use in dialog, use delimiter to enter more than 1
 
 
 void Default_Settings(void)
@@ -134,6 +138,7 @@ void Save_Settings(void)
     printf("%d\n",User_Enable_bkstub);
     printf("%d\n",User_Override_air);
     printf("%f\n",User_Min_Wire);
+    printf("%s\n",ignoreNames);
   } 
 }
 
@@ -157,6 +162,7 @@ int nLines = fileread(linesf,FileIniD);
     User_Enable_bkstub =strtol(linesf[9]);
     User_Override_air  =strtol(linesf[10]);
     User_Min_Wire      =strtod(linesf[11]);
+    ignoreNames      =linesf[12];
     status("Ok.");
   }
 }
@@ -687,7 +693,7 @@ string viatyp;
 
 
 // make a list of all wires
-void do_wire_list(UL_SIGNAL S) {
+void do_wire_list(UL_SIGNAL S){
   
   S.wires(W) 
   {         
@@ -696,11 +702,11 @@ void do_wire_list(UL_SIGNAL S) {
       if(W.arc)  // is an arc:  WIRE 'signal' width (x1 y1) @[sign(curve)]radius (x2 y2); 
       {                
         if(W.curve>0)
-          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @+%.10f (%.10f %.10f);\n",                                     
-                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) +%.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), W.curve , u2mm(W.x2),  u2mm(W.y2) ); //Changed to curve values instead of radius. Radius would not always restore to the same bend. CN
         else
-          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) @-%.10f (%.10f %.10f);\n",                                     
-                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), u2mm(W.arc.radius) , u2mm(W.x2),  u2mm(W.y2) );
+          printf("LAYER %d;\tWIRE '%s' %.10f (%.10f %.10f) %.10f (%.10f %.10f);\n",                                     
+                  W.layer, S.name, u2mm(W.width), u2mm(W.x1),  u2mm(W.y1), W.curve , u2mm(W.x2),  u2mm(W.y2) );
       }
       else       // is a straight wire: WIRE 'signal' width (x1 y1) (x2 y2); 
       {              
@@ -712,8 +718,7 @@ void do_wire_list(UL_SIGNAL S) {
   }    
   return;
 }
-
-
+	
 // save vias and wires before teardropping:
 void generate_undo(void)
 {
@@ -797,16 +802,49 @@ string message;
       printf("GRID MM;\n");
 
       B.signals(S) {
-          if (User_Vias)
-              do_vias(S);
+		  int n = strsplit(ignoreSignal, strupr(ignoreNames), ';'); 
+		  int i = 0;
+		  int process = 1; //Set default process state
+		  
+		  for (i=0; i<n; ++i){
+			/*
+			if(debug){
+				string tmp;
+				sprintf(tmp, "Checking Current Signal= %s ; Against Ignored= %s", S.name, ignoreSignal[i]);
+				dlgMessageBox (tmp);
+			}
+			*/
+			if (process){
+				if (S.name == ignoreSignal[i]){
+					process = 0; // Set the process flag if the name does not match the current ignore.
+				}
+				else {
+					//process = 1;
+				}
+			}
+		  }
+		if (debug){
+			string tmp;
+			sprintf(tmp, "Signal: %s, process = %d", S.name, process);
+			dlgMessageBox (tmp);
+		}
+			
+		if (process){
+			if (User_Vias)
+				do_vias(S);
 
-          if (User_Pads)
-              do_pads(S);
+			if (User_Pads)
+				do_pads(S);
+		}
       }
 
       printf("GRID LAST;\n");
       printf("SET UNDO_LOG ON;\n");
-
+	  
+		if(debug){
+			exit(-1);
+		}
+	
       if (changes) exit ("script '" + fname + "';\n");
       else  dlgMessageBox("No teardrops generated with current parameters");
     }
@@ -827,7 +865,7 @@ string settarget(string sellayer) {  // 2012-04-04
   int sel = strtol(l[1]) -1;
   dlgDialog("Target Layer") {
     dlgLabel("New layer for " + l[0]);
-    dlgGroup("Layer activ") {
+    dlgGroup("Layer active") {
       dlgRadioButton("&no", activ);
       dlgRadioButton("&yes", activ);
     }
@@ -943,9 +981,11 @@ dlgDialog(ULPname + Release)  {
                 dlgPushButton("Default Settings") Default_Settings();
                 dlgSpacing(8);
                 dlgLabel("Click on layer to select :");
-                dlgListView("Layer Source\tTeardrop Target\tactiv", LayerName, LayerSel) {
+                dlgListView("Layer Source\tTeardrop Target\tactive", LayerName, LayerSel) {
                   LayerName[LayerSel] = settarget(LayerName[LayerSel]);
                 }
+				dlgLabel("Ignore Signals: (* separate with ; )");
+				dlgStringEdit(ignoreNames);
               }
               dlgStretch(1);
               dlgSpacing(10);
